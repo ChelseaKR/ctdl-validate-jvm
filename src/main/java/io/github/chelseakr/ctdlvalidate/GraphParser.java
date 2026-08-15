@@ -3,7 +3,6 @@ package io.github.chelseakr.ctdlvalidate;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,9 +143,7 @@ public final class GraphParser {
         byId.putIfAbsent(nodeId, node);
       }
 
-      Iterator<Map.Entry<String, JsonNode>> fields = object.fields();
-      while (fields.hasNext()) {
-        Map.Entry<String, JsonNode> field = fields.next();
+      for (Map.Entry<String, JsonNode> field : object.properties()) {
         String key = field.getKey();
         if (key.startsWith("@")) {
           continue;

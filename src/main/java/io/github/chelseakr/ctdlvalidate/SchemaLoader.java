@@ -8,7 +8,6 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -88,9 +87,7 @@ public final class SchemaLoader {
     Map<String, String> prefixes = new LinkedHashMap<>();
     for (String file : CONTEXT_FILES) {
       JsonNode context = readVendored(file).get("@context");
-      Iterator<Map.Entry<String, JsonNode>> fields = context.fields();
-      while (fields.hasNext()) {
-        Map.Entry<String, JsonNode> field = fields.next();
+      for (Map.Entry<String, JsonNode> field : context.properties()) {
         if (field.getValue().isTextual()) {
           prefixes.putIfAbsent(field.getKey(), field.getValue().textValue());
         } else if (field.getValue().isObject()) {

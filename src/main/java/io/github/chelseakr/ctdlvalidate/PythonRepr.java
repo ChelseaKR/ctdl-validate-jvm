@@ -1,7 +1,6 @@
 package io.github.chelseakr.ctdlvalidate;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -56,9 +55,7 @@ public final class PythonRepr {
     }
     if (node.isObject()) {
       StringJoiner joiner = new StringJoiner(", ", "{", "}");
-      Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
-      while (fields.hasNext()) {
-        Map.Entry<String, JsonNode> field = fields.next();
+      for (Map.Entry<String, JsonNode> field : node.properties()) {
         joiner.add(ofString(field.getKey()) + ": " + of(field.getValue()));
       }
       return joiner.toString();

@@ -6,6 +6,11 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    # Wait a week before proposing a newly published version. A package that
+    # was compromised at publication is usually found within days, and there
+    # is nothing here that needs a dependency the day it ships.
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "chore(deps)"
 
@@ -15,6 +20,11 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    # Wait a week before proposing a newly published version. A package that
+    # was compromised at publication is usually found within days, and there
+    # is nothing here that needs a dependency the day it ships.
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "chore(deps)"
 
