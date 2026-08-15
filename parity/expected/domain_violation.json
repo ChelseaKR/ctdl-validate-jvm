@@ -1,0 +1,39 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "DOMAIN_VIOLATION",
+      "entity": "https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826",
+      "message": "ceterms:isPartOf is not declared for class(es) [ceterms:Organization].",
+      "property": "ceterms:isPartOf",
+      "rule": {
+        "citation": "ceterms:isPartOf declares schema:domainIncludes [ceterms:AcademicCertificate, ceterms:AlignmentObject, ceterms:ApprenticeshipCertificate, ceterms:AssessmentComponent, ceterms:AssessmentProfile, ceterms:AssociateDegree, ... (66 classes total)] in the schema encoding; the subject's class is not among them or their subclasses.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "ERROR",
+      "value": "@type=[ceterms:Organization]"
+    },
+    {
+      "code": "INVERSE_ONE_DIRECTION",
+      "entity": "https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826",
+      "message": "https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826 asserts ceterms:isPartOf but https://credentialengineregistry.org/resources/ce-b4da9602-bb7a-4ddc-9426-f119482e32a9 does not assert the declared inverse ceterms:hasPart. One direction alone is not an error.",
+      "property": "ceterms:isPartOf",
+      "rule": {
+        "citation": "ceterms:isPartOf declares owl:inverseOf ceterms:hasPart in the schema encoding: if A ceterms:isPartOf B is asserted, then B ceterms:hasPart A must hold wherever both directions are stated.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-b4da9602-bb7a-4ddc-9426-f119482e32a9"
+    }
+  ],
+  "summary": {
+    "ERROR": 1,
+    "INFO": 1,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": "ERROR        DOMAIN_VIOLATION  entity=https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826\n    ceterms:isPartOf = @type=[ceterms:Organization]\n    ceterms:isPartOf is not declared for class(es) [ceterms:Organization].\n    rule: ceterms:isPartOf declares schema:domainIncludes [ceterms:AcademicCertificate, ceterms:AlignmentObject, ceterms:ApprenticeshipCertificate, ceterms:AssessmentComponent, ceterms:AssessmentProfile, ceterms:AssociateDegree, ... (66 classes total)] in the schema encoding; the subject's class is not among them or their subclasses.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\nINFO         INVERSE_ONE_DIRECTION  entity=https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826\n    ceterms:isPartOf = https://credentialengineregistry.org/resources/ce-b4da9602-bb7a-4ddc-9426-f119482e32a9\n    https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826 asserts ceterms:isPartOf but https://credentialengineregistry.org/resources/ce-b4da9602-bb7a-4ddc-9426-f119482e32a9 does not assert the declared inverse ceterms:hasPart. One direction alone is not an error.\n    rule: ceterms:isPartOf declares owl:inverseOf ceterms:hasPart in the schema encoding: if A ceterms:isPartOf B is asserted, then B ceterms:hasPart A must hold wherever both directions are stated.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\n2 finding(s): 1 ERROR, 0 WARNING, 1 INFO, 0 UNVERIFIABLE"
+}

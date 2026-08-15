@@ -1,0 +1,14 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "@type": ["ceterms:Certification", "ceterms:NotARealClass", "schema:Thing"],
+      "ceterms:ctid": "ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "ceterms:name": { "en-US": "Terms the vendored snapshot does not declare" },
+      "ceterms:notARealProperty": "whatever",
+      "ceasn:alsoNotARealProperty": "whatever",
+      "schema:notCtdlsToJudge": "whatever"
+    }
+  ]
+}

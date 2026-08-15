@@ -1,0 +1,40 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": "not-a-ctid-at-all",
+      "ceterms:name": { "en-US": "String that is not a CTID" }
+    },
+    {
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": 12345,
+      "ceterms:name": { "en-US": "Integer where a CTID belongs" }
+    },
+    {
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": null,
+      "ceterms:name": { "en-US": "Null where a CTID belongs" }
+    },
+    {
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": true,
+      "ceterms:name": { "en-US": "Boolean where a CTID belongs" }
+    },
+    {
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": 1.5,
+      "ceterms:name": { "en-US": "Float where a CTID belongs" }
+    },
+    {
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": { "@value": "ce-59e8d15f-7895-4346-a5a8-7a0739a3d344" },
+      "ceterms:name": { "en-US": "CTID wrapped in an @value object, which is fine" }
+    },
+    {
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": ["ce-59e8d15f-7895-4346-a5a8-7a0739a3d344", "still-not-a-ctid"],
+      "ceterms:name": { "en-US": "Two CTID values, one of them malformed" }
+    }
+  ]
+}

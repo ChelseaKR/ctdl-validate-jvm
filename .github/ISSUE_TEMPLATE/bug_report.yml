@@ -1,0 +1,30 @@
+name: Bug report
+description: Something in the port itself is wrong.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        If the two implementations disagree, use the parity-divergence template
+        instead. If a CTDL rule is wrong, it belongs in
+        [ChelseaKR/ctdl-validate](https://github.com/ChelseaKR/ctdl-validate).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Command, input (synthetic only), Java version, and OS.
+      render: shell
+    validations:
+      required: true

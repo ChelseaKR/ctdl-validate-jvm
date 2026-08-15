@@ -1,0 +1,49 @@
+# Full-history verified-secret scan across the whole commit history, which a
+# diff-scoped scan by construction cannot do: a secret introduced and later
+# removed in the same pull request still shows up in history.
+name: trufflehog
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 9 * * 0" # weekly, Sunday, staggered off ci.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trufflehog-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: full-history secret scan (verified only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # full clone; this is a whole-history scan, not a diff
+          persist-credentials: false
+      - name: TruffleHog (verified secrets only)
+        uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11 # v3.96.0
+        with:
+          path: ./
+          # The action's baked-in command already passes --fail; repeating it
+          # is a CLI error ("flag 'fail' cannot be repeated").
+          #
+          # Lob is excluded because its detector matches test identifiers across
+          # this portfolio: a Lob key is `test_` or `live_` followed by
+          # alphanumerics, which is also the shape of ordinary test names and
+          # fixture identifiers. Lob's verifier confirms them because a
+          # malformed key and an unauthorized key are indistinguishable in its
+          # response, so the finding comes back VERIFIED and the scan fails on
+          # nothing. There is no Lob integration here and no direct-mail
+          # dependency in build.gradle.kts, so the detector can only ever
+          # produce noise. Scoped to the one detector on purpose: excluding
+          # test paths instead would blind the scan to real secrets in
+          # fixtures, which is where they most often hide.
+          extra_args: --only-verified --exclude-detectors=Lob

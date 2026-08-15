@@ -1,0 +1,39 @@
+{
+  "error": null,
+  "exit_code": 0,
+  "findings": [
+    {
+      "code": "CTID_UPPERCASE",
+      "entity": "$.@graph[0]",
+      "message": "CTID contains upper case hexadecimal digits. UUID text form is lower case on output; Registry case handling is not documented, so this is a WARNING rather than an ERROR.",
+      "property": "ceterms:ctid",
+      "rule": {
+        "citation": "RFC 4122 section 3 defines UUID text form with hexadecimal digits \"output as lower case characters and ... case insensitive on input\"; every CTID example published on the About the CTID page is lower case.",
+        "retrieved": "2026-08-06",
+        "url": "https://www.rfc-editor.org/rfc/rfc4122"
+      },
+      "severity": "WARNING",
+      "value": "ce-B55F88E3-DFD4-430B-AB47-3E5F9986E1E4"
+    },
+    {
+      "code": "CTID_NOT_UUIDV4",
+      "entity": "$.@graph[1]",
+      "message": "CTID matches the 39-character shape but its UUID version/variant bits are not version 4. The published grammar says \"a standard UUID v4\"; Registry enforcement of the version bits is not documented, so this is a WARNING rather than an ERROR.",
+      "property": "ceterms:ctid",
+      "rule": {
+        "citation": "About the CTID, section \"CTID Structure\": \"Each CTID is made up of a standard UUID v4 prefixed with ce-\" for \"a total of 39 characters (34 hexadecimal characters and 5 hyphens)\", in the form ce- plus 8-4-4-4-12 hexadecimal digits. Example given: ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/ctid"
+      },
+      "severity": "WARNING",
+      "value": "ce-59e8d15f-7895-1346-a5a8-7a0739a3d344"
+    }
+  ],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 2
+  },
+  "text_report": "WARNING      CTID_UPPERCASE  entity=$.@graph[0]\n    ceterms:ctid = ce-B55F88E3-DFD4-430B-AB47-3E5F9986E1E4\n    CTID contains upper case hexadecimal digits. UUID text form is lower case on output; Registry case handling is not documented, so this is a WARNING rather than an ERROR.\n    rule: RFC 4122 section 3 defines UUID text form with hexadecimal digits \"output as lower case characters and ... case insensitive on input\"; every CTID example published on the About the CTID page is lower case.\n    source: https://www.rfc-editor.org/rfc/rfc4122 (retrieved 2026-08-06)\n\nWARNING      CTID_NOT_UUIDV4  entity=$.@graph[1]\n    ceterms:ctid = ce-59e8d15f-7895-1346-a5a8-7a0739a3d344\n    CTID matches the 39-character shape but its UUID version/variant bits are not version 4. The published grammar says \"a standard UUID v4\"; Registry enforcement of the version bits is not documented, so this is a WARNING rather than an ERROR.\n    rule: About the CTID, section \"CTID Structure\": \"Each CTID is made up of a standard UUID v4 prefixed with ce-\" for \"a total of 39 characters (34 hexadecimal characters and 5 hyphens)\", in the form ce- plus 8-4-4-4-12 hexadecimal digits. Example given: ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.\n    source: https://credreg.net/ctdl/ctid (retrieved 2026-08-06)\n\n2 finding(s): 0 ERROR, 2 WARNING, 0 INFO, 0 UNVERIFIABLE"
+}

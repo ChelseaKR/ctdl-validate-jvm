@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SpotBugs exclusions. Each one is a decision, not a silencing; if you add an
+  entry, say what the pattern is complaining about and why it is wrong here.
+-->
+<FindBugsFilter>
+  <!--
+    Records that carry a List or Map are reported as exposing internal
+    representation. Every collection reaching a record in this codebase is
+    already immutable (List.copyOf, Map.copyOf, or an unmodifiable view), so
+    the accessor cannot hand out anything a caller could mutate.
+  -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+
+  <!--
+    Tests read files under the repository root by design; the path comes from a
+    build-supplied system property, not from user input.
+  -->
+  <Match>
+    <Source name="~.*Test\.java"/>
+    <Bug pattern="PATH_TRAVERSAL_IN,DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+  </Match>
+</FindBugsFilter>

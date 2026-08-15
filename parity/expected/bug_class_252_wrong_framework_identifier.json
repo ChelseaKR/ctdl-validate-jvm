@@ -1,0 +1,52 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "ISPARTOF_FRAMEWORK_MISMATCH",
+      "entity": "https://credentialengineregistry.org/resources/ce-9e492574-07fc-4154-b7f2-898425f4f3a3",
+      "message": "This competency's isPartOf identifier matches no CompetencyFramework in this payload, although the payload contains one (https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37). If this competency belongs to that framework, this identifier is the wrong one.",
+      "property": "ceasn:isPartOf",
+      "rule": {
+        "citation": "ceasn:isPartOf is defined as \"Competency framework that this competency is a part of\" (CTDL-ASN schema), and the CTDL Handbook states: \"In the Registry, Competency Frameworks and their member Competencies are published in the same JSON-LD Graph\". A member competency whose isPartOf identifier matches no framework in its own payload very likely carries the wrong identifier.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/handbook"
+      },
+      "severity": "WARNING",
+      "value": "https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457"
+    },
+    {
+      "code": "REF_OUTSIDE_PAYLOAD",
+      "entity": "https://credentialengineregistry.org/resources/ce-9e492574-07fc-4154-b7f2-898425f4f3a3",
+      "message": "Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied.",
+      "property": "ceasn:isPartOf",
+      "rule": {
+        "citation": "ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail.",
+        "retrieved": "-",
+        "url": "README.md (Methodology)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457"
+    },
+    {
+      "code": "RANGE_VIOLATION",
+      "entity": "https://credentialengineregistry.org/resources/ce-b4da9602-bb7a-4ddc-9426-f119482e32a9",
+      "message": "Referenced entity https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f is typed [ceasn:Competency], which is outside the declared range of ceasn:isPartOf.",
+      "property": "ceasn:isPartOf",
+      "rule": {
+        "citation": "ceasn:isPartOf declares schema:rangeIncludes [ceasn:CompetencyFramework] in the schema encoding; the referenced entity's class is not among them or their subclasses.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdlasn/schema/encoding/json"
+      },
+      "severity": "ERROR",
+      "value": "https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f"
+    }
+  ],
+  "summary": {
+    "ERROR": 1,
+    "INFO": 0,
+    "UNVERIFIABLE": 1,
+    "WARNING": 1
+  },
+  "text_report": "WARNING      ISPARTOF_FRAMEWORK_MISMATCH  entity=https://credentialengineregistry.org/resources/ce-9e492574-07fc-4154-b7f2-898425f4f3a3\n    ceasn:isPartOf = https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457\n    This competency's isPartOf identifier matches no CompetencyFramework in this payload, although the payload contains one (https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37). If this competency belongs to that framework, this identifier is the wrong one.\n    rule: ceasn:isPartOf is defined as \"Competency framework that this competency is a part of\" (CTDL-ASN schema), and the CTDL Handbook states: \"In the Registry, Competency Frameworks and their member Competencies are published in the same JSON-LD Graph\". A member competency whose isPartOf identifier matches no framework in its own payload very likely carries the wrong identifier.\n    source: https://credreg.net/ctdl/handbook (retrieved 2026-08-06)\n\nUNVERIFIABLE REF_OUTSIDE_PAYLOAD  entity=https://credentialengineregistry.org/resources/ce-9e492574-07fc-4154-b7f2-898425f4f3a3\n    ceasn:isPartOf = https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457\n    Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied.\n    rule: ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail.\n    source: README.md (Methodology) (retrieved -)\n\nERROR        RANGE_VIOLATION  entity=https://credentialengineregistry.org/resources/ce-b4da9602-bb7a-4ddc-9426-f119482e32a9\n    ceasn:isPartOf = https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f\n    Referenced entity https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f is typed [ceasn:Competency], which is outside the declared range of ceasn:isPartOf.\n    rule: ceasn:isPartOf declares schema:rangeIncludes [ceasn:CompetencyFramework] in the schema encoding; the referenced entity's class is not among them or their subclasses.\n    source: https://credreg.net/ctdlasn/schema/encoding/json (retrieved 2026-08-06)\n\n3 finding(s): 1 ERROR, 1 WARNING, 0 INFO, 1 UNVERIFIABLE"
+}

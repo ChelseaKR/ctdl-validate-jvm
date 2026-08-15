@@ -1,0 +1,26 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "REF_UNRESOLVED_BNODE",
+      "entity": "https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "message": "Blank node reference is not defined anywhere in this payload. A blank node identifier only has meaning inside the graph that declares it, so this reference cannot identify anything.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "CTDL All Schemas Handbook, \"Blank Node Identifier\": a blank node \"is only identified, referenced, or retrievable in the context of the graph in which it is found\". A blank node identifier that its own payload does not define identifies nothing.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/handbook"
+      },
+      "severity": "ERROR",
+      "value": "_:org-that-is-never-defined"
+    }
+  ],
+  "summary": {
+    "ERROR": 1,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": "ERROR        REF_UNRESOLVED_BNODE  entity=https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457\n    ceterms:ownedBy = _:org-that-is-never-defined\n    Blank node reference is not defined anywhere in this payload. A blank node identifier only has meaning inside the graph that declares it, so this reference cannot identify anything.\n    rule: CTDL All Schemas Handbook, \"Blank Node Identifier\": a blank node \"is only identified, referenced, or retrievable in the context of the graph in which it is found\". A blank node identifier that its own payload does not define identifies nothing.\n    source: https://credreg.net/ctdl/handbook (retrieved 2026-08-06)\n\n1 finding(s): 1 ERROR, 0 WARNING, 0 INFO, 0 UNVERIFIABLE"
+}

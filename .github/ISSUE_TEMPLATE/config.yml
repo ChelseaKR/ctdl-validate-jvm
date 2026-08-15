@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: A rule is wrong, missing, or out of date
+    url: https://github.com/ChelseaKR/ctdl-validate/issues/new/choose
+    about: >-
+      The CTDL rule set lives in ChelseaKR/ctdl-validate, the Python reference
+      implementation this repository ports. A rule change belongs there first;
+      it arrives here when the pinned reference release is bumped.
+  - name: Security vulnerability
+    url: https://github.com/ChelseaKR/ctdl-validate-jvm/security/advisories/new
+    about: Report privately. See SECURITY.md.

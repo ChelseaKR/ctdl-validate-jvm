@@ -1,0 +1,12 @@
+{
+  "error": "entity at index 1 is not a JSON object",
+  "exit_code": 2,
+  "findings": [],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": null
+}

@@ -1,0 +1,26 @@
+{
+  "error": null,
+  "exit_code": 0,
+  "findings": [
+    {
+      "code": "REF_OUTSIDE_PAYLOAD",
+      "entity": "https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e",
+      "message": "Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail.",
+        "retrieved": "-",
+        "url": "README.md (Methodology)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826"
+    }
+  ],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 0,
+    "UNVERIFIABLE": 1,
+    "WARNING": 0
+  },
+  "text_report": "UNVERIFIABLE REF_OUTSIDE_PAYLOAD  entity=https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e\n    ceterms:ownedBy = https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826\n    Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied.\n    rule: ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail.\n    source: README.md (Methodology) (retrieved -)\n\n1 finding(s): 0 ERROR, 0 WARNING, 0 INFO, 1 UNVERIFIABLE"
+}

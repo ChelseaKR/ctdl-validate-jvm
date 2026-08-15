@@ -1,0 +1,26 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "RANGE_VIOLATION",
+      "entity": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "message": "Referenced entity $.@graph[0].ceterms:ownedBy[1] is typed [ceterms:Course], which is outside the declared range of ceterms:ownedBy.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "ceterms:ownedBy declares schema:rangeIncludes [ceterms:CredentialOrganization, ceterms:Organization, ceterms:QACredentialOrganization] in the schema encoding; the referenced entity's class is not among them or their subclasses.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "ERROR",
+      "value": "$.@graph[0].ceterms:ownedBy[1]"
+    }
+  ],
+  "summary": {
+    "ERROR": 1,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": "ERROR        RANGE_VIOLATION  entity=https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344\n    ceterms:ownedBy = $.@graph[0].ceterms:ownedBy[1]\n    Referenced entity $.@graph[0].ceterms:ownedBy[1] is typed [ceterms:Course], which is outside the declared range of ceterms:ownedBy.\n    rule: ceterms:ownedBy declares schema:rangeIncludes [ceterms:CredentialOrganization, ceterms:Organization, ceterms:QACredentialOrganization] in the schema encoding; the referenced entity's class is not among them or their subclasses.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\n1 finding(s): 1 ERROR, 0 WARNING, 0 INFO, 0 UNVERIFIABLE"
+}

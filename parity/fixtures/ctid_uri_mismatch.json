@@ -1,0 +1,20 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": "ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e",
+      "ceterms:name": { "en-US": "CTID that does not match the tail of its own @id" }
+    },
+    {
+      "@id": "https://credentialengineregistry.org/graph/ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": "ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "ceterms:name": { "en-US": "Owner reference through a malformed Registry URI" },
+      "ceterms:ownedBy": [
+        "https://credentialengineregistry.org/resources/not-a-ctid"
+      ]
+    }
+  ]
+}

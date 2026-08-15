@@ -1,0 +1,23 @@
+{
+  "@context": "https://credreg.net/ctdlasn/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37",
+      "@type": "ceasn:CompetencyFramework",
+      "ceterms:ctid": "ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37",
+      "ceasn:name": { "en-US": "Framework a top-level statement points isChildOf at" },
+      "ceasn:hasTopChild": [
+        "https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f"
+      ]
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f",
+      "@type": "ceasn:Competency",
+      "ceterms:ctid": "ce-5e3de882-3b49-421b-b623-695c63587f4f",
+      "ceasn:competencyText": { "en-US": "Top-level statement using isChildOf, per the usage note" },
+      "ceasn:isPartOf": "https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37",
+      "ceasn:isTopChildOf": "https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37",
+      "ceasn:isChildOf": "https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37"
+    }
+  ]
+}

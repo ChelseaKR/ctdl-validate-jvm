@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use ctdl-validate-jvm, please cite it as below."
+title: "ctdl-validate-jvm: a JVM port of the ctdl-validate rule core, reconciled by a cross-language parity test"
+abstract: >-
+  A Java reimplementation of the rule core of ChelseaKR/ctdl-validate: CTID
+  grammar, identifier kinds, in-payload reference resolution, domain and range
+  validation with subclass closure, and inverse consistency over CTDL and
+  CTDL-ASN JSON-LD payloads. Both implementations are tested against one shared
+  fixture corpus and must agree finding for finding, with disagreement a build
+  failure. Every finding cites the published rule it came from, with the spec
+  text and its retrieval date. Deterministic, with no network calls and no model
+  calls. A demonstration and reference port, not a released artifact.
+type: software
+authors:
+  - given-names: Chelsea
+    family-names: Kelly-Reif
+license: Apache-2.0
+repository-code: "https://github.com/ChelseaKR/ctdl-validate-jvm"
+url: "https://github.com/ChelseaKR/ctdl-validate-jvm"
+references:
+  - type: software
+    title: "ctdl-validate: deterministic structural validator for CTDL JSON-LD payloads"
+    authors:
+      - given-names: Chelsea
+        family-names: Kelly-Reif
+    repository-code: "https://github.com/ChelseaKR/ctdl-validate"
+    license: Apache-2.0
+    notes: "The reference implementation this repository ports and is tested against."
+keywords:
+  - ctdl
+  - credential-engine
+  - json-ld
+  - validation
+  - credentials
+  - java
+  - cross-language-parity

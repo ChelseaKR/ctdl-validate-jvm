@@ -1,0 +1,12 @@
+{
+  "error": "expected a JSON-LD object with @graph, a single entity object, or an array of entities",
+  "exit_code": 2,
+  "findings": [],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": null
+}

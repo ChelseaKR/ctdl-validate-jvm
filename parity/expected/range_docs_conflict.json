@@ -1,0 +1,39 @@
+{
+  "error": null,
+  "exit_code": 0,
+  "findings": [
+    {
+      "code": "INVERSE_ONE_DIRECTION",
+      "entity": "https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f",
+      "message": "https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f asserts ceasn:isChildOf but https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37 does not assert the declared inverse ceasn:hasChild. One direction alone is not an error.",
+      "property": "ceasn:isChildOf",
+      "rule": {
+        "citation": "ceasn:isChildOf declares owl:inverseOf ceasn:hasChild in the schema encoding: if A ceasn:isChildOf B is asserted, then B ceasn:hasChild A must hold wherever both directions are stated.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdlasn/schema/encoding/json"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37"
+    },
+    {
+      "code": "RANGE_DOCS_CONFLICT",
+      "entity": "https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f",
+      "message": "Referenced entity is a ceasn:CompetencyFramework, which the declared range of ceasn:isChildOf does not include, but Credential Engine's own guidance and examples use exactly this pattern.",
+      "property": "ceasn:isChildOf",
+      "rule": {
+        "citation": "Conflicting authoritative sources: the CTDL-ASN schema encoding does not list ceasn:CompetencyFramework in schema:rangeIncludes of ceasn:isChildOf, but the ceasn:isPartOf usage note instructs top-level statements to use isChildOf, and the CTDL Handbook's own examples point isChildOf at the framework. Reported as INFO, not an error, because the sources disagree.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdlasn/schema/encoding/json"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37"
+    }
+  ],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 2,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": "INFO         INVERSE_ONE_DIRECTION  entity=https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f\n    ceasn:isChildOf = https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37\n    https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f asserts ceasn:isChildOf but https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37 does not assert the declared inverse ceasn:hasChild. One direction alone is not an error.\n    rule: ceasn:isChildOf declares owl:inverseOf ceasn:hasChild in the schema encoding: if A ceasn:isChildOf B is asserted, then B ceasn:hasChild A must hold wherever both directions are stated.\n    source: https://credreg.net/ctdlasn/schema/encoding/json (retrieved 2026-08-06)\n\nINFO         RANGE_DOCS_CONFLICT  entity=https://credentialengineregistry.org/resources/ce-5e3de882-3b49-421b-b623-695c63587f4f\n    ceasn:isChildOf = https://credentialengineregistry.org/resources/ce-177f4c85-4efe-401d-acdd-1ea4adeeaf37\n    Referenced entity is a ceasn:CompetencyFramework, which the declared range of ceasn:isChildOf does not include, but Credential Engine's own guidance and examples use exactly this pattern.\n    rule: Conflicting authoritative sources: the CTDL-ASN schema encoding does not list ceasn:CompetencyFramework in schema:rangeIncludes of ceasn:isChildOf, but the ceasn:isPartOf usage note instructs top-level statements to use isChildOf, and the CTDL Handbook's own examples point isChildOf at the framework. Reported as INFO, not an error, because the sources disagree.\n    source: https://credreg.net/ctdlasn/schema/encoding/json (retrieved 2026-08-06)\n\n2 finding(s): 0 ERROR, 0 WARNING, 2 INFO, 0 UNVERIFIABLE"
+}

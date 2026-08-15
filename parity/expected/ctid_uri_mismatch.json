@@ -1,0 +1,52 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "REF_OUTSIDE_PAYLOAD",
+      "entity": "https://credentialengineregistry.org/graph/ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "message": "Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail.",
+        "retrieved": "-",
+        "url": "README.md (Methodology)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "https://credentialengineregistry.org/resources/not-a-ctid"
+    },
+    {
+      "code": "REGISTRY_URI_MALFORMED",
+      "entity": "https://credentialengineregistry.org/graph/ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "message": "Registry URI whose tail is not a CTID. Registry resource and graph URIs end in the resource's CTID: ce- followed by a UUID v4 in 8-4-4-4-12 form, 39 characters, lower case hexadecimal, e.g. ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "About the CTID, section \"CTID-Based URI Structure\": Registry URIs are constructed from https://credentialengineregistry.org plus /resources/ or /graph/ plus the CTID itself, and \"the value of a resource's CTID property will exactly match the CTID portion of that resource's URI\".",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/ctid"
+      },
+      "severity": "ERROR",
+      "value": "https://credentialengineregistry.org/resources/not-a-ctid"
+    },
+    {
+      "code": "CTID_URI_MISMATCH",
+      "entity": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "message": "ceterms:ctid (ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e) does not match the CTID portion of the entity's @id (ce-59e8d15f-7895-4346-a5a8-7a0739a3d344).",
+      "property": "ceterms:ctid",
+      "rule": {
+        "citation": "About the CTID, section \"CTID-Based URI Structure\": Registry URIs are constructed from https://credentialengineregistry.org plus /resources/ or /graph/ plus the CTID itself, and \"the value of a resource's CTID property will exactly match the CTID portion of that resource's URI\".",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/ctid"
+      },
+      "severity": "ERROR",
+      "value": "ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e"
+    }
+  ],
+  "summary": {
+    "ERROR": 2,
+    "INFO": 0,
+    "UNVERIFIABLE": 1,
+    "WARNING": 0
+  },
+  "text_report": "UNVERIFIABLE REF_OUTSIDE_PAYLOAD  entity=https://credentialengineregistry.org/graph/ce-82566cee-17f3-4a6e-8f59-b45273aac457\n    ceterms:ownedBy = https://credentialengineregistry.org/resources/not-a-ctid\n    Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied.\n    rule: ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail.\n    source: README.md (Methodology) (retrieved -)\n\nERROR        REGISTRY_URI_MALFORMED  entity=https://credentialengineregistry.org/graph/ce-82566cee-17f3-4a6e-8f59-b45273aac457\n    ceterms:ownedBy = https://credentialengineregistry.org/resources/not-a-ctid\n    Registry URI whose tail is not a CTID. Registry resource and graph URIs end in the resource's CTID: ce- followed by a UUID v4 in 8-4-4-4-12 form, 39 characters, lower case hexadecimal, e.g. ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.\n    rule: About the CTID, section \"CTID-Based URI Structure\": Registry URIs are constructed from https://credentialengineregistry.org plus /resources/ or /graph/ plus the CTID itself, and \"the value of a resource's CTID property will exactly match the CTID portion of that resource's URI\".\n    source: https://credreg.net/ctdl/ctid (retrieved 2026-08-06)\n\nERROR        CTID_URI_MISMATCH  entity=https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344\n    ceterms:ctid = ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e\n    ceterms:ctid (ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e) does not match the CTID portion of the entity's @id (ce-59e8d15f-7895-4346-a5a8-7a0739a3d344).\n    rule: About the CTID, section \"CTID-Based URI Structure\": Registry URIs are constructed from https://credentialengineregistry.org plus /resources/ or /graph/ plus the CTID itself, and \"the value of a resource's CTID property will exactly match the CTID portion of that resource's URI\".\n    source: https://credreg.net/ctdl/ctid (retrieved 2026-08-06)\n\n3 finding(s): 2 ERROR, 0 WARNING, 0 INFO, 1 UNVERIFIABLE"
+}

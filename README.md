@@ -1,0 +1,257 @@
+# ctdl-validate-jvm
+
+A Java port of the rule core of
+[`ChelseaKR/ctdl-validate`](https://github.com/ChelseaKR/ctdl-validate),
+kept honest by a test that runs both implementations over the same fixtures
+and fails the build if they disagree about anything.
+
+No network calls at validation time. No model calls, ever. Same input, same
+output, byte for byte. Every finding cites the published rule it came from,
+with the spec text and the date it was retrieved.
+
+## What this is, and what it is not
+
+This is a deliberate reimplementation of an existing, already-specified rule
+set, undertaken to work in JVM idioms. It is a demonstration and a reference
+port. It is not a product, it has no users, and it is not a claim of
+production JVM experience: the author's daily stack is Python and TypeScript,
+and this repository is the ramp, not the résumé line. The interesting content
+is the parity property below, not the Java.
+
+The rules are not new here. They were researched, cited, tested, and shipped
+in the Python sibling; that repository is where the specification work lives
+and where a rule change belongs. What this repository adds is evidence for a
+narrower claim: that a conformance rule set can be specified precisely enough
+to be rebuilt in another language and reconciled finding for finding.
+
+## The property that makes it worth having
+
+Both implementations are tested against the same corpus, and disagreement is
+a build failure.
+
+```
+parity/fixtures/     21 CTDL JSON-LD payloads, one per rule and per document shape
+parity/expected/     what ChelseaKR/ctdl-validate reports for each of them
+```
+
+`ParityTest` validates every fixture with this Java implementation, renders
+the result the way the reference renders it, and compares the two strings.
+Not "the same number of findings", not "the same codes": the same exit code,
+the same findings in the same order, each with the same severity, entity,
+property, value, message, rule citation, source URL, and retrieval date --
+and, on top of that, the same plain-text report, character for character,
+down to the column the severity is padded to.
+
+Two things keep that from being circular:
+
+- **The expectations are generated, never written.**
+  [`tools/generate_expectations.py`](tools/generate_expectations.py) produces
+  them by importing the reference implementation and running it. Nothing in
+  `parity/expected/` is typed by hand.
+- **CI regenerates them against the pinned reference release and fails on any
+  diff.** Without that job, `parity/expected/` would only record what this
+  Java code did on the day the files were written, and the suite would be
+  comparing the port against itself. The pin is a released PyPI artifact with
+  its hash recorded in
+  [`parity/reference-requirements.txt`](parity/reference-requirements.txt).
+
+To watch it fail, change a severity in `src/main/java/.../checks/` and run
+`./gradlew test`. `ParityTest` also carries its own break-the-gate case,
+which corrupts an expectation and asserts the comparison notices, so the
+suite does not depend on anyone remembering to try that by hand.
+
+The corpus is held to the rule set as well: `ParityTest` fails if any finding
+code the checks can emit has no fixture exercising it. All 19 do.
+
+## What is ported
+
+The five checks, the finding model, the severity contract, and both
+reporters. From
+[the sibling's rule table](https://github.com/ChelseaKR/ctdl-validate#what-it-checks-v0):
+
+| # | Check | Codes |
+|---|---|---|
+| 1 | CTID grammar on `ceterms:ctid`, on `@id`, and on the tail of every Registry resource/graph URI; `ctid` must match the `@id` tail | `CTID_BARE_UUID`, `CTID_MALFORMED`, `CTID_UPPERCASE`, `CTID_NOT_UUIDV4`, `REGISTRY_URI_MALFORMED`, `CTID_URI_MISMATCH` |
+| 2 | Identifier kind: properties the CTDL context declares as `{"@type": "@id"}` with entity ranges must carry IRIs or blank node ids | `REF_BARE_UUID`, `REF_BARE_CTID`, `REF_NOT_IRI` |
+| 3 | Reference resolution inside the payload; undefined blank nodes are errors, external IRIs are UNVERIFIABLE | `REF_UNRESOLVED_BNODE`, `REF_OUTSIDE_PAYLOAD` |
+| 4 | Domain and range per `schema:domainIncludes` / `schema:rangeIncludes`, with `rdfs:subClassOf` closure, plus the wrong-framework `isPartOf` pattern | `DOMAIN_VIOLATION`, `RANGE_VIOLATION`, `ISPARTOF_FRAMEWORK_MISMATCH`, `UNKNOWN_CLASS`, `UNKNOWN_PROPERTY`, `RANGE_DOCS_CONFLICT` |
+| 5 | Inverse consistency for pairs the schema declares with `owl:inverseOf` | `INVERSE_MISMATCH`, `INVERSE_ONE_DIRECTION` |
+
+Severities mean what they mean in the sibling, because the parity test would
+not tolerate anything else: **ERROR** gates the exit code, **WARNING** is a
+cited signal where the rule is not absolute, **INFO** is worth a human look,
+and **UNVERIFIABLE** is the tool declining to guess about something it cannot
+see. Never a pass, never a fail.
+
+## What is not ported, and why
+
+- **The CLI surface.** The reference has flags, packaging, a published
+  distribution, and a browser build. Here there is one thin entry point,
+  enough to run the validator over a file and to emit the document the parity
+  suite compares. Porting a CLI would demonstrate nothing the rules do not.
+- **The `extract` subcommand.** It fetches a web page. This repository makes
+  no network calls at all, which is a property worth keeping whole
+  (`OfflineGuaranteeTest`), and extraction is a much larger surface with none
+  of the parity payoff.
+- **Nothing from the rule set itself.** All five checks and all 19 codes are
+  here. No rule was dropped as unportable.
+
+## Running it
+
+Java 17 or newer, to build and to run. The CI gate builds on Temurin 21 and
+targets 17.
+
+```
+./gradlew verify        # compile, format, static analysis, tests, coverage
+./gradlew installDist   # build/install/ctdl-validate-jvm/bin/ctdl-validate-jvm
+```
+
+```
+$ ctdl-validate-jvm parity/fixtures/bug_class_250_bare_uuid_for_ctid.json
+ERROR        REGISTRY_URI_MALFORMED  entity=https://credentialengineregistry.org/resources/b55f88e3-dfd4-430b-ab47-3e5f9986e1e4
+    @id = https://credentialengineregistry.org/resources/b55f88e3-dfd4-430b-ab47-3e5f9986e1e4
+    Registry URI whose CTID portion is a bare UUID: the ce- prefix is missing. Expected: ce- followed by a UUID v4 in 8-4-4-4-12 form, 39 characters, lower case hexadecimal, e.g. ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.
+    rule: About the CTID, section "CTID-Based URI Structure": ...
+    source: https://credreg.net/ctdl/ctid (retrieved 2026-08-06)
+```
+
+Exit code 0 when there are no ERROR findings, 1 when there are, 2 when the
+input cannot be read at all. `--format json` produces the machine-readable
+report; `--format parity` produces exactly the document in
+`parity/expected/`, so a divergence can be diffed by hand.
+
+(`./gradlew run --args="<file>"` works too, but a payload with an ERROR
+finding makes the validator exit 1, which Gradle then reports as a failed
+build. `installDist` gives you a script that just exits 1.)
+
+Nothing here is released. There is no tag, no artifact on Maven Central, and
+`CITATION.cff` advertises no version, because there is none.
+
+## Where the rules come from
+
+The same place as the sibling's, byte for byte. The CTDL and CTDL-ASN schema
+encodings and JSON-LD contexts are vendored unmodified in
+`src/main/resources/vendor/`, with the source URLs, retrieval dates, and
+SHA-256 hashes the reference recorded, unchanged, in
+[`SOURCES.md`](src/main/resources/vendor/SOURCES.md). `VendorIntegrityTest`
+enforces the hashes. All four were retrieved 2026-08-06 by the author of the
+sibling.
+
+Prose rules — the CTID grammar, blank node scope, framework publication — are
+quoted in [`Rules.java`](src/main/java/io/github/chelseakr/ctdlvalidate/Rules.java)
+with their page URLs, and the wording is the sibling's rather than a
+paraphrase. That is deliberate: a citation is a quotation of Credential
+Engine's published text, and rewording it would make the two implementations
+disagree about what a rule *says* while agreeing about what it *does*. The
+citation text is the author's own from the sibling repository; the quoted
+spec sentences inside it are Credential Engine's, attributed at every use.
+
+No rule is encoded from memory in either implementation.
+
+## What porting it actually took
+
+Most of the work was not the rules. The checks are short and the schema
+drives them. The work was in the places where "the same behaviour" turns out
+to mean something specific about a language:
+
+- **String ordering.** Findings, property keys, and class lists are sorted.
+  Python compares strings by code point; Java's `String.compareTo` compares
+  UTF-16 code units, and the two disagree for supplementary characters. CTDL
+  payloads are usually ASCII, so the orderings almost always agree — which is
+  exactly the kind of "almost" a parity test should not rest on.
+  [`CodePointOrder`](src/main/java/io/github/chelseakr/ctdlvalidate/CodePointOrder.java)
+  is used everywhere the reference sorts.
+- **`repr()` is not `toString()`.** When `ceterms:ctid` carries something
+  that is not a string, the reference reports Python's `repr` of it: `None`,
+  `True`, `['a', 'b']`, `{'en': 'x'}`. A port that emitted `null`, `true`,
+  and `["a","b"]` would produce the right finding with the wrong text.
+  [`PythonRepr`](src/main/java/io/github/chelseakr/ctdlvalidate/PythonRepr.java)
+  reimplements `repr` for the JSON value subset, including the float case,
+  where Python renders the shortest round-tripping decimal and picks
+  positional or scientific notation by a rule Java's `Double.toString` does
+  not share.
+- **JSON serialization.** The reports are compared as text, so the writer had
+  to reproduce `json.dumps(..., indent=2, sort_keys=True, ensure_ascii=False)`
+  exactly: empty containers on one line, `/` unescaped, non-ASCII literal.
+- **Python truthiness**, in the one line of the parser that relies on it.
+
+None of these are deep. All of them were found by the parity test rather than
+by reading, which is the argument for having it.
+
+## Limits, recorded
+
+- **The parity corpus is 21 payloads, not a proof.** It covers every finding
+  code and every document shape the parser accepts, and it was extended
+  beyond the sibling's own fixtures for that reason. It is still a corpus.
+  Agreement on it is evidence, not a theorem, and no property-based or
+  differential fuzzing has been run across the two implementations.
+- **Malformed JSON is out of scope for parity.** The two implementations both
+  exit 2, but the message comes from the language's JSON parser — Jackson's
+  wording is not `json.JSONDecodeError`'s — and pinning that would be
+  comparing Jackson to CPython rather than comparing the rules. Documents
+  that parse as JSON but are not shapes the tool reads *are* in the corpus:
+  their errors are the tool's own strings and must agree exactly.
+- **One deliberate divergence, in ordering.** The reference sorts a Python
+  `set` by a six-part key. Where two findings agree on all six and differ
+  only in their rule, the reference's order depends on per-process string
+  hash randomization; this port breaks that tie on the rule fields instead,
+  so it is deterministic where the reference is not. No fixture reaches the
+  case. It is recorded here rather than left as a surprise, and it is a
+  divergence in favour of determinism, not against it.
+- **Jackson is a runtime dependency.** The sibling has none; the Python
+  standard library ships a JSON parser and Java's does not. Using the
+  ecosystem's usual parser is the idiomatic choice and was the point of the
+  exercise, but it is a difference from the sibling's stated posture and
+  belongs in the open. See
+  [ADR 0001](docs/adr/0001-jackson-and-a-hand-written-writer.md).
+- **This port will drift if the sibling changes.** The pin in
+  `parity/reference-requirements.txt` is a released version. A rule change
+  upstream will not fail this build; it will simply mean the port is behind,
+  until someone bumps the pin and reads the diff. That is the honest
+  arrangement for a demonstration repository, and it is why the pin is
+  excluded from Dependabot.
+
+## Development
+
+```
+./gradlew verify   # the whole gate; the same target CI runs
+```
+
+| Gate | Task | What it checks |
+| --- | --- | --- |
+| Format | `spotlessCheck` | google-java-format |
+| Static analysis | `spotbugsMain`, `spotbugsTest` | SpotBugs at max effort, low threshold |
+| Tests | `test` | JUnit 5, including the parity suite |
+| Coverage | `jacocoTestCoverageVerification` | branch coverage >= 85% |
+
+Semgrep and a full-history TruffleHog sweep run in their own workflows. Every
+GitHub Action is pinned to a full commit SHA.
+
+Regenerating the parity expectations needs the reference implementation:
+
+```
+python3 -m pip install --require-hashes -r parity/reference-requirements.txt
+python3 tools/generate_expectations.py          # write
+python3 tools/generate_expectations.py --check  # report differences only
+```
+
+## Disclosure
+
+This port was built quickly with AI assistance (Claude), then reviewed and
+tested by a human. The rule research it rests on was done first and
+elsewhere: the CTID grammar, the context coercions, and every domain, range,
+and inverse declaration were pulled from credreg.net on 2026-08-06 and
+vendored in the sibling repository before any check was written. Read the
+findings' citations critically; if a cited source has changed since
+retrieval, the vendored snapshot, not this tool's opinion, is what to update.
+
+## License
+
+Apache-2.0. The ported logic is a reimplementation of
+[`ChelseaKR/ctdl-validate`](https://github.com/ChelseaKR/ctdl-validate), also
+Apache-2.0, by the same author. CTDL and CTDL-ASN are Credential Engine's,
+published under Creative Commons Attribution 4.0; the vendored files retain
+their origin in
+[`SOURCES.md`](src/main/resources/vendor/SOURCES.md). This project is not
+affiliated with or endorsed by Credential Engine, and nothing here has been
+published to the Credential Registry.

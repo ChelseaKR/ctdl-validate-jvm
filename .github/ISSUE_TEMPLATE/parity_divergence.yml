@@ -1,0 +1,42 @@
+name: Parity divergence
+description: The Java port and the Python reference disagree about a payload.
+labels: ["parity"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        This is the most useful thing you can report here. One of the two
+        implementations is wrong about a published CTDL rule, and which one it
+        is matters more than the fix.
+  - type: textarea
+    id: payload
+    attributes:
+      label: The payload
+      description: >-
+        Synthetic data only, please. Generated identifiers, invented names,
+        nothing copied from a real organization or from the Credential
+        Registry.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: What ChelseaKR/ctdl-validate reports
+      description: "`ctdl-validate <file> --format json`, and the version you ran."
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: port
+    attributes:
+      label: What this port reports
+      description: "`--format parity` is the easiest thing to diff."
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: which
+    attributes:
+      label: Which one do you think is right, and why?
+      description: A guess is fine. The published rule it turns on is the useful part.

@@ -1,0 +1,39 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "REGISTRY_URI_MALFORMED",
+      "entity": "https://credentialengineregistry.org/resources/b55f88e3-dfd4-430b-ab47-3e5f9986e1e4",
+      "message": "Registry URI whose CTID portion is a bare UUID: the ce- prefix is missing. Expected: ce- followed by a UUID v4 in 8-4-4-4-12 form, 39 characters, lower case hexadecimal, e.g. ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.",
+      "property": "@id",
+      "rule": {
+        "citation": "About the CTID, section \"CTID-Based URI Structure\": Registry URIs are constructed from https://credentialengineregistry.org plus /resources/ or /graph/ plus the CTID itself, and \"the value of a resource's CTID property will exactly match the CTID portion of that resource's URI\".",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/ctid"
+      },
+      "severity": "ERROR",
+      "value": "https://credentialengineregistry.org/resources/b55f88e3-dfd4-430b-ab47-3e5f9986e1e4"
+    },
+    {
+      "code": "CTID_BARE_UUID",
+      "entity": "https://credentialengineregistry.org/resources/b55f88e3-dfd4-430b-ab47-3e5f9986e1e4",
+      "message": "Bare UUID where a CTID belongs: the ce- prefix is missing. Expected grammar: ce- followed by a UUID v4 in 8-4-4-4-12 form, 39 characters, lower case hexadecimal, e.g. ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.",
+      "property": "ceterms:ctid",
+      "rule": {
+        "citation": "About the CTID, section \"CTID Structure\": \"Each CTID is made up of a standard UUID v4 prefixed with ce-\" for \"a total of 39 characters (34 hexadecimal characters and 5 hyphens)\", in the form ce- plus 8-4-4-4-12 hexadecimal digits. Example given: ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/ctid"
+      },
+      "severity": "ERROR",
+      "value": "b55f88e3-dfd4-430b-ab47-3e5f9986e1e4"
+    }
+  ],
+  "summary": {
+    "ERROR": 2,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": "ERROR        REGISTRY_URI_MALFORMED  entity=https://credentialengineregistry.org/resources/b55f88e3-dfd4-430b-ab47-3e5f9986e1e4\n    @id = https://credentialengineregistry.org/resources/b55f88e3-dfd4-430b-ab47-3e5f9986e1e4\n    Registry URI whose CTID portion is a bare UUID: the ce- prefix is missing. Expected: ce- followed by a UUID v4 in 8-4-4-4-12 form, 39 characters, lower case hexadecimal, e.g. ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.\n    rule: About the CTID, section \"CTID-Based URI Structure\": Registry URIs are constructed from https://credentialengineregistry.org plus /resources/ or /graph/ plus the CTID itself, and \"the value of a resource's CTID property will exactly match the CTID portion of that resource's URI\".\n    source: https://credreg.net/ctdl/ctid (retrieved 2026-08-06)\n\nERROR        CTID_BARE_UUID  entity=https://credentialengineregistry.org/resources/b55f88e3-dfd4-430b-ab47-3e5f9986e1e4\n    ceterms:ctid = b55f88e3-dfd4-430b-ab47-3e5f9986e1e4\n    Bare UUID where a CTID belongs: the ce- prefix is missing. Expected grammar: ce- followed by a UUID v4 in 8-4-4-4-12 form, 39 characters, lower case hexadecimal, e.g. ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.\n    rule: About the CTID, section \"CTID Structure\": \"Each CTID is made up of a standard UUID v4 prefixed with ce-\" for \"a total of 39 characters (34 hexadecimal characters and 5 hyphens)\", in the form ce- plus 8-4-4-4-12 hexadecimal digits. Example given: ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.\n    source: https://credreg.net/ctdl/ctid (retrieved 2026-08-06)\n\n2 finding(s): 2 ERROR, 0 WARNING, 0 INFO, 0 UNVERIFIABLE"
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "@id": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+    "@type": "ceterms:Certification",
+    "https://purl.org/ctdl/terms/ctid": "ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+    "https://purl.org/ctdl/terms/name": { "en-US": "Keys written as full IRIs" },
+    "ceterms:ownedBy": { "@id": "https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826" }
+  },
+  {
+    "@id": "https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826",
+    "@type": "ceterms:Organization",
+    "ceterms:ctid": "ce-79298677-d0e4-4799-853a-a633d9071826",
+    "ceterms:name": { "en-US": "Owner declared in the same payload" }
+  },
+  {
+    "@id": "https://credentialengineregistry.org/resources/ce-79298677-d0e4-4799-853a-a633d9071826",
+    "@type": "ceterms:Course",
+    "ceterms:name": { "en-US": "Second entity re-using an @id already taken" }
+  }
+]

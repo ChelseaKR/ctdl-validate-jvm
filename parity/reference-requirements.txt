@@ -1,0 +1,20 @@
+# The Python reference implementation this repository is a port of, pinned by
+# version and by artifact hash.
+#
+# The pin is a released, immutable PyPI artifact rather than a branch, because
+# the expectations in parity/expected/ are only meaningful against a rule set
+# that cannot change underneath them. The rule core of 0.1.0 -- ctid.py,
+# graph.py, validator.py, and all five modules under checks/ -- is byte
+# identical to the reference's main branch as of 2026-08-14; what has moved on
+# since is CLI plumbing and a separate extraction subcommand, neither of which
+# this port covers.
+#
+# Bumping this pin is a deliberate act: install the new version, rerun
+# tools/generate_expectations.py, and review the diff to parity/expected/ as
+# the change to the rule set that it is.
+#
+#   pip install --require-hashes -r parity/reference-requirements.txt
+#
+ctdl-validate==0.1.0 \
+    --hash=sha256:d56340851afe14bf0752c6f6d56ad22004f99a2876cbd61a4f9b2b9f8215e123 \
+    --hash=sha256:0c79827268e84aa34e6ebd6320e98d37995563683ce242dcc7496079206a6f49

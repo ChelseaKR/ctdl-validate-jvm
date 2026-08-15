@@ -1,0 +1,52 @@
+{
+  "error": null,
+  "exit_code": 0,
+  "findings": [
+    {
+      "code": "UNKNOWN_CLASS",
+      "entity": "https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "message": "Class is not declared in the vendored schema snapshot.",
+      "property": "@type",
+      "rule": {
+        "citation": "The class is not declared in the vendored ceterms schema encoding snapshot (retrieved 2026-08-06). Either a typo or a term newer than the snapshot; refresh the vendored schema to rule out the latter.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "WARNING",
+      "value": "ceterms:NotARealClass"
+    },
+    {
+      "code": "UNKNOWN_PROPERTY",
+      "entity": "https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "message": "Property is not declared in the vendored schema snapshot.",
+      "property": "ceasn:alsoNotARealProperty",
+      "rule": {
+        "citation": "The property is not declared in the vendored ceasn schema encoding snapshot (retrieved 2026-08-06). Either a typo or a term newer than the snapshot; refresh the vendored schema to rule out the latter.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdlasn/schema/encoding/json"
+      },
+      "severity": "WARNING",
+      "value": "-"
+    },
+    {
+      "code": "UNKNOWN_PROPERTY",
+      "entity": "https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457",
+      "message": "Property is not declared in the vendored schema snapshot.",
+      "property": "ceterms:notARealProperty",
+      "rule": {
+        "citation": "The property is not declared in the vendored ceterms schema encoding snapshot (retrieved 2026-08-06). Either a typo or a term newer than the snapshot; refresh the vendored schema to rule out the latter.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "WARNING",
+      "value": "-"
+    }
+  ],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 3
+  },
+  "text_report": "WARNING      UNKNOWN_CLASS  entity=https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457\n    @type = ceterms:NotARealClass\n    Class is not declared in the vendored schema snapshot.\n    rule: The class is not declared in the vendored ceterms schema encoding snapshot (retrieved 2026-08-06). Either a typo or a term newer than the snapshot; refresh the vendored schema to rule out the latter.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\nWARNING      UNKNOWN_PROPERTY  entity=https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457\n    ceasn:alsoNotARealProperty = -\n    Property is not declared in the vendored schema snapshot.\n    rule: The property is not declared in the vendored ceasn schema encoding snapshot (retrieved 2026-08-06). Either a typo or a term newer than the snapshot; refresh the vendored schema to rule out the latter.\n    source: https://credreg.net/ctdlasn/schema/encoding/json (retrieved 2026-08-06)\n\nWARNING      UNKNOWN_PROPERTY  entity=https://credentialengineregistry.org/resources/ce-82566cee-17f3-4a6e-8f59-b45273aac457\n    ceterms:notARealProperty = -\n    Property is not declared in the vendored schema snapshot.\n    rule: The property is not declared in the vendored ceterms schema encoding snapshot (retrieved 2026-08-06). Either a typo or a term newer than the snapshot; refresh the vendored schema to rule out the latter.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\n3 finding(s): 0 ERROR, 3 WARNING, 0 INFO, 0 UNVERIFIABLE"
+}

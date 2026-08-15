@@ -1,0 +1,39 @@
+ctdl-validate-jvm
+Copyright 2026 Chelsea Kelly-Reif
+
+This product includes software developed by Chelsea Kelly-Reif.
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+--------------------------------------------------------------------------
+Ported work
+--------------------------------------------------------------------------
+
+The rule logic in this repository is a reimplementation of the rule core of
+ChelseaKR/ctdl-validate (https://github.com/ChelseaKR/ctdl-validate), which
+is licensed under the Apache License, Version 2.0 and is by the same author.
+Rule citation text is carried over from that repository unchanged, because it
+quotes Credential Engine's published documentation.
+
+Eleven of the JSON fixtures under parity/ are vendored from that repository's
+test suite unmodified; the provenance of every fixture is recorded in
+parity/PROVENANCE.md.
+
+--------------------------------------------------------------------------
+Vendored specification files
+--------------------------------------------------------------------------
+
+src/main/resources/vendor/ contains unmodified copies of Credential Engine's
+published CTDL and CTDL-ASN schema encodings and JSON-LD context documents:
+
+    vendor/ctdl/schema.json       https://credreg.net/ctdl/schema/encoding/json
+    vendor/ctdl/context.json      https://credreg.net/ctdl/schema/context/json
+    vendor/ctdlasn/schema.json    https://credreg.net/ctdlasn/schema/encoding/json
+    vendor/ctdlasn/context.json   https://credreg.net/ctdlasn/schema/context/json
+
+CTDL and CTDL-ASN are Credential Engine's, published under the Creative
+Commons Attribution 4.0 International License
+(https://creativecommons.org/licenses/by/4.0/). Source URLs, retrieval dates,
+and SHA-256 hashes are recorded in src/main/resources/vendor/SOURCES.md.
+
+This project is not affiliated with or endorsed by Credential Engine.

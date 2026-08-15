@@ -1,0 +1,21 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "@type": "ceterms:Certification",
+      "ceterms:ctid": "ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "ceterms:name": { "en-US": "Owners given as inline objects rather than references" },
+      "ceterms:ownedBy": [
+        {
+          "@type": "ceterms:CredentialOrganization",
+          "ceterms:name": { "en-US": "Inline owner of the right class" }
+        },
+        {
+          "@type": "ceterms:Course",
+          "ceterms:name": { "en-US": "Inline owner of the wrong class" }
+        }
+      ]
+    }
+  ]
+}

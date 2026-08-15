@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+
+  # The reference implementation is pinned deliberately, by version and by
+  # artifact hash, because the parity expectations are only meaningful against
+  # a rule set that cannot move underneath them. Bumping it is a review of the
+  # rule set, not a dependency chore, so it is not automated.
+  #   parity/reference-requirements.txt

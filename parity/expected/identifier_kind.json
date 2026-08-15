@@ -1,0 +1,65 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "REF_BARE_CTID",
+      "entity": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "message": "Bare CTID where an IRI belongs: right identifier kind, wrong form. Registry references use the CTID-based URI https://credentialengineregistry.org/resources/<CTID>.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "About the CTID, section \"CTID-Based URI Structure\": Registry URIs are constructed from https://credentialengineregistry.org plus /resources/ or /graph/ plus the CTID itself, and \"the value of a resource's CTID property will exactly match the CTID portion of that resource's URI\".",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/ctid"
+      },
+      "severity": "WARNING",
+      "value": "ce-b55f88e3-dfd4-430b-ab47-3e5f9986e1e4"
+    },
+    {
+      "code": "REF_BARE_UUID",
+      "entity": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "message": "Bare UUID where an entity identifier belongs. This property takes an IRI; for Registry resources that is https://credentialengineregistry.org/resources/<CTID>.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "The CTDL JSON-LD context declares ceterms:ownedBy with {\"@type\": \"@id\"}: its values are IRIs that identify entities, not literals. For Registry resources the IRI form is the CTID-based URI (see About the CTID).",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/context/json"
+      },
+      "severity": "ERROR",
+      "value": "b55f88e3-dfd4-430b-ab47-3e5f9986e1e4"
+    },
+    {
+      "code": "REF_NOT_IRI",
+      "entity": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "message": "Value of an identifier-valued property is neither an IRI nor a blank node identifier.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "The CTDL JSON-LD context declares ceterms:ownedBy with {\"@type\": \"@id\"}: its values are IRIs that identify entities, not literals. For Registry resources the IRI form is the CTID-based URI (see About the CTID).",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/context/json"
+      },
+      "severity": "WARNING",
+      "value": "Acme Widget Institute"
+    },
+    {
+      "code": "REF_UNRESOLVED_BNODE",
+      "entity": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "message": "Blank node reference is not defined anywhere in this payload. A blank node identifier only has meaning inside the graph that declares it, so this reference cannot identify anything.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "CTDL All Schemas Handbook, \"Blank Node Identifier\": a blank node \"is only identified, referenced, or retrievable in the context of the graph in which it is found\". A blank node identifier that its own payload does not define identifies nothing.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/handbook"
+      },
+      "severity": "ERROR",
+      "value": "_:owner-that-is-never-defined"
+    }
+  ],
+  "summary": {
+    "ERROR": 2,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 2
+  },
+  "text_report": "WARNING      REF_BARE_CTID  entity=https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344\n    ceterms:ownedBy = ce-b55f88e3-dfd4-430b-ab47-3e5f9986e1e4\n    Bare CTID where an IRI belongs: right identifier kind, wrong form. Registry references use the CTID-based URI https://credentialengineregistry.org/resources/<CTID>.\n    rule: About the CTID, section \"CTID-Based URI Structure\": Registry URIs are constructed from https://credentialengineregistry.org plus /resources/ or /graph/ plus the CTID itself, and \"the value of a resource's CTID property will exactly match the CTID portion of that resource's URI\".\n    source: https://credreg.net/ctdl/ctid (retrieved 2026-08-06)\n\nERROR        REF_BARE_UUID  entity=https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344\n    ceterms:ownedBy = b55f88e3-dfd4-430b-ab47-3e5f9986e1e4\n    Bare UUID where an entity identifier belongs. This property takes an IRI; for Registry resources that is https://credentialengineregistry.org/resources/<CTID>.\n    rule: The CTDL JSON-LD context declares ceterms:ownedBy with {\"@type\": \"@id\"}: its values are IRIs that identify entities, not literals. For Registry resources the IRI form is the CTID-based URI (see About the CTID).\n    source: https://credreg.net/ctdl/schema/context/json (retrieved 2026-08-06)\n\nWARNING      REF_NOT_IRI  entity=https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344\n    ceterms:ownedBy = Acme Widget Institute\n    Value of an identifier-valued property is neither an IRI nor a blank node identifier.\n    rule: The CTDL JSON-LD context declares ceterms:ownedBy with {\"@type\": \"@id\"}: its values are IRIs that identify entities, not literals. For Registry resources the IRI form is the CTID-based URI (see About the CTID).\n    source: https://credreg.net/ctdl/schema/context/json (retrieved 2026-08-06)\n\nERROR        REF_UNRESOLVED_BNODE  entity=https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344\n    ceterms:ownedBy = _:owner-that-is-never-defined\n    Blank node reference is not defined anywhere in this payload. A blank node identifier only has meaning inside the graph that declares it, so this reference cannot identify anything.\n    rule: CTDL All Schemas Handbook, \"Blank Node Identifier\": a blank node \"is only identified, referenced, or retrievable in the context of the graph in which it is found\". A blank node identifier that its own payload does not define identifies nothing.\n    source: https://credreg.net/ctdl/handbook (retrieved 2026-08-06)\n\n4 finding(s): 2 ERROR, 2 WARNING, 0 INFO, 0 UNVERIFIABLE"
+}
