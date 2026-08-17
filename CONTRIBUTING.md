@@ -36,7 +36,10 @@ python3 -m pip install --require-hashes -r parity/reference-requirements.txt
 ## The merge gate
 
 A change merges when `./gradlew verify` is green. That is the same target CI
-runs, so green locally means green in CI.
+runs, so green locally means green in CI. `make verify` is a thin front door
+onto the same Gradle target, for consistency with the rest of the portfolio;
+Gradle is still the build system and `build.gradle.kts` is still where the gate
+is defined.
 
 | Gate | Task | What it checks |
 | --- | --- | --- |

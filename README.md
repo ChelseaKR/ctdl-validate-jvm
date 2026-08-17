@@ -215,6 +215,7 @@ by reading, which is the argument for having it.
 
 ```
 ./gradlew verify   # the whole gate; the same target CI runs
+make verify        # the same thing, through the portfolio's front door
 ```
 
 | Gate | Task | What it checks |
@@ -234,6 +235,30 @@ python3 -m pip install --require-hashes -r parity/reference-requirements.txt
 python3 tools/generate_expectations.py          # write
 python3 tools/generate_expectations.py --check  # report differences only
 ```
+
+## Standards Conformance
+
+Declared against the portfolio standards set. Every standard gets a row, an N/A
+gives its reason, and a row that records a gap says so rather than being left
+out.
+
+| Standard | State |
+|---|---|
+| Responsible-Tech Framework | Applies: what this is and is not, the limits, the one deliberate divergence, and the AI-assistance disclosure are all above and are the point of the README rather than an appendix to it. Every finding carries its rule citation, source URL, and retrieval date. No dated audit record is committed; this row and the recorded limits are the declaration |
+| Code Quality | Applies: `./gradlew verify` is the gate and CI runs that exact target. Compilation is `--release 17` with `-Xlint:all -Werror`, formatting is google-java-format through Spotless, static analysis is SpotBugs at max effort and low threshold, tests are JUnit 5 including the parity suite, and JaCoCo enforces a branch-coverage floor of 85%. `.pre-commit-config.yaml` runs the cheap parts locally and the full gate at pre-push, and `make verify` is a thin front door onto the same Gradle target |
+| Security & Supply-Chain | Applies: every GitHub Action pinned to a full commit SHA, least-privilege workflow permissions, Semgrep and a full-history TruffleHog sweep in their own workflows, and Dependabot for Gradle and Actions with a seven-day cooldown before a newly published version is proposed. The reference implementation is installed with `--require-hashes`. One runtime dependency, and `OfflineGuaranteeTest` reads the compiled classes and fails if any of them so much as names a networking type. Reporting is in [`SECURITY.md`](SECURITY.md) |
+| CI/CD | Applies: `ci.yml` runs the same target a contributor runs, and a second job installs the pinned reference implementation, regenerates `parity/expected/` from it, and fails on any diff, so the committed expectations cannot decay into a record of what this port did on the day they were written |
+| Release & Versioning | Applies: SemVer and Keep-a-Changelog are declared and the CHANGELOG is kept. Nothing has been released. There is no tag, no artifact on Maven Central or any other registry, and no release workflow. A demonstration port that nobody installs does not need one yet, and inventing one before the first tag would be a workflow nobody has run |
+| Observability | Applies (scoped): an offline single-run CLI and library, not a service. The observable output is the exit code and the findings, byte-identical for the same input. No tracing, metrics, or SLO surface exists, and none is claimed |
+| Performance | N/A: a pure library and CLI with no hosted route and no shipped HTML, so there is no delivery surface to budget |
+| Accessibility | N/A: an offline CLI and library with no human-facing HTML |
+| Internationalization | N/A: a developer-facing JVM validator whose operator output is English only, matching the reference implementation it is compared against byte for byte. Translating a message here would make the two implementations disagree, so it is a change to the sibling first, if ever |
+| AI Evaluation | N/A: a deterministic validator with no model component. There is no model anywhere in this repository and there will not be one, and the README says so in its first ten lines |
+| Documentation | Applies: README, [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), CHANGELOG, CITATION.cff, the ADR log under [`docs/adr/`](docs/adr/), the fixture provenance table in `parity/PROVENANCE.md`, and the vendored-source record in `src/main/resources/vendor/SOURCES.md` |
+| Quality & Metrics | Applies: the merge-blocking floors are byte-equality against the reference over every fixture, 85% branch coverage, zero SpotBugs findings, a clean formatter, and the offline guarantee. The parity corpus is 21 payloads and is recorded above as evidence, not a proof |
+| AI Development Measurement | Applies: no tool-usage counter is collected and none gates a merge. The Disclosure section below records that the port was written with AI assistance and reviewed by a human; the gate is what a change clears regardless of how it was authored |
+| Incident Response | Applies: no incident to date, and nothing is released for one to reach. Vulnerabilities go through the path in [`SECURITY.md`](SECURITY.md), and a postmortem will be committed under `docs/incidents/` when there is one to write |
+| Data Governance | Applies: the validator reads a file you give it, keeps nothing, and makes no network call. Parity fixtures are synthetic by rule, with generated identifiers and invented names and nothing copied from a real organization or from the Credential Registry. The vendored CTDL and CTDL-ASN snapshots retain their origin and retrieval date in `src/main/resources/vendor/SOURCES.md` |
 
 ## Disclosure
 
