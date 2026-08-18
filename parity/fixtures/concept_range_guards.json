@@ -1,0 +1,45 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-eaf08fa2-4206-4427-bbba-b74c43088019",
+      "@type": "ceterms:Course",
+      "ceterms:ctid": "ce-eaf08fa2-4206-4427-bbba-b74c43088019",
+      "ceterms:name": { "en-US": "Course whose concept-valued properties stay in range" },
+      "ceterms:creditValue": [
+        {
+          "@type": "ceterms:ValueProfile",
+          "ceterms:creditUnitType": [
+            "https://credentialengineregistry.org/resources/ce-b06c1c28-a023-4cf1-828f-fccd859810c4"
+          ],
+          "schema:value": 3.0
+        },
+        {
+          "@type": "ceterms:ValueProfile",
+          "ceterms:creditUnitType": [
+            "https://credentialengineregistry.org/resources/ce-ad66c73e-5896-4c2c-b225-b39c5335adfa"
+          ],
+          "schema:value": 4.0
+        }
+      ],
+      "ceterms:classification": [
+        {
+          "@type": "ceterms:CredentialAlignmentObject",
+          "ceterms:framework": "https://credreg.net/ctdl/terms/CreditUnit",
+          "ceterms:targetNode": "creditUnit:SemesterHour"
+        }
+      ]
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-b06c1c28-a023-4cf1-828f-fccd859810c4",
+      "@type": "skos:Concept",
+      "ceterms:ctid": "ce-b06c1c28-a023-4cf1-828f-fccd859810c4"
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-ad66c73e-5896-4c2c-b225-b39c5335adfa",
+      "@type": "ceterms:CredentialOrganization",
+      "ceterms:ctid": "ce-ad66c73e-5896-4c2c-b225-b39c5335adfa",
+      "ceterms:name": { "en-US": "An organization standing where a concept belongs" }
+    }
+  ]
+}

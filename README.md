@@ -30,7 +30,7 @@ Both implementations are tested against the same corpus, and disagreement is
 a build failure.
 
 ```
-parity/fixtures/     21 CTDL JSON-LD payloads, one per rule and per document shape
+parity/fixtures/     22 CTDL JSON-LD payloads, one per rule and per document shape
 parity/expected/     what ChelseaKR/ctdl-validate reports for each of them
 ```
 
@@ -61,7 +61,33 @@ which corrupts an expectation and asserts the comparison notices, so the
 suite does not depend on anyone remembering to try that by hand.
 
 The corpus is held to the rule set as well: `ParityTest` fails if any finding
-code the checks can emit has no fixture exercising it. All 19 do.
+code the checks can emit has no fixture exercising it. All 20 do.
+
+### Where the port leads the reference
+
+One rule in this port is ahead of the pinned release: `CONCEPT_RANGE_CONFLICT`
+(see below). The fix exists on the reference's `main` and in no release, so
+the pin cannot reach it, and byte equality on a fixture exercising it is not
+available to be had.
+
+That divergence is recorded rather than hidden, in a second corpus whose only
+job is to bound it:
+
+```
+parity/ahead/fixtures/    payloads this port answers differently, on purpose
+parity/ahead/reference/   what the pinned release says about them, generated
+```
+
+There is deliberately no Java-side golden file. `AheadOfReferenceTest` asserts
+the *shape* of the disagreement instead — same findings, same order, each one
+either identical to the reference's or one declared substitution, a
+`RANGE_VIOLATION`/ERROR becoming a `CONCEPT_RANGE_CONFLICT`/INFO on the same
+entity, property, and value, for a property the vendored snapshot marks with
+`meta:targetScheme`. Anything wider is a red build. When the pin is bumped to
+a release carrying the fix, the reference stops disagreeing and the suite
+fails, which is the instruction to fold the fixture back into
+`parity/fixtures/` and delete the entry. See
+[ADR 0004](docs/adr/0004-the-port-may-lead-the-pinned-reference.md).
 
 ## What is ported
 
@@ -74,7 +100,7 @@ reporters. From
 | 1 | CTID grammar on `ceterms:ctid`, on `@id`, and on the tail of every Registry resource/graph URI; `ctid` must match the `@id` tail | `CTID_BARE_UUID`, `CTID_MALFORMED`, `CTID_UPPERCASE`, `CTID_NOT_UUIDV4`, `REGISTRY_URI_MALFORMED`, `CTID_URI_MISMATCH` |
 | 2 | Identifier kind: properties the CTDL context declares as `{"@type": "@id"}` with entity ranges must carry IRIs or blank node ids | `REF_BARE_UUID`, `REF_BARE_CTID`, `REF_NOT_IRI` |
 | 3 | Reference resolution inside the payload; undefined blank nodes are errors, external IRIs are UNVERIFIABLE | `REF_UNRESOLVED_BNODE`, `REF_OUTSIDE_PAYLOAD` |
-| 4 | Domain and range per `schema:domainIncludes` / `schema:rangeIncludes`, with `rdfs:subClassOf` closure, plus the wrong-framework `isPartOf` pattern | `DOMAIN_VIOLATION`, `RANGE_VIOLATION`, `ISPARTOF_FRAMEWORK_MISMATCH`, `UNKNOWN_CLASS`, `UNKNOWN_PROPERTY`, `RANGE_DOCS_CONFLICT` |
+| 4 | Domain and range per `schema:domainIncludes` / `schema:rangeIncludes`, with `rdfs:subClassOf` closure, plus the wrong-framework `isPartOf` pattern | `DOMAIN_VIOLATION`, `RANGE_VIOLATION`, `ISPARTOF_FRAMEWORK_MISMATCH`, `UNKNOWN_CLASS`, `UNKNOWN_PROPERTY`, `RANGE_DOCS_CONFLICT`, `CONCEPT_RANGE_CONFLICT` |
 | 5 | Inverse consistency for pairs the schema declares with `owl:inverseOf` | `INVERSE_MISMATCH`, `INVERSE_ONE_DIRECTION` |
 
 Severities mean what they mean in the sibling, because the parity test would
@@ -147,6 +173,41 @@ citation text is the author's own from the sibling repository; the quoted
 spec sentences inside it are Credential Engine's, attributed at every use.
 
 No rule is encoded from memory in either implementation.
+
+### When the sources contradict each other
+
+Two rules report a disagreement between published sources rather than a defect
+in the document, and neither gates the exit code:
+
+- **`RANGE_DOCS_CONFLICT`** — `ceasn:isChildOf` pointed at a
+  `ceasn:CompetencyFramework`, which the schema's declared range excludes and
+  Credential Engine's own usage note and examples require.
+- **`CONCEPT_RANGE_CONFLICT`** — CTDL declares a reference to a term from one
+  of its own concept schemes two incompatible ways. Across the vendored
+  snapshot 46 properties declare `schema:rangeIncludes
+  ceterms:CredentialAlignmentObject` and 45 declare `skos:Concept`, with
+  nothing about the values telling the families apart. Three concept schemes
+  (`AudienceLevel`, `CostType`, `ScheduleFrequency`) are named by properties
+  in *both* families, and `ceterms:instructionalProgramType` declares both
+  ranges at once. Every published document encodes both as a
+  `CredentialAlignmentObject`, which the encoding gives no path to
+  `skos:Concept` — so an ERROR here reports Credential Engine's own dominant
+  encoding as a defect.
+
+  A property declaring `skos:Concept` **and** a `meta:targetScheme` is a
+  scheme-bound concept reference; an alignment object there is INFO. The
+  covered set — 20 properties — is derived from the snapshot on every run, not
+  written down, so refreshing the vendored schema refreshes the ruling. A
+  `skos:Concept` range with *no* `meta:targetScheme` (`skos:broader`,
+  `ceterms:classification`) is ordinary SKOS and stays an ERROR, as does any
+  other out-of-range class on a covered property.
+
+  Measured over the 120 published Registry documents of the sibling's
+  2026-08-15 survey, validated offline from its cache: documents failing went
+  **36/120 → 0** and ERROR findings **38 → 0**, with every other finding, at
+  every severity, unchanged. `ConceptRangeConflictTest` fails if Credential
+  Engine ever resolves the conflict this disposition rests on, so it cannot
+  outlive its own premise.
 
 ## What porting it actually took
 

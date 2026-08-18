@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Regenerate parity/expected/ from the Python sibling, ctdl-validate.
+"""Regenerate parity/expected/ and parity/ahead/reference/ from ctdl-validate.
 
 The expectation files in parity/expected/ are not hand-written. They are the
 output of ChelseaKR/ctdl-validate, the reference implementation this repository
 ports, run over every fixture in parity/fixtures/. This script is how they are
 produced, and CI runs it and fails if the committed files differ, so a golden
 file can never drift away from what the reference implementation actually does.
+
+parity/ahead/ is the same idea for the narrow set of behaviours where this port
+deliberately leads the pinned release, and its reference documents are recorded
+by the same code path for the same reason: what is written down there has to be
+what the pinned reference really says, not a recollection of it. See
+docs/adr/0004-the-port-may-lead-the-pinned-reference.md.
 
 Usage:
     pip install ctdl-validate==<pinned version>
@@ -27,8 +33,15 @@ from ctdl_validate.graph import DocumentError
 from ctdl_validate.validator import validate_document
 
 ROOT = Path(__file__).resolve().parent.parent
-FIXTURES = ROOT / "parity" / "fixtures"
-EXPECTED = ROOT / "parity" / "expected"
+
+#: (fixtures, output) pairs. The first is the byte-equality corpus; the second
+#: records what the pinned reference says about the fixtures this port answers
+#: differently, so the divergence is measured against the reference rather than
+#: asserted from memory.
+CORPORA = (
+    (ROOT / "parity" / "fixtures", ROOT / "parity" / "expected"),
+    (ROOT / "parity" / "ahead" / "fixtures", ROOT / "parity" / "ahead" / "reference"),
+)
 
 #: The order the reference implementation counts and prints severities in.
 #: Restated here rather than imported: it moved modules between 0.1.0 and the
@@ -93,33 +106,36 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    fixtures = sorted(FIXTURES.glob("*.json"))
-    if not fixtures:
-        print(f"no fixtures found in {FIXTURES}", file=sys.stderr)
-        return 2
-
-    EXPECTED.mkdir(parents=True, exist_ok=True)
+    total = 0
     differences = 0
-    for fixture in fixtures:
-        target = EXPECTED / fixture.name
-        rendered = render(parity_document(fixture))
-        if args.check:
-            current = target.read_text(encoding="utf-8") if target.exists() else ""
-            if current != rendered:
-                differences += 1
-                print(f"differs: {target.relative_to(ROOT)}", file=sys.stderr)
-        else:
-            target.write_text(rendered, encoding="utf-8")
+    for fixture_dir, output_dir in CORPORA:
+        fixtures = sorted(fixture_dir.glob("*.json"))
+        if not fixtures:
+            print(f"no fixtures found in {fixture_dir}", file=sys.stderr)
+            return 2
+        total += len(fixtures)
 
-    stale = {p.name for p in EXPECTED.glob("*.json")} - {p.name for p in fixtures}
-    for name in sorted(stale):
-        differences += 1
-        print(f"expectation with no fixture: {name}", file=sys.stderr)
-        if not args.check:
-            (EXPECTED / name).unlink()
+        output_dir.mkdir(parents=True, exist_ok=True)
+        for fixture in fixtures:
+            target = output_dir / fixture.name
+            rendered = render(parity_document(fixture))
+            if args.check:
+                current = target.read_text(encoding="utf-8") if target.exists() else ""
+                if current != rendered:
+                    differences += 1
+                    print(f"differs: {target.relative_to(ROOT)}", file=sys.stderr)
+            else:
+                target.write_text(rendered, encoding="utf-8")
+
+        stale = {p.name for p in output_dir.glob("*.json")} - {p.name for p in fixtures}
+        for name in sorted(stale):
+            differences += 1
+            print(f"expectation with no fixture: {name}", file=sys.stderr)
+            if not args.check:
+                (output_dir / name).unlink()
 
     print(
-        f"{len(fixtures)} fixture(s) against ctdl-validate {reference_version}"
+        f"{total} fixture(s) against ctdl-validate {reference_version}"
         + (f"; {differences} difference(s)" if args.check else "")
     )
     return 1 if differences else 0

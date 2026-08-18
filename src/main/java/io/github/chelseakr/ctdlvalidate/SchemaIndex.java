@@ -2,6 +2,7 @@ package io.github.chelseakr.ctdlvalidate;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
@@ -47,6 +48,17 @@ public final class SchemaIndex {
    */
   public static final List<String> CHECKED_PREFIXES = List.of("ceterms:", "ceasn:");
 
+  /**
+   * The two classes CTDL uses, inconsistently, to range a reference to a term from one of its own
+   * concept schemes. See {@link Rules#conceptRangeConflict}.
+   */
+  public static final String CONCEPT_RANGE_TERM = "skos:Concept";
+
+  /**
+   * @see #CONCEPT_RANGE_TERM
+   */
+  public static final String ALIGNMENT_RANGE_TERM = "ceterms:CredentialAlignmentObject";
+
   /** A declared class and its direct {@code rdfs:subClassOf} parents. */
   public record ClassDef(String term, List<String> parents) {}
 
@@ -57,7 +69,8 @@ public final class SchemaIndex {
       Set<String> range,
       String inverse,
       boolean idCoerced,
-      boolean languageMap) {
+      boolean languageMap,
+      Set<String> targetScheme) {
 
     /** True when at least one declared range term is an entity class rather than a literal type. */
     public boolean rangeHasEntities() {
@@ -67,6 +80,20 @@ public final class SchemaIndex {
         }
       }
       return false;
+    }
+
+    /**
+     * True when this property names a concept scheme and ranges on {@code skos:Concept}.
+     *
+     * <p>These are the properties the concept-range inconsistency reaches; see {@link
+     * Rules#conceptRangeConflict}. CTDL declares one kind of value — a term drawn from one of its
+     * own concept schemes — with two incompatible ranges depending on the property, and {@code
+     * meta:targetScheme} is what separates that case from ordinary SKOS: it is declared on both
+     * families and absent from {@code ceterms:classification} and {@code skos:broader}, which mean
+     * an actual {@code skos:Concept} and stay errors.
+     */
+    public boolean schemeBoundConcept() {
+      return range.contains(CONCEPT_RANGE_TERM) && !targetScheme.isEmpty();
     }
   }
 
@@ -158,6 +185,44 @@ public final class SchemaIndex {
       }
     }
     return false;
+  }
+
+  /**
+   * Properties naming the same concept scheme as {@code term} but ranged on the other class.
+   *
+   * <p>The demonstration that CTDL's two concept ranges describe one kind of value: these
+   * properties draw from the <em>same</em> {@code meta:targetScheme} as {@code term} and declare
+   * {@code ceterms:CredentialAlignmentObject} where {@code term} declares {@code skos:Concept}.
+   * Derived from the vendored snapshot on every call rather than written down, so refreshing the
+   * snapshot refreshes the evidence.
+   */
+  public List<String> alignmentRangedSiblings(String term) {
+    PropertyDef propDef = properties.get(term);
+    if (propDef == null || propDef.targetScheme().isEmpty()) {
+      return List.of();
+    }
+    List<String> siblings = new ArrayList<>();
+    for (PropertyDef other : properties.values()) {
+      if (!other.term().equals(term)
+          && other.range().contains(ALIGNMENT_RANGE_TERM)
+          && !Collections.disjoint(other.targetScheme(), propDef.targetScheme())) {
+        siblings.add(other.term());
+      }
+    }
+    siblings.sort(CodePointOrder.COMPARATOR);
+    return List.copyOf(siblings);
+  }
+
+  /** Every property the concept-range conflict disposition can apply to. */
+  public List<String> schemeBoundConceptProperties() {
+    List<String> terms = new ArrayList<>();
+    for (PropertyDef propDef : properties.values()) {
+      if (propDef.schemeBoundConcept()) {
+        terms.add(propDef.term());
+      }
+    }
+    terms.sort(CodePointOrder.COMPARATOR);
+    return List.copyOf(terms);
   }
 
   /** The subset of a node's types that the vendored snapshot actually declares, in order. */

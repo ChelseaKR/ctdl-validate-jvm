@@ -1,0 +1,35 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-11985f8d-d2c5-4fee-a07b-d43947fe3a9e",
+      "@type": "ceterms:Course",
+      "ceterms:ctid": "ce-11985f8d-d2c5-4fee-a07b-d43947fe3a9e",
+      "ceterms:name": {
+        "en-US": "Course encoding its concept references the way the Registry does"
+      },
+      "ceterms:creditValue": [
+        {
+          "@type": "ceterms:ValueProfile",
+          "ceterms:creditUnitType": [
+            {
+              "@type": "ceterms:CredentialAlignmentObject",
+              "ceterms:framework": "https://credreg.net/ctdl/terms/CreditUnit",
+              "ceterms:targetNode": "creditUnit:SemesterHour",
+              "ceterms:targetNodeName": { "en-US": "Semester Hour" }
+            }
+          ],
+          "ceterms:creditLevelType": [
+            {
+              "@type": "ceterms:CredentialAlignmentObject",
+              "ceterms:framework": "https://credreg.net/ctdl/terms/AudienceLevel",
+              "ceterms:targetNode": "audLevel:BeginnerLevel",
+              "ceterms:targetNodeName": { "en-US": "Beginner Level" }
+            }
+          ],
+          "schema:value": 3.0
+        }
+      ]
+    }
+  ]
+}

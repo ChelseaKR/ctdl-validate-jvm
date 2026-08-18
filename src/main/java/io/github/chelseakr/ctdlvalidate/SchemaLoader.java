@@ -19,10 +19,10 @@ import java.util.TreeSet;
  * Loads and indexes the vendored CTDL and CTDL-ASN schema and context files.
  *
  * <p>The schema encodings supply class declarations (with {@code rdfs:subClassOf}) and property
- * declarations ({@code schema:domainIncludes}, {@code schema:rangeIncludes}, {@code
- * owl:inverseOf}). The JSON-LD contexts supply per-property value coercions: {@code {"@type":
- * "@id"}} marks identifier-valued properties, {@code {"@container": "@language"}} marks language
- * maps.
+ * declarations ({@code schema:domainIncludes}, {@code schema:rangeIncludes}, {@code owl:inverseOf},
+ * {@code meta:targetScheme}). The JSON-LD contexts supply per-property value coercions: {@code
+ * {"@type": "@id"}} marks identifier-valued properties, {@code {"@container": "@language"}} marks
+ * language maps.
  *
  * <p>The files are read from the classpath and never from the network. See {@code
  * src/main/resources/vendor/SOURCES.md} for their source URLs, retrieval date, and SHA-256 hashes.
@@ -110,7 +110,8 @@ public final class SchemaLoader {
               Set.copyOf(entry.getValue().range),
               entry.getValue().inverse,
               idCoerced,
-              languageMap));
+              languageMap,
+              Set.copyOf(entry.getValue().targetScheme)));
     }
 
     return new SchemaIndex(classes, properties, prefixes);
@@ -139,6 +140,7 @@ public final class SchemaLoader {
       RawProperty raw = rawProperties.computeIfAbsent(term, key -> new RawProperty());
       raw.domain.addAll(asStringList(entry.get("schema:domainIncludes")));
       raw.range.addAll(asStringList(entry.get("schema:rangeIncludes")));
+      raw.targetScheme.addAll(asStringList(entry.get("meta:targetScheme")));
       List<String> inverse = asStringList(entry.get("owl:inverseOf"));
       if (!inverse.isEmpty()) {
         raw.inverse = inverse.get(0);
@@ -171,6 +173,14 @@ public final class SchemaLoader {
   private static final class RawProperty {
     private final Set<String> domain = new LinkedHashSet<>();
     private final Set<String> range = new LinkedHashSet<>();
+
+    /**
+     * {@code meta:targetScheme}: the CTDL concept scheme(s) a value of this property is drawn from.
+     * Declared on both families of concept-valued property, which is what makes it a discriminator
+     * for "this is a controlled-vocabulary term reference" independent of the declared range.
+     */
+    private final Set<String> targetScheme = new LinkedHashSet<>();
+
     private String inverse;
   }
 
