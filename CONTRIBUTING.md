@@ -57,9 +57,13 @@ every GitHub Action is pinned to a full commit SHA.
 **Parity is the point.** `ParityTest` compares this implementation's output
 against the reference's, byte for byte, over every fixture. If it goes red,
 one of the two implementations is wrong about a published CTDL rule; find out
-which before touching anything. Editing a file in `parity/expected/` to make
-a test pass is never the fix — those files are generated, CI regenerates them
-from the pinned reference, and a hand-edit will simply fail there instead.
+which before touching anything. Editing a file in `parity/expected/` or
+`parity/ahead/reference/` to make a test pass is never the fix — those files
+are generated, CI regenerates them from the pinned reference, and a hand-edit
+will simply fail there instead. `parity/ahead/` is the only place this port is
+allowed to differ from the reference, it is bounded to one declared
+substitution by `AheadOfReferenceTest`, and adding an entry to it needs an ADR
+0004-shaped argument, not a convenient exemption.
 
 **Cited rules only.** Every finding carries a rule citation, a source URL, and
 a retrieval date. Citation text is the reference implementation's wording,

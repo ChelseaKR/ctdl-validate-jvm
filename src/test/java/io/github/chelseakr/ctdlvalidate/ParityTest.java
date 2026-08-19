@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -95,6 +96,15 @@ class ParityTest {
     for (String name : fixtureNames().toList()) {
       for (Object finding : findingsOf(name)) {
         emitted.add(String.valueOf(((java.util.Map<?, ?>) finding).get("code")));
+      }
+    }
+    // Codes this port emits ahead of the pinned reference cannot appear in
+    // parity/expected/, because the pinned release does not know them. They are
+    // covered by parity/ahead/ instead, which AheadOfReferenceTest holds to the
+    // one substitution they are allowed to be.
+    for (String name : AheadOfReferenceTest.fixtureNames().toList()) {
+      for (JsonNode finding : AheadOfReferenceTest.portDocument(name).get("findings")) {
+        emitted.add(finding.get("code").asText());
       }
     }
     Set<String> declared = new TreeSet<>(FindingCodes.ALL);

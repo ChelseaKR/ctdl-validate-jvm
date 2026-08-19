@@ -21,6 +21,12 @@ import java.util.TreeSet;
  * does not declare are WARNINGs: they may be typos or newer than the snapshot. This check also
  * carries the generic form of the wrong-framework-identifier bug — a Competency whose isPartOf
  * matches no CompetencyFramework in its own payload even though the payload contains one.
+ *
+ * <p>Two range disagreements are dispositions rather than errors, because the published sources
+ * contradict each other rather than the document contradicting a source: {@code
+ * RANGE_DOCS_CONFLICT} for {@code ceasn:isChildOf}, and {@code CONCEPT_RANGE_CONFLICT} for the
+ * properties CTDL ranges on {@code skos:Concept} while ranging the same kind of value on {@code
+ * ceterms:CredentialAlignmentObject} elsewhere. Both are INFO and neither gates the exit code.
  */
 public final class DomainRangeCheck implements Check {
 
@@ -30,6 +36,12 @@ public final class DomainRangeCheck implements Check {
    */
   private static final Map<String, String> DOCUMENTED_RANGE_CONFLICTS =
       Map.of("ceasn:isChildOf", "ceasn:CompetencyFramework");
+
+  /**
+   * The class that satisfies a declared {@code skos:Concept} range in practice even though the
+   * encoding gives it no path to it. See {@link Rules#conceptRangeConflict}.
+   */
+  private static final Set<String> ALIGNMENT_RANGE = Set.of(SchemaIndex.ALIGNMENT_RANGE_TERM);
 
   private static final Set<String> COMPETENCY = Set.of("ceasn:Competency");
   private static final Set<String> COMPETENCY_FRAMEWORK = Set.of("ceasn:CompetencyFramework");
@@ -117,6 +129,16 @@ public final class DomainRangeCheck implements Check {
         continue;
       }
       String valueText = value instanceof Value.Text text ? text.text() : target.label();
+      // CTDL ranges a reference to a term from one of its own concept schemes on
+      // skos:Concept for some properties and on CredentialAlignmentObject for
+      // others, with nothing about the value to tell the families apart, and its
+      // published documents use CredentialAlignmentObject for both. An ERROR here
+      // would report Credential Engine's dominant encoding as a defect, so this
+      // is reported and not gated on.
+      if (propDef.schemeBoundConcept() && schema.classMatches(targetTypes, ALIGNMENT_RANGE)) {
+        findings.add(conceptRangeConflict(node, prop, propDef, valueText, schema));
+        continue;
+      }
       String conflictClass = DOCUMENTED_RANGE_CONFLICTS.get(prop);
       String conflict =
           conflictClass != null && targetTypes.contains(conflictClass) ? conflictClass : null;
@@ -154,6 +176,36 @@ public final class DomainRangeCheck implements Check {
       }
     }
     return findings;
+  }
+
+  /**
+   * The concept-range disposition: an alignment object where CTDL declared {@code skos:Concept} but
+   * also named the concept scheme the value is drawn from.
+   */
+  private static Finding conceptRangeConflict(
+      Graph.Node node,
+      String prop,
+      SchemaIndex.PropertyDef propDef,
+      String valueText,
+      SchemaIndex schema) {
+    List<String> schemes = new ArrayList<>(propDef.targetScheme());
+    schemes.sort(io.github.chelseakr.ctdlvalidate.CodePointOrder.COMPARATOR);
+    return new Finding(
+        "CONCEPT_RANGE_CONFLICT",
+        Severity.INFO,
+        node.label(),
+        prop,
+        valueText,
+        prop
+            + " declares its range as skos:Concept, and this value is a "
+            + SchemaIndex.ALIGNMENT_RANGE_TERM
+            + ". That is how the Registry's published documents encode it, and how CTDL declares"
+            + " the range of other properties drawing on the same concept scheme ("
+            + String.join(", ", schemes)
+            + "), so this is very likely correct as written. Nothing to fix unless you meant to"
+            + " reference a skos:Concept directly.",
+        Rules.conceptRangeConflict(
+            prop, propDef.targetScheme(), schema.alignmentRangedSiblings(prop)));
   }
 
   /** The generic wrong-framework-identifier bug, as it shows up in competency extracts. */

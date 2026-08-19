@@ -72,7 +72,8 @@ jobs:
           python-version: "3.12"
           check-latest: false
 
-      # This is the job that keeps parity/expected/ honest. Without it the
+      # This is the job that keeps parity/expected/ and parity/ahead/reference/
+      # honest. Without it the
       # committed expectations would be nothing but a record of what this Java
       # implementation did on the day they were written, and the parity suite
       # would be comparing the port against itself. Installing the pinned
@@ -84,4 +85,4 @@ jobs:
       - name: Regenerate the expectations and fail on any drift
         run: |
           python3 tools/generate_expectations.py
-          git --no-pager diff --exit-code -- parity/expected
+          git --no-pager diff --exit-code -- parity/expected parity/ahead/reference

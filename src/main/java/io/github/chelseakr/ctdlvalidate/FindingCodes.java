@@ -38,7 +38,8 @@ public final class FindingCodes {
           "ISPARTOF_FRAMEWORK_MISMATCH",
           "UNKNOWN_CLASS",
           "UNKNOWN_PROPERTY",
-          "RANGE_DOCS_CONFLICT");
+          "RANGE_DOCS_CONFLICT",
+          "CONCEPT_RANGE_CONFLICT");
 
   /** Check 5, inverse consistency. */
   public static final List<String> INVERSES = List.of("INVERSE_MISMATCH", "INVERSE_ONE_DIRECTION");

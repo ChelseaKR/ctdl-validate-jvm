@@ -1,0 +1,39 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "RANGE_VIOLATION",
+      "entity": "$.@graph[0].ceterms:creditValue[0]",
+      "message": "Referenced entity $.@graph[0].ceterms:creditValue[0].ceterms:creditLevelType[0] is typed [ceterms:CredentialAlignmentObject], which is outside the declared range of ceterms:creditLevelType.",
+      "property": "ceterms:creditLevelType",
+      "rule": {
+        "citation": "ceterms:creditLevelType declares schema:rangeIncludes [skos:Concept] in the schema encoding; the referenced entity's class is not among them or their subclasses.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "ERROR",
+      "value": "$.@graph[0].ceterms:creditValue[0].ceterms:creditLevelType[0]"
+    },
+    {
+      "code": "RANGE_VIOLATION",
+      "entity": "$.@graph[0].ceterms:creditValue[0]",
+      "message": "Referenced entity $.@graph[0].ceterms:creditValue[0].ceterms:creditUnitType[0] is typed [ceterms:CredentialAlignmentObject], which is outside the declared range of ceterms:creditUnitType.",
+      "property": "ceterms:creditUnitType",
+      "rule": {
+        "citation": "ceterms:creditUnitType declares schema:rangeIncludes [skos:Concept] in the schema encoding; the referenced entity's class is not among them or their subclasses.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "ERROR",
+      "value": "$.@graph[0].ceterms:creditValue[0].ceterms:creditUnitType[0]"
+    }
+  ],
+  "summary": {
+    "ERROR": 2,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": "ERROR        RANGE_VIOLATION  entity=$.@graph[0].ceterms:creditValue[0]\n    ceterms:creditLevelType = $.@graph[0].ceterms:creditValue[0].ceterms:creditLevelType[0]\n    Referenced entity $.@graph[0].ceterms:creditValue[0].ceterms:creditLevelType[0] is typed [ceterms:CredentialAlignmentObject], which is outside the declared range of ceterms:creditLevelType.\n    rule: ceterms:creditLevelType declares schema:rangeIncludes [skos:Concept] in the schema encoding; the referenced entity's class is not among them or their subclasses.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\nERROR        RANGE_VIOLATION  entity=$.@graph[0].ceterms:creditValue[0]\n    ceterms:creditUnitType = $.@graph[0].ceterms:creditValue[0].ceterms:creditUnitType[0]\n    Referenced entity $.@graph[0].ceterms:creditValue[0].ceterms:creditUnitType[0] is typed [ceterms:CredentialAlignmentObject], which is outside the declared range of ceterms:creditUnitType.\n    rule: ceterms:creditUnitType declares schema:rangeIncludes [skos:Concept] in the schema encoding; the referenced entity's class is not among them or their subclasses.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\n2 finding(s): 2 ERROR, 0 WARNING, 0 INFO, 0 UNVERIFIABLE"
+}

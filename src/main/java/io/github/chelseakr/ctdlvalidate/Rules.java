@@ -102,6 +102,64 @@ public final class Rules {
           CTDLASN_SCHEMA_URL,
           RETRIEVED);
 
+  /** How many sibling properties a concept-range citation names before it starts counting. */
+  private static final int SIBLING_LIMIT = 3;
+
+  /**
+   * The concept-range inconsistency, cited against the snapshot it comes from.
+   *
+   * <p>CTDL declares references to terms from its own concept schemes with two incompatible ranges.
+   * {@code prop} declares {@code skos:Concept}; other properties naming the same kind of value
+   * declare {@code ceterms:CredentialAlignmentObject}, whose only declared parent is {@code
+   * schema:AlignmentObject} — no path to {@code skos:Concept} exists in the encoding. The published
+   * corpus encodes both families as {@code CredentialAlignmentObject}, so the declaration, not the
+   * document, is what is inconsistent. Reported as INFO, not an error, because the sources
+   * disagree; see {@link #ISCHILDOF_RANGE_CONFLICT} for the same disposition applied to the same
+   * kind of problem.
+   *
+   * @param prop the property whose declared range is {@code skos:Concept}
+   * @param scheme its {@code meta:targetScheme} declarations
+   * @param siblings properties over the same scheme ranged on the other class, from {@link
+   *     SchemaIndex#alignmentRangedSiblings}
+   */
+  public static Rule conceptRangeConflict(
+      String prop, Collection<String> scheme, List<String> siblings) {
+    List<String> named = new ArrayList<>(scheme);
+    named.sort(CodePointOrder.COMPARATOR);
+    String demonstration;
+    if (siblings.isEmpty()) {
+      demonstration =
+          " Across the snapshot, CTDL ranges scheme-bound concept references on"
+              + " ceterms:CredentialAlignmentObject and on skos:Concept interchangeably; three"
+              + " concept schemes are named by properties in both families.";
+    } else {
+      String shown =
+          String.join(", ", siblings.subList(0, Math.min(SIBLING_LIMIT, siblings.size())));
+      if (siblings.size() > SIBLING_LIMIT) {
+        shown += ", ... (" + siblings.size() + " properties total)";
+      }
+      demonstration =
+          " The same snapshot declares "
+              + shown
+              + " over the same concept scheme with schema:rangeIncludes"
+              + " ceterms:CredentialAlignmentObject, so the two declarations describe one kind of"
+              + " value.";
+    }
+    return new Rule(
+        "Conflicting declarations inside the schema encoding: "
+            + prop
+            + " declares schema:rangeIncludes skos:Concept and meta:targetScheme ["
+            + String.join(", ", named)
+            + "]."
+            + demonstration
+            + " ceterms:CredentialAlignmentObject declares only rdfs:subClassOf"
+            + " schema:AlignmentObject, so it cannot satisfy a skos:Concept range on the face of"
+            + " the encoding. Reported as INFO, not an error, because the encoding and Credential"
+            + " Engine's own published documents disagree.",
+        vocabSchemaUrl(prop),
+        RETRIEVED);
+  }
+
   public static Rule idCoercion(String prop) {
     return new Rule(
         "The CTDL JSON-LD context declares "

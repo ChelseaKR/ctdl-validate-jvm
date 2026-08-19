@@ -26,7 +26,7 @@ test:
 #   python3 -m pip install --require-hashes -r parity/reference-requirements.txt
 parity:
 	python3 tools/generate_expectations.py
-	git --no-pager diff --exit-code -- parity/expected
+	git --no-pager diff --exit-code -- parity/expected parity/ahead/reference
 
 clean:
 	$(GRADLE) clean
