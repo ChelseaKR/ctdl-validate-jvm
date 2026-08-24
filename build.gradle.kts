@@ -6,7 +6,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 plugins {
     application
     jacoco
-    id("com.diffplug.spotless") version "8.9.0"
+    id("com.diffplug.spotless") version "8.10.0"
     id("com.github.spotbugs") version "6.1.7"
 }
 
