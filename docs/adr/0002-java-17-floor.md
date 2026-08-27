@@ -23,8 +23,10 @@ commonly deployed against.
   rather than being trusted to match whatever JDK happens to be installed, so
   a newer local JDK cannot accidentally emit bytecode or API references the
   floor does not allow.
-- The build itself runs on a newer JDK (CI uses Temurin 21); only the target
-  level is pinned.
+- The build itself runs on a newer JDK; only the target level is pinned. CI
+  runs the `verify` gate on a matrix of Temurin 17 and Temurin 21, because
+  `--release 17` is a compile-time guarantee and the floor claimed here is a
+  runtime one. See the last consequence below.
 - `-Xlint:all -Werror`. A warning in a codebase this small is a defect.
 
 ## Consequences
@@ -35,4 +37,11 @@ commonly deployed against.
 - Records and sealed interfaces are available, which is what the finding
   model and the property-value model needed.
 - The artifact runs anywhere Java 17 or newer runs, which includes the
-  environments this port exists to be legible to.
+  environments this port exists to be legible to. That is a claim about a
+  runtime, and `options.release` cannot make it: the flag rejects an API that
+  postdates 17, but a dependency whose own class files target a higher version,
+  a multi-release jar resolving differently, or a module 21 exposes and 17 does
+  not would all pass a build that compiles on 21 and runs on 21, then fail for
+  the first person who installs Temurin 17. The CI matrix is what keeps this
+  consequence true; without a leg on the floor itself, nothing here could ever
+  go red.

@@ -14,11 +14,27 @@ concurrency:
 
 jobs:
   verify:
-    name: verify
+    name: verify (Temurin ${{ matrix.java }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
+    strategy:
+      # Both legs always report. Which JDK a failure belongs to is the whole
+      # point of running two, so cancelling the survivor would throw away the
+      # answer this matrix exists to give.
+      fail-fast: false
+      matrix:
+        # 17 is the floor docs/adr/0002-java-17-floor.md sets and README.md
+        # promises; 21 is what the build is developed on. `options.release = 17`
+        # is a compile-time guarantee only: it rejects an API that postdates 17,
+        # but it cannot tell you whether the bytecode this produces, plus
+        # Jackson, plus JUnit, actually starts on a 17 runtime. A dependency
+        # whose own class files target a higher version, a multi-release jar
+        # resolving differently, or a module 21 exposes and 17 does not are all
+        # invisible to a build that compiles on 21 and runs on 21. Running the
+        # suite on the floor itself is what makes the floor a tested claim.
+        java: ["17", "21"]
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -29,12 +45,14 @@ jobs:
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: ${{ matrix.java }}
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          # One leg writes the cache on main and the rest read it, so the two
+          # jobs cannot race to publish the same entry.
+          cache-read-only: ${{ github.ref != 'refs/heads/main' || matrix.java != '21' }}
 
       # The same target a contributor runs locally: compile, formatter,
       # static analysis, tests including the cross-language parity suite,
@@ -46,7 +64,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: reports
+          # Unique per leg: upload-artifact v4 and newer reject a second upload
+          # under a name already claimed, so a shared name would fail the matrix.
+          name: reports-temurin-${{ matrix.java }}
           path: |
             build/reports/tests/test
             build/reports/spotbugs
