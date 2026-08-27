@@ -124,8 +124,9 @@ see. Never a pass, never a fail.
 
 ## Running it
 
-Java 17 or newer, to build and to run. The CI gate builds on Temurin 21 and
-targets 17.
+Java 17 or newer, to build and to run. The CI gate compiles with `--release 17`
+and runs the whole suite twice, on Temurin 17 and on Temurin 21, so the floor is
+a runtime that gets exercised rather than only a compiler flag.
 
 ```
 ./gradlew verify        # compile, format, static analysis, tests, coverage
