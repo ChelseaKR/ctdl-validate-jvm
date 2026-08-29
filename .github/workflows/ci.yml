@@ -105,4 +105,5 @@ jobs:
       - name: Regenerate the expectations and fail on any drift
         run: |
           python3 tools/generate_expectations.py
-          git --no-pager diff --exit-code -- parity/expected parity/ahead/reference
+          git --no-pager diff --exit-code -- parity/expected parity/ahead/reference \
+            parity/reference-codes.json

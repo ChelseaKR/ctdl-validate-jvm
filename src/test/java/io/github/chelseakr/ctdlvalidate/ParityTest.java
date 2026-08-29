@@ -101,13 +101,17 @@ class ParityTest {
     // Codes this port emits ahead of the pinned reference cannot appear in
     // parity/expected/, because the pinned release does not know them. They are
     // covered by parity/ahead/ instead, which AheadOfReferenceTest holds to the
-    // one substitution they are allowed to be.
+    // dispositions they are allowed to be.
     for (String name : AheadOfReferenceTest.fixtureNames().toList()) {
       for (JsonNode finding : AheadOfReferenceTest.portDocument(name).get("findings")) {
         emitted.add(finding.get("code").asText());
       }
     }
-    Set<String> declared = new TreeSet<>(FindingCodes.ALL);
+    // Parsed out of src/main/java, not read off FindingCodes.ALL. Deriving the
+    // expectation from a list this port maintains would make a rule the port
+    // never learned about invisible here; FindingCodeCensusTest is what compares
+    // the port's real rule set against the reference's.
+    Set<String> declared = FindingCodeCensusTest.portCodes();
     assertEquals(
         declared,
         emitted,
