@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -158,7 +159,8 @@ class PublishedFiguresTest {
     int portCodes = FindingCodeCensusTest.portCodes().size();
     int referenceCodes = referenceCodes().size();
     int byteEqualityCodes = codesExercisedBy(expectationNames()).size();
-    Set<String> siblingCodes = codesExercisedBy(fixturesProvenanceCallsVendored());
+    Set<String> vendoredFixtures = fixturesProvenanceCallsVendored();
+    Set<String> siblingCodes = codesExercisedBy(vendoredFixtures);
 
     SchemaIndex.PropertyDef version = schema.property("ceterms:previousVersion");
 
@@ -174,6 +176,21 @@ class PublishedFiguresTest {
             "the ahead-of-reference corpus, in payloads",
             aheadFixtures,
             List.of("parity/ahead/fixtures/ ([^ ]+) payloads")),
+        new Claim(
+            "the fixtures vendored from the sibling's own test suite",
+            vendoredFixtures.size(),
+            List.of("([^ ]+) are vendored from the reference implementation")),
+        new Claim(
+            "the fixtures written for this repository",
+            fixtures - vendoredFixtures.size(),
+            List.of("([^ ]+) were written for this repository")),
+        new Claim(
+            "the branch-coverage floor the build enforces, as a percentage",
+            branchCoverageFloorPercent(),
+            List.of(
+                "branch coverage >= ([^ ]+)",
+                "branch-coverage floor of ([^ ]+)",
+                "([0-9]+)% branch coverage")),
         new Claim(
             "the finding codes this port emits",
             portCodes,
@@ -409,6 +426,38 @@ class PublishedFiguresTest {
     }
     int word = NUMBER_WORDS.indexOf(cleaned.toLowerCase(Locale.ROOT));
     return word < 0 ? null : Integer.valueOf(word);
+  }
+
+  /**
+   * The branch-coverage floor {@code build.gradle.kts} enforces, as a whole percentage.
+   *
+   * <p>Read out of the build rather than written down, because the floor and the sentences naming
+   * it are the same fact stated twice. Three sentences published it and nothing derived it: raising
+   * the floor is a one-line edit to a task that {@code :test} does not depend on, so the change
+   * that invalidates all three was the change least likely to be noticed.
+   *
+   * <p>Deliberately strict about the shape it reads. A build that no longer states the floor the
+   * way this expects fails here rather than falling back on a default, because a floor this gate
+   * can no longer find is a floor nothing is checking against the documents again.
+   */
+  private static int branchCoverageFloorPercent() throws IOException {
+    String build =
+        Files.readString(ROOT.resolve("build.gradle.kts"), StandardCharsets.UTF_8)
+            .replaceAll("\\s+", " ");
+    Matcher matcher =
+        Pattern.compile("counter = \"BRANCH\" minimum = \"([0-9.]+)\"").matcher(build);
+    assertTrue(
+        matcher.find(),
+        "build.gradle.kts no longer declares a BRANCH coverage minimum in the shape this test"
+            + " reads, so the floor the documents publish is being compared against nothing");
+    BigDecimal percent = new BigDecimal(matcher.group(1)).movePointRight(2);
+    assertTrue(
+        percent.stripTrailingZeros().scale() <= 0,
+        "the branch-coverage floor is "
+            + matcher.group(1)
+            + ", which is not a whole percentage. The documents state it as a whole number; either"
+            + " state it the way the build now expresses it, or move the floor back to one.");
+    return percent.intValueExact();
   }
 
   private static int propertiesRangingOn(SchemaIndex schema, String rangeTerm) {

@@ -54,12 +54,20 @@ tasks.test {
     // graph. Without declaring them, editing a fixture or a README count alone
     // leaves :test UP-TO-DATE and the gate reports green on a change it never
     // looked at.
+    //
+    // This file is in the list because PublishedFiguresTest reads the JaCoCo
+    // branch floor out of it and holds three sentences to that number. Gradle
+    // does currently rerun :test on any change to this script, so unlike the
+    // others this entry is not what makes that check bite today; it is here
+    // because the test really does read the file, and a declaration that says so
+    // does not depend on build-script invalidation staying that coarse.
     inputs
         .files(
             fileTree("parity"),
             file("README.md"),
             file("CITATION.cff"),
             file("CONTRIBUTING.md"),
+            file("build.gradle.kts"),
             file("src/main/resources/vendor/SOURCES.md"),
         )
         .withPropertyName("repositoryFilesTheTestsRead")

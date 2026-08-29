@@ -102,8 +102,46 @@ jobs:
       - name: Install the pinned reference implementation
         run: python -m pip install --require-hashes -r parity/reference-requirements.txt
 
-      - name: Regenerate the expectations and fail on any drift
+      # --check regenerates in memory and compares against the committed bytes.
+      # It replaced `regenerate, then git diff --exit-code`, which was unsound in
+      # one direction and destructive in another. Unsound: git diff does not
+      # report an untracked file, so a fixture committed without its expectation
+      # regenerated into a brand new file and this step passed green on a corpus
+      # whose expectations were incomplete. Measured, not theorised. Destructive:
+      # it wrote every regenerated file into the working tree, so the run that
+      # detected drift was also the run that healed it locally, which is how a
+      # committed artifact stays stale while the check that watches it goes green.
+      # --check reports a missing expectation as a difference and writes nothing.
+      - name: Check the expectations against the pinned reference
+        run: python3 tools/generate_expectations.py --check
+
+      # A check nobody has watched fail is a check you are trusting on faith, and
+      # this one guards the only property the repository exists to demonstrate.
+      # Perturb one committed expectation the way a real divergence would, in a
+      # copy of the tree so the checkout is never touched, and require the check
+      # to notice. The guards matter as much as the probe: if the perturbation
+      # changed nothing, or if the run left a mark on the working tree, this step
+      # fails rather than reporting a proof it did not obtain.
+      - name: Prove the check can fail
         run: |
-          python3 tools/generate_expectations.py
-          git --no-pager diff --exit-code -- parity/expected parity/ahead/reference \
-            parity/reference-codes.json
+          set -eu
+          probe="$(mktemp -d)"
+          mkdir -p "${probe}/tools"
+          cp tools/generate_expectations.py "${probe}/tools/"
+          cp -R parity "${probe}/parity"
+          target="${probe}/parity/expected/identifier_kind.json"
+          sed -i 's/"severity": "ERROR"/"severity": "WARNING"/' "${target}"
+          if cmp -s parity/expected/identifier_kind.json "${target}"; then
+            echo "the perturbation changed nothing, so this proves nothing" >&2
+            exit 1
+          fi
+          if python3 "${probe}/tools/generate_expectations.py" --check; then
+            echo "the check passed on a perturbed expectation" >&2
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain -- parity tools)" ]; then
+            echo "the check wrote into the working tree" >&2
+            git status --porcelain -- parity tools >&2
+            exit 1
+          fi
+          echo "the check failed on the perturbation and left the checkout untouched"
