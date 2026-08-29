@@ -2,8 +2,9 @@
 
 A Java port of the rule core of
 [`ChelseaKR/ctdl-validate`](https://github.com/ChelseaKR/ctdl-validate),
-kept honest by a test that runs both implementations over the same fixtures
-and fails the build if they disagree about anything.
+a validator for CTDL (Credential Transparency Description Language) JSON-LD
+payloads, kept honest by a test that runs both implementations over the same
+fixtures and fails the build if they disagree about anything.
 
 No network calls at validation time. No model calls, ever. Same input, same
 output, byte for byte. Every finding cites the published rule it came from,
