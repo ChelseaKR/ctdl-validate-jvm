@@ -64,7 +64,9 @@ suite does not depend on anyone remembering to try that by hand.
 The corpus is held to the rule set as well: `ParityTest` fails if any finding
 code the checks can emit has no fixture exercising it, and the set of codes it
 holds them to is parsed out of `src/main/java` rather than read off a list this
-port maintains. All 21 do.
+port maintains. All 21 have a fixture: 19 of them here, and the 2 this port
+emits ahead of the pinned release in `parity/ahead/` below, where byte equality
+is not available to be had.
 
 ### Where the port leads the reference
 
@@ -72,7 +74,7 @@ Three dispositions in this port are ahead of the pinned release:
 `CONCEPT_RANGE_CONFLICT`, `VERSION_RANGE_CONFLICT`, and the universal-range
 reading of `rdfs:Resource` (all below). Each fix exists on the reference's
 `main` and in no release, so the pin cannot reach it, and byte equality on a
-fixture exercising one is not available to be had. Two of the three withdraw or
+fixture exercising one is not available to be had. All three withdraw or
 downgrade an ERROR the pinned release raises, which is the direction that
 matters: a false ERROR tells a publisher to fix something correct.
 
@@ -80,7 +82,7 @@ That divergence is recorded rather than hidden, in a second corpus whose only
 job is to bound it:
 
 ```
-parity/ahead/fixtures/    payloads this port answers differently, on purpose
+parity/ahead/fixtures/    3 payloads this port answers differently, on purpose
 parity/ahead/reference/   what the pinned release says about them, generated
 ```
 
@@ -248,7 +250,7 @@ in the document, and neither gates the exit code:
 Not a conflict between sources, but a declaration that admits everything.
 
 `ceterms:hasMember` and `owl:sameAs` declare `schema:rangeIncludes` as exactly
-`rdfs:Resource`, and `ceterms:isSimilarTo` declares it among 80 terms. RDF
+`rdfs:Resource`, and `ceterms:isSimilarTo` declares it among 83 terms. RDF
 Schema 1.1 (W3C Recommendation, 25 February 2014) section 3.1 defines that
 class: "All things described by RDF are called resources, and are instances of
 the class rdfs:Resource. This is the class of everything. All other classes are
@@ -257,7 +259,7 @@ subclasses of this class." CTDL's own published comments agree —
 "generally applicable in describing the similarity between any two entities".
 
 The vendored snapshot does not declare `rdfs:Resource` as a class, and none of
-its 139 classes reaches it by `rdfs:subClassOf`. So a range check that matches a
+its 150 classes reaches it by `rdfs:subClassOf`. So a range check that matches a
 target's declared classes against it rejects **every** entity where the
 declaration accepts every entity. This port previously reported an ERROR on
 every reference through those three properties. It now reports nothing, which
@@ -306,9 +308,11 @@ by reading, which is the argument for having it.
   port alone would be this repository inventing a disposition rather than
   porting one. Reported upstream instead.
 
-- **The parity corpus is 22 payloads, not a proof.** It covers every finding
-  code and every document shape the parser accepts, and it was extended
-  beyond the sibling's own fixtures for that reason. It is still a corpus.
+- **The parity corpus is 22 payloads, not a proof.** It covers 19 of the 21
+  finding codes and every document shape the parser accepts, and it was
+  extended beyond the sibling's own fixtures for that reason; the other 2 codes
+  are the ones this port emits ahead of the pinned release, covered by
+  `parity/ahead/` where byte equality is not available. It is still a corpus.
   Agreement on it is evidence, not a theorem, and no property-based or
   differential fuzzing has been run across the two implementations.
 - **Malformed JSON is out of scope for parity.** The two implementations both
@@ -380,7 +384,7 @@ out.
 | Accessibility | N/A: an offline CLI and library with no human-facing HTML |
 | Internationalization | N/A: a developer-facing JVM validator whose operator output is English only, matching the reference implementation it is compared against byte for byte. Translating a message here would make the two implementations disagree, so it is a change to the sibling first, if ever |
 | AI Evaluation | N/A: a deterministic validator with no model component. There is no model anywhere in this repository and there will not be one, and the README says so in its first ten lines |
-| Documentation | Applies: README, [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), CHANGELOG, CITATION.cff, the ADR log under [`docs/adr/`](docs/adr/), the fixture provenance table in `parity/PROVENANCE.md`, and the vendored-source record in `src/main/resources/vendor/SOURCES.md` |
+| Documentation | Applies: README, [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), CHANGELOG, CITATION.cff, the ADR log under [`docs/adr/`](docs/adr/), the fixture provenance table in `parity/PROVENANCE.md`, and the vendored-source record in `src/main/resources/vendor/SOURCES.md`. The counts those documents publish about this repository are derived from it and gated by `PublishedFiguresTest`, on the pattern `VendorIntegrityTest` set, so a figure corrected in one file cannot be left stale in another |
 | Quality & Metrics | Applies: the merge-blocking floors are byte-equality against the reference over every fixture, 85% branch coverage, zero SpotBugs findings, a clean formatter, and the offline guarantee. The parity corpus is 22 payloads and is recorded above as evidence, not a proof |
 | AI Development Measurement | Applies: no tool-usage counter is collected and none gates a merge. The Disclosure section below records that the port was written with AI assistance and reviewed by a human; the gate is what a change clears regardless of how it was authored |
 | Incident Response | Applies: no incident to date, and nothing is released for one to reach. Vulnerabilities go through the path in [`SECURITY.md`](SECURITY.md), and a postmortem will be committed under `docs/incidents/` when there is one to write |

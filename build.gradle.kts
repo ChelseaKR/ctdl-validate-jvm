@@ -48,6 +48,23 @@ tasks.test {
     // The parity suite reads parity/fixtures and parity/expected relative to the
     // repository root, not whatever working directory Gradle hands the tests.
     systemProperty("ctdlvalidate.repoRoot", rootDir.absolutePath)
+
+    // Those files, and the documents PublishedFiguresTest holds to the figures it
+    // derives, are not on any classpath, so Gradle cannot see them from the task
+    // graph. Without declaring them, editing a fixture or a README count alone
+    // leaves :test UP-TO-DATE and the gate reports green on a change it never
+    // looked at.
+    inputs
+        .files(
+            fileTree("parity"),
+            file("README.md"),
+            file("CITATION.cff"),
+            file("CONTRIBUTING.md"),
+            file("src/main/resources/vendor/SOURCES.md"),
+        )
+        .withPropertyName("repositoryFilesTheTestsRead")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
     finalizedBy(tasks.jacocoTestReport)
 }
 

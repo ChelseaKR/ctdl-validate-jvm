@@ -55,10 +55,10 @@ public final class SchemaIndex {
    * {@code schema:rangeIncludes} is a disjunction of expected types, so a disjunct admitting
    * everything makes the whole range admit everything.
    *
-   * <p>The vendored snapshot does not declare {@code rdfs:Resource} as a class, and no CTDL class
-   * reaches it by {@code rdfs:subClassOf}. Matching a target's declared classes against it would
-   * therefore reject every entity where the declaration accepts every entity, which is an inversion
-   * of the published range rather than an enforcement of it.
+   * <p>The vendored snapshot does not declare {@code rdfs:Resource} as a class, and none of the 150
+   * classes it does declare reaches it by {@code rdfs:subClassOf}. Matching a target's declared
+   * classes against it would therefore reject every entity where the declaration accepts every
+   * entity, which is an inversion of the published range rather than an enforcement of it.
    */
   public static final Set<String> UNIVERSAL_RANGE_TERMS = Set.of("rdfs:Resource");
 
