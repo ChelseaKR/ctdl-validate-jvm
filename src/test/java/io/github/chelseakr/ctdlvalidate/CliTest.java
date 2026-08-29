@@ -37,7 +37,7 @@ class CliTest {
 
   @Test
   @DisplayName("a clean payload exits 0")
-  void cleanPayloadExitsZero() throws Exception {
+  void cleanPayloadExitsZero() throws IOException {
     Result result = run(FIXTURES.resolve("clean_framework.json").toString());
     assertEquals(0, result.code());
     assertTrue(result.out().contains("0 finding(s)"), result.out());
@@ -45,7 +45,7 @@ class CliTest {
 
   @Test
   @DisplayName("an ERROR finding exits 1 and the text report cites its rule")
-  void errorFindingExitsOne() throws Exception {
+  void errorFindingExitsOne() throws IOException {
     Result result = run(FIXTURES.resolve("bug_class_250_bare_uuid_for_ctid.json").toString());
     assertEquals(1, result.code());
     assertTrue(result.out().contains("ERROR        CTID_BARE_UUID"), result.out());
@@ -55,7 +55,7 @@ class CliTest {
 
   @Test
   @DisplayName("a WARNING alone does not gate the exit code")
-  void warningsDoNotGate() throws Exception {
+  void warningsDoNotGate() throws IOException {
     Result result = run(FIXTURES.resolve("ctid_warnings.json").toString());
     assertEquals(0, result.code());
     assertTrue(result.out().contains("WARNING      CTID_UPPERCASE"), result.out());
@@ -63,7 +63,7 @@ class CliTest {
 
   @Test
   @DisplayName("an UNVERIFIABLE finding is neither a pass nor a fail")
-  void unverifiableDoesNotGate() throws Exception {
+  void unverifiableDoesNotGate() throws IOException {
     Result result = run(FIXTURES.resolve("external_reference.json").toString());
     assertEquals(0, result.code());
     assertTrue(result.out().contains("UNVERIFIABLE REF_OUTSIDE_PAYLOAD"), result.out());
@@ -71,7 +71,7 @@ class CliTest {
 
   @Test
   @DisplayName("an unreadable document exits 2 and says why on stderr")
-  void unreadableDocumentExitsTwo() throws Exception {
+  void unreadableDocumentExitsTwo() throws IOException {
     Result result = run(FIXTURES.resolve("bad_top_level_scalar.json").toString());
     assertEquals(2, result.code());
     assertTrue(result.err().contains("expected a JSON-LD object with @graph"), result.err());
@@ -79,7 +79,7 @@ class CliTest {
 
   @Test
   @DisplayName("a missing file exits 2")
-  void missingFileExitsTwo() throws Exception {
+  void missingFileExitsTwo() throws IOException {
     Result result = run(ROOT.resolve("parity/fixtures/nope.json").toString());
     assertEquals(2, result.code());
     assertTrue(result.err().contains("cannot read"), result.err());
@@ -87,7 +87,7 @@ class CliTest {
 
   @Test
   @DisplayName("invalid JSON exits 2")
-  void invalidJsonExitsTwo(@TempDir Path tempDir) throws Exception {
+  void invalidJsonExitsTwo(@TempDir Path tempDir) throws IOException {
     Path broken = tempDir.resolve("broken.json");
     Files.writeString(broken, "{ not json");
     Result result = run(broken.toString());
@@ -97,7 +97,7 @@ class CliTest {
 
   @Test
   @DisplayName("--format json produces the machine-readable report")
-  void jsonFormat() throws Exception {
+  void jsonFormat() throws IOException {
     Result result = run("--format", "json", FIXTURES.resolve("unresolved_bnode.json").toString());
     assertEquals(1, result.code());
     assertTrue(result.out().contains("\"code\": \"REF_UNRESOLVED_BNODE\""), result.out());
@@ -107,7 +107,7 @@ class CliTest {
 
   @Test
   @DisplayName("--format parity produces exactly the committed expectation")
-  void parityFormatMatchesTheCommittedExpectation() throws Exception {
+  void parityFormatMatchesTheCommittedExpectation() throws IOException {
     String name = "inverse_mismatch.json";
     Result result = run("--format=parity", FIXTURES.resolve(name).toString());
     String expected =
