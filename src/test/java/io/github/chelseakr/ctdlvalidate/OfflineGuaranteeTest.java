@@ -65,8 +65,10 @@ class OfflineGuaranteeTest {
     }
 
     List<String> offenders = new ArrayList<>();
+    int scanned = 0;
     try (Stream<Path> files = Files.walk(classes)) {
       for (Path file : files.filter(path -> path.toString().endsWith(".class")).sorted().toList()) {
+        scanned++;
         // ISO-8859-1 maps every byte to a character, so this is a byte scan of
         // the whole class file, constant pool included.
         String contents = new String(Files.readAllBytes(file), StandardCharsets.ISO_8859_1);
@@ -80,7 +82,25 @@ class OfflineGuaranteeTest {
     if (!offenders.isEmpty()) {
       fail("validation code must not reach the network:\n  " + String.join("\n  ", offenders));
     }
+    // A clean scan of nothing is not a clean scan. Without this the whole
+    // guarantee passes on an empty or missing output directory.
+    int seen = scanned;
+    assertTrue(
+        seen >= MAIN_CLASS_FLOOR,
+        () ->
+            "scanned only "
+                + seen
+                + " compiled class(es) under "
+                + classes
+                + "; the offline guarantee cannot be evidenced by a walk that found nothing");
   }
+
+  /**
+   * The fewest compiled classes a real build of this source set produces. Deliberately far below
+   * the true count, which is a moving number; the point is that zero, or a handful left over from
+   * some other build, cannot be mistaken for a clean scan.
+   */
+  private static final int MAIN_CLASS_FLOOR = 15;
 
   @Test
   @DisplayName("no shipped source file mentions a model, a prompt, or an inference call")
@@ -91,8 +111,10 @@ class OfflineGuaranteeTest {
     List<String> forbidden =
         List.of("openai", "anthropic", "bedrock", "llm", "completion(", "embedding", "prompt");
     List<String> offenders = new ArrayList<>();
+    int scanned = 0;
     try (Stream<Path> files = Files.walk(ROOT.resolve("src/main/java"))) {
       for (Path file : files.filter(path -> path.toString().endsWith(".java")).sorted().toList()) {
+        scanned++;
         String lowered = Files.readString(file, StandardCharsets.UTF_8).toLowerCase(Locale.ROOT);
         for (String needle : forbidden) {
           if (lowered.contains(needle)) {
@@ -102,5 +124,13 @@ class OfflineGuaranteeTest {
       }
     }
     assertTrue(offenders.isEmpty(), () -> "there is no model in this repository: " + offenders);
+    // Same reasoning as above: a scan that read no files proves nothing.
+    int seen = scanned;
+    assertTrue(
+        seen >= MAIN_SOURCE_FLOOR,
+        () -> "scanned only " + seen + " source file(s); this claim needs a scan that found them");
   }
+
+  /** The fewest source files a checkout of this repository has. See {@link #MAIN_CLASS_FLOOR}. */
+  private static final int MAIN_SOURCE_FLOOR = 15;
 }

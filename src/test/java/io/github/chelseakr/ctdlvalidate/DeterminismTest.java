@@ -1,6 +1,7 @@
 package io.github.chelseakr.ctdlvalidate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -27,8 +28,10 @@ class DeterminismTest {
   @Test
   @DisplayName("repeated runs over every fixture produce identical bytes")
   void repeatedRunsAgree() throws IOException {
+    int validated = 0;
     try (Stream<Path> files = Files.list(ROOT.resolve("parity/fixtures"))) {
       for (Path fixture : files.sorted().toList()) {
+        validated++;
         Set<String> renderings = new LinkedHashSet<>();
         for (int run = 0; run < 5; run++) {
           renderings.add(ParityDocument.render(MAPPER.readTree(fixture.toFile())));
@@ -39,6 +42,11 @@ class DeterminismTest {
             "validating " + fixture.getFileName() + " produced more than one distinct report");
       }
     }
+    // Every assertion above lives inside the loop, so an empty fixture directory
+    // would make this test pass having validated nothing at all.
+    int seen = validated;
+    assertTrue(
+        seen > 0, () -> "validated " + seen + " fixture(s); determinism was never exercised");
   }
 
   @Test
