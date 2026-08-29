@@ -90,6 +90,12 @@ class FindingCodeCensusTest {
    * being behind, which is the failure direction this whole census exists to make visible. Adding
    * an entry here is a deliberate statement that the port will not port a rule, and needs a reason
    * a reader can check.
+   *
+   * <p>Empty is a statement about the pinned release and not about the reference. Measured on
+   * 2026-08-29, the current release 0.2.1 emits {@code REF_RESOLVED_SUPPLIED} and this port does
+   * not, so this map would not be empty if the pin moved. What that bump costs is written down in
+   * {@code parity/PROVENANCE.md}; it is not recorded here, because everything in this class is
+   * measured against the pin and the pin is 0.1.0.
    */
   private static final Map<String, String> PORT_IS_BEHIND = Map.of();
 
