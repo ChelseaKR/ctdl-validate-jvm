@@ -9,6 +9,11 @@ import java.util.List;
  * <p>The list is here rather than implied by the code so that the parity corpus can be held to it:
  * a code with no fixture is a rule the two implementations are not being compared on, and {@code
  * ParityTest} fails when one appears.
+ *
+ * <p>This list is documentation, not authority. {@code FindingCodeCensusTest} parses every {@code
+ * new Finding("...")} site out of {@code src/main/java} and fails if the two disagree in either
+ * direction, so grouping a code here cannot be what makes it exist and forgetting one here cannot
+ * hide it.
  */
 public final class FindingCodes {
 
@@ -39,7 +44,8 @@ public final class FindingCodes {
           "UNKNOWN_CLASS",
           "UNKNOWN_PROPERTY",
           "RANGE_DOCS_CONFLICT",
-          "CONCEPT_RANGE_CONFLICT");
+          "CONCEPT_RANGE_CONFLICT",
+          "VERSION_RANGE_CONFLICT");
 
   /** Check 5, inverse consistency. */
   public static final List<String> INVERSES = List.of("INVERSE_MISMATCH", "INVERSE_ONE_DIRECTION");

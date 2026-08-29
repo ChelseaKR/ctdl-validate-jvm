@@ -11,6 +11,64 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Fixed
 
+- The port reported `RANGE_VIOLATION` / ERROR on every reference through
+  `ceterms:hasMember`, `owl:sameAs`, and `ceterms:isSimilarTo`. All three
+  declare `rdfs:Resource` in `schema:rangeIncludes`, and RDF Schema 1.1 (W3C
+  Recommendation, 25 February 2014) section 3.1 defines that as "the class of
+  everything", with "all other classes are subclasses of this class". The
+  vendored snapshot declares no such class and none of its 139 classes reaches
+  it by `rdfs:subClassOf`, so matching a target against it rejected every
+  entity where the declaration accepts every entity. A range that excludes
+  nothing now produces no finding. CTDL's own published comments say the same:
+  `ceterms:hasMember` is "Resource in a Collection", and `ceterms:isSimilarTo`
+  is "generally applicable in describing the similarity between any two
+  entities".
+
+- `ceterms:latestVersion`, `ceterms:nextVersion`, and
+  `ceterms:previousVersion` each declare a `schema:rangeIncludes` that is a
+  strict subset of their own `schema:domainIncludes` — a domain of 61 classes
+  and a range of 55 in the vendored snapshot, dropping the identical six from
+  all three. A resource of a dropped class versioned by another resource of the
+  same class is now `VERSION_RANGE_CONFLICT` / INFO rather than
+  `RANGE_VIOLATION` / ERROR: the domain says such a resource may have a
+  version, the range says that version may not be one of its own kind, and the
+  document satisfies one of the two. Which declaration is wrong is not settled
+  by any published wording, so the tool reports the disagreement instead of
+  picking a side. Any other out-of-range class on these properties stays an
+  ERROR.
+
+- The parity gate could not see a rule the port did not have.
+  `ParityTest.corpusCoversEveryCode` built its expected set from
+  `FindingCodes.ALL`, a list maintained inside this port, so a rule the
+  reference has and the port never learned about was absent from the list, from
+  the port's output, and from `parity/expected/` alike, and the coverage test
+  passed. Both sides are now derived: the port's codes are parsed out of
+  `src/main/java`, and the reference's are AST-parsed from the pinned release's
+  own source by `tools/generate_expectations.py` into
+  `parity/reference-codes.json`, which the CI parity job regenerates and diffs
+  alongside the expectations. Every difference between the two sets must be
+  declared with a reason, in either direction, or the build fails.
+
+- Three gates passed having scanned nothing.
+  `OfflineGuaranteeTest.noNetworkingTypesAreReferenced` asserted only that its
+  class directory existed, `OfflineGuaranteeTest.noModelCalls` walked the
+  source tree with no assertion it read anything, and
+  `DeterminismTest.repeatedRunsAgree` put every assertion inside a loop over a
+  directory listing. Each now counts what it scanned and fails on an empty
+  sweep.
+
+### Changed
+
+- `AheadOfReferenceTest` holds the port to a table of declared dispositions
+  rather than a single hard-coded substitution, and a disposition may now
+  withdraw a finding as well as restate one. Each row's applicability is a
+  predicate evaluated against the vendored snapshot, and a declared disposition
+  no fixture exercises fails the build. See ADR 0004.
+
+- README: the corpus is 22 payloads, not 21, and there are 21 finding codes,
+  not 19 or 20. The counts were checked against the directory listing and the
+  parsed source rather than against the prose.
+
 - The validator failed 36 of the 120 published Registry documents in the
   sibling's 2026-08-15 survey, and should not have. CTDL declares a reference
   to a term from one of its own concept schemes two incompatible ways: across
