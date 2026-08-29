@@ -24,8 +24,8 @@ repository's original test data, Apache-2.0, same author:
     unresolved_bnode.json
 
 Eleven were written for this repository, because the sibling's fixtures
-exercise 11 of the 19 finding codes and a parity corpus that leaves 8 rules
-untested is not comparing the implementations on those rules:
+exercise 11 of the reference's 19 finding codes and a parity corpus that leaves
+8 rules untested is not comparing the implementations on those rules:
 
 | Fixture | Why it exists |
 |---|---|

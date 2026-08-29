@@ -9,6 +9,47 @@ Nothing has been released. There is no tag and no published artifact.
 
 ## [Unreleased]
 
+### Fixed
+
+- Five published claims that had gone stale, and the reason they could.
+  `CITATION.cff` and the GitHub repository description said both implementations
+  run over "one shared fixture corpus"; there are two, and the second exists
+  precisely because they disagree there. The README said the 22-payload corpus
+  covers every finding code, which is true of the union with `parity/ahead/` and
+  not of the corpus the same paragraph describes: 19 of the 21 codes appear in
+  `parity/expected/`. It said two of the three ahead dispositions withdraw or
+  downgrade an ERROR, where its own table three lines later shows
+  `RANGE_VIOLATION`/ERROR in all three rows. It sized the vendored snapshot at
+  139 classes, which counts `ctdl/schema.json` and not the 11 in
+  `ctdlasn/schema.json` that `SchemaLoader` loads beside it; the ruling that
+  nothing reaches `rdfs:Resource` holds at 150 and is unchanged. And it put
+  `ceterms:isSimilarTo`'s declared range at 80 terms, which is how many of them
+  are declared as classes; the range is 83 distinct terms. `CONTRIBUTING.md`
+  still described the ahead corpus as one declared substitution, and
+  `parity/PROVENANCE.md` left "the 19 finding codes" ambiguous between the two
+  rule sets. Every figure was established by reading the artifact it describes.
+
+### Added
+
+- `PublishedFiguresTest`, so the above cannot recur silently.
+  `VendorIntegrityTest` was the only test that read a Markdown file and asserted
+  against it, which is why an earlier pull request corrected four counts in the
+  README and left the same counts wrong in three other files. Each figure is now
+  derived on every run from the directory listing, the parsed source, the
+  generated expectations, the
+  vendored snapshot, or `AheadOfReferenceTest`'s disposition table, and every
+  live document is held to it: README, `CITATION.cff`, `CONTRIBUTING.md`,
+  `parity/PROVENANCE.md`, and the one Javadoc paragraph that states the snapshot
+  size. Rewording a sentence past the pattern that reads it also fails, because
+  a figure the gate can no longer find is a figure nothing is checking. Every
+  fixture in both corpora must be named in `PROVENANCE.md`. `CHANGELOG.md` and
+  `docs/plans/` are deliberately out of scope: they are dated records, and
+  holding them to today's count would be rewriting the record.
+- The parity corpora, `SOURCES.md`, and the published documents are declared as
+  inputs to the `test` task. They are on no classpath, so Gradle could not see
+  them, and editing a fixture or a README count alone left `:test` UP-TO-DATE
+  and the gate green on a change it had never looked at.
+
 ### Documented
 
 - What bumping the parity pin to the reference's current release costs, measured
@@ -35,7 +76,7 @@ Nothing has been released. There is no tag and no published artifact.
   declare `rdfs:Resource` in `schema:rangeIncludes`, and RDF Schema 1.1 (W3C
   Recommendation, 25 February 2014) section 3.1 defines that as "the class of
   everything", with "all other classes are subclasses of this class". The
-  vendored snapshot declares no such class and none of its 139 classes reaches
+  vendored snapshot declares no such class and none of its 150 classes reaches
   it by `rdfs:subClassOf`, so matching a target against it rejected every
   entity where the declaration accepts every entity. A range that excludes
   nothing now produces no finding. CTDL's own published comments say the same:

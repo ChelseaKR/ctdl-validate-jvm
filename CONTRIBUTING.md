@@ -61,9 +61,10 @@ which before touching anything. Editing a file in `parity/expected/` or
 `parity/ahead/reference/` to make a test pass is never the fix — those files
 are generated, CI regenerates them from the pinned reference, and a hand-edit
 will simply fail there instead. `parity/ahead/` is the only place this port is
-allowed to differ from the reference, it is bounded to one declared
-substitution by `AheadOfReferenceTest`, and adding an entry to it needs an ADR
-0004-shaped argument, not a convenient exemption.
+allowed to differ from the reference, it is bounded to three declared
+dispositions by `AheadOfReferenceTest`, each gated on a predicate read out of
+the vendored snapshot, and adding an entry to it needs an ADR 0004-shaped
+argument, not a convenient exemption.
 
 **Cited rules only.** Every finding carries a rule citation, a source URL, and
 a retrieval date. Citation text is the reference implementation's wording,
@@ -94,6 +95,10 @@ corpus misses.
 4. Run `./gradlew verify`. If the parity test now fails, you have found a
    divergence, which is worth more than the fixture.
 5. Add a row to `parity/PROVENANCE.md` saying what the fixture is for.
+   `PublishedFiguresTest` fails if a fixture is not named there, and it holds
+   the corpus counts in the README, this file, `CITATION.cff`, and
+   `PROVENANCE.md` to the directory listing, so a new fixture moves the prose
+   too.
 
 ## Architecture decisions
 

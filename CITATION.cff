@@ -5,11 +5,14 @@ abstract: >-
   A Java reimplementation of the rule core of ChelseaKR/ctdl-validate: CTID
   grammar, identifier kinds, in-payload reference resolution, domain and range
   validation with subclass closure, and inverse consistency over CTDL and
-  CTDL-ASN JSON-LD payloads. Both implementations are tested against one shared
+  CTDL-ASN JSON-LD payloads. Both implementations are tested against a shared
   fixture corpus and must agree finding for finding, with disagreement a build
-  failure. Every finding cites the published rule it came from, with the spec
-  text and its retrieval date. Deterministic, with no network calls and no model
-  calls. A demonstration and reference port, not a released artifact.
+  failure. A second corpus records the narrow set of dispositions where this
+  port leads the pinned reference release, and bounds that disagreement to what
+  the vendored schema justifies. Every finding cites the published rule it came
+  from, with the spec text and its retrieval date. Deterministic, with no
+  network calls and no model calls. A demonstration and reference port, not a
+  released artifact.
 type: software
 authors:
   - given-names: Chelsea

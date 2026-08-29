@@ -77,16 +77,17 @@ Settled by published text, in three independent places:
   subclasses of this class."
 - The vendored CTDL encoding declares `schema:rangeIncludes` of
   `ceterms:hasMember` as exactly `["rdfs:Resource"]`, of `owl:sameAs` as
-  exactly `["rdfs:Resource"]`, and of `ceterms:isSimilarTo` as a list of 80
-  terms that includes it. `schema:rangeIncludes` is a disjunction of expected
-  types, so a disjunct that admits everything makes the union admit everything.
+  exactly `["rdfs:Resource"]`, and of `ceterms:isSimilarTo` as a list of 84
+  terms, 83 of them distinct, that includes it. `schema:rangeIncludes` is a
+  disjunction of expected types, so a disjunct that admits everything makes the
+  union admit everything.
 - CTDL's own published `rdfs:comment` on `ceterms:hasMember` is "Resource in a
   Collection", and the `dct:description` on `ceterms:isSimilarTo` is "The
   property is generally applicable in describing the similarity between any two
   entities."
 
 And the mechanical fact that makes the port's behaviour an inversion rather
-than a judgement call: `rdfs:Resource` is not among the 139 classes the
+than a judgement call: `rdfs:Resource` is not among the 150 classes the
 vendored snapshot declares, and zero classes reach it by `rdfs:subClassOf`. So
 matching a target's declared classes against it rejects every entity, when the
 declaration admits every entity. The port is wrong, in the worse direction for

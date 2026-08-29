@@ -119,6 +119,34 @@ class AheadOfReferenceTest {
             "a declared range of rdfs:Resource, which admits every entity there is"));
   }
 
+  /**
+   * How many disagreements with the pinned release this port declares.
+   *
+   * <p>Exposed for {@code PublishedFiguresTest}, which holds the README and CONTRIBUTING to this
+   * number rather than to a count someone typed. Derived from the table above on every call.
+   */
+  static int declaredDispositions() {
+    return dispositions().size();
+  }
+
+  /**
+   * How many declared dispositions take an ERROR the pinned release raises and either withdraw it
+   * or restate it below ERROR.
+   *
+   * <p>Also for {@code PublishedFiguresTest}: the README's claim about which direction the
+   * divergence runs in is a property of the table, not a sentence to keep in step by hand.
+   */
+  static int dispositionsThatRemoveAnError() {
+    int removing = 0;
+    for (Disposition disposition : dispositions()) {
+      if ("ERROR".equals(disposition.referenceSeverity())
+          && !"ERROR".equals(disposition.portSeverity())) {
+        removing++;
+      }
+    }
+    return removing;
+  }
+
   static Stream<String> fixtureNames() throws IOException {
     try (Stream<Path> files = Files.list(FIXTURES)) {
       return files
