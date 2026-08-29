@@ -11,6 +11,29 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Fixed
 
+- The parity drift check could pass on an incomplete corpus, and healed drift in
+  the working tree while it looked. It regenerated every expectation over the
+  checkout and then asked `git diff --exit-code` what had moved. `git diff` does
+  not report an untracked file, so a fixture committed without its expectation
+  regenerated into a brand new file and the step went green on a
+  `parity/expected/` that was missing an entry. Measured rather than reasoned
+  about: with the fixture committed and the expectation absent, the step exited
+  0. Writing into the checkout was the second half of the same problem, and the
+  more dangerous half, because the run that detects drift was also the run that
+  repairs it locally, leaving the committed bytes stale and every later local run
+  green. `--check`, which the script has always had and nothing used, compares
+  against the committed bytes in memory: it reports a missing expectation as a
+  difference and writes nothing. Both `make parity` and the CI job now use it.
+
+- The 85% branch-coverage floor was published in `README.md` twice and
+  `CONTRIBUTING.md` once, copied by hand from `build.gradle.kts`. Raising the
+  floor edits one line of a task `:test` does not depend on, so the change that
+  invalidates all three sentences was the change least likely to be noticed.
+  `parity/PROVENANCE.md`'s "Eleven are vendored" and "Eleven were written for
+  this repository" were the same shape: counts of a list in that very file and of
+  a directory beside it, with nothing deriving either. All three figures are
+  correct today. Nothing was keeping them that way.
+
 - Five published claims that had gone stale, and the reason they could.
   `CITATION.cff` and the GitHub repository description said both implementations
   run over "one shared fixture corpus"; there are two, and the second exists
@@ -30,6 +53,17 @@ Nothing has been released. There is no tag and no published artifact.
   rule sets. Every figure was established by reading the artifact it describes.
 
 ### Added
+
+- The parity CI job now proves on every run that it can fail. It perturbs one
+  committed expectation the way a real divergence would, in a copy of the tree so
+  the checkout is never touched, and requires `--check` to notice. It also fails
+  if the perturbation changed nothing and if the run left any mark on the working
+  tree, so it cannot report a proof it did not obtain.
+
+- Three more figures are derived rather than published: the branch-coverage floor,
+  read out of `build.gradle.kts` and held to the three sentences that state it,
+  and the two fixture counts in `parity/PROVENANCE.md`, read out of the vendored
+  list and the fixture directory.
 
 - `PublishedFiguresTest`, so the above cannot recur silently.
   `VendorIntegrityTest` was the only test that read a Markdown file and asserted
