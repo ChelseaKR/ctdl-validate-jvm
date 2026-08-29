@@ -112,6 +112,13 @@ public final class DomainRangeCheck implements Check {
     if (!propDef.rangeHasEntities()) {
       return List.of();
     }
+    // A range of rdfs:Resource admits every entity there is, so nothing can fall
+    // outside it. Checking a target's classes against it would invert the
+    // declaration and reject everything, because no CTDL class reaches
+    // rdfs:Resource by rdfs:subClassOf. See SchemaIndex.UNIVERSAL_RANGE_TERMS.
+    if (propDef.rangeIsUniversal()) {
+      return List.of();
+    }
     List<Finding> findings = new ArrayList<>();
     for (Value value : node.valuesOf(prop)) {
       if (value instanceof Value.Json) {
@@ -137,6 +144,11 @@ public final class DomainRangeCheck implements Check {
       // is reported and not gated on.
       if (propDef.schemeBoundConcept() && schema.classMatches(targetTypes, ALIGNMENT_RANGE)) {
         findings.add(conceptRangeConflict(node, prop, propDef, valueText, schema));
+        continue;
+      }
+      Finding versionConflict = versionRangeConflict(node, prop, targetTypes, valueText, schema);
+      if (versionConflict != null) {
+        findings.add(versionConflict);
         continue;
       }
       String conflictClass = DOCUMENTED_RANGE_CONFLICTS.get(prop);
@@ -176,6 +188,64 @@ public final class DomainRangeCheck implements Check {
       }
     }
     return findings;
+  }
+
+  /**
+   * The version-range disposition: a version link the encoding admits as a subject and refuses as
+   * an object.
+   *
+   * <p>CTDL's version properties declare a range that is a strict subset of their own domain. Where
+   * a document versions an entity with another entity of the same class, and that class is one the
+   * encoding dropped from the range, the two declarations contradict each other and the document
+   * satisfies the one that says this class may be versioned at all.
+   *
+   * <p>Narrowed to a link between two entities of the same class, because that is the only reading
+   * under which the range omission is certainly the mistake: a version of a thing is a thing of the
+   * same kind. Any other out-of-range class on these properties stays a {@code RANGE_VIOLATION}.
+   *
+   * @return the finding, or {@code null} when this disposition does not apply
+   */
+  private static Finding versionRangeConflict(
+      Graph.Node node,
+      String prop,
+      List<String> targetTypes,
+      String valueText,
+      SchemaIndex schema) {
+    if (!SchemaIndex.VERSION_PROPERTIES.contains(prop)) {
+      return null;
+    }
+    Set<String> dropped = schema.domainOnlyClasses(prop);
+    List<String> asymmetric = new ArrayList<>();
+    for (String type : schema.knownTypes(node.types())) {
+      if (dropped.contains(type) && targetTypes.contains(type)) {
+        asymmetric.add(type);
+      }
+    }
+    if (asymmetric.isEmpty()) {
+      return null;
+    }
+    asymmetric.sort(io.github.chelseakr.ctdlvalidate.CodePointOrder.COMPARATOR);
+    String cls = asymmetric.get(0);
+    return new Finding(
+        "VERSION_RANGE_CONFLICT",
+        Severity.INFO,
+        node.label(),
+        prop,
+        valueText,
+        prop
+            + " declares "
+            + cls
+            + " in its domain and omits it from its range, so CTDL says a "
+            + cls
+            + " may have a version while saying that version may not itself be a "
+            + cls
+            + ". One of those two declarations is wrong, and this tool cannot tell you which. It"
+            + " does not gate on it, because every class the range does admit would make a "
+            + cls
+            + "'s version something other than a "
+            + cls
+            + ", and there is no third option to point you at.",
+        Rules.versionRangeConflict(prop, cls, dropped));
   }
 
   /**
