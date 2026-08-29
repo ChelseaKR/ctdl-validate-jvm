@@ -9,6 +9,25 @@ Nothing has been released. There is no tag and no published artifact.
 
 ## [Unreleased]
 
+### Documented
+
+- What bumping the parity pin to the reference's current release costs, measured
+  rather than estimated. `parity/ahead/` was built to expire when the reference
+  catches up, so the bump was carried out against `ctdl-validate==0.2.1` to let
+  it. It does not expire: 0.2.1 carries none of the three dispositions, so
+  regenerating `parity/ahead/reference/` against it changed nothing and every
+  entry is still genuinely ahead. What the bump does instead is fail
+  `ParityTest` on three amended messages and `FindingCodeCensusTest` on
+  `REF_RESOLVED_SUPPLIED`, a rule the reference has and this port does not.
+  Both come from one upstream feature, `--resolve`, whose amended
+  `REF_OUTSIDE_PAYLOAD` message names the flag, so byte parity is unreachable
+  until the flag is ported. The pin stays at 0.1.0 and `parity/PROVENANCE.md`
+  now says so and why.
+
+- The two `parity/ahead/` fixtures that had no row in `parity/PROVENANCE.md`,
+  `version_range_conflict.json` and `universal_range.json`. The table described
+  one of the three divergences the corpus bounds.
+
 ### Fixed
 
 - The port reported `RANGE_VIOLATION` / ERROR on every reference through
