@@ -7,7 +7,7 @@ plugins {
     application
     jacoco
     id("com.diffplug.spotless") version "8.10.0"
-    id("com.github.spotbugs") version "6.1.7"
+    id("com.github.spotbugs") version "6.5.11"
 }
 
 group = "io.github.chelseakr"
