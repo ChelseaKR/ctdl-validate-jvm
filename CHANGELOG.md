@@ -110,6 +110,12 @@ Nothing has been released. There is no tag and no published artifact.
   Both gates must hold, the document gate fails closed, and the fix it covers
   can only withdraw a finding.
 
+- The count of SHA-pinned workflow steps is derived rather than written down.
+  README and the new ledger both claim every action is pinned to a full commit
+  SHA; `PublishedFiguresTest` now counts the `uses:` steps, fails on one that is
+  not pinned, and holds the sentence to the count. A supply-chain control nothing
+  measures is a control nobody is checking.
+
 - The parity CI job now proves on every run that it can fail. It perturbs one
   committed expectation the way a real divergence would, in a copy of the tree so
   the checkout is never touched, and requires `--check` to notice. It also fails
@@ -141,6 +147,25 @@ Nothing has been released. There is no tag and no published artifact.
   and the gate green on a change it had never looked at.
 
 ### Documented
+
+- The three per-repository standards artifacts this repository had never carried:
+  [`docs/ROADMAP.md`](docs/ROADMAP.md), a metrics ledger marking every gate AUTO
+  or REVIEW with the reason the branch floor is 85% and not the 90% a published
+  library is asked for; [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md),
+  whose section B is the harm surface specific to being a port — a parity suite
+  that quietly compares the port against itself — with the control, the proof
+  that the control can fail, and the residual risk stated as residual; and
+  [`docs/I18N.md`](docs/I18N.md), which records that English-only here is a
+  constraint imposed by byte equality rather than a scoping choice, and that
+  `Cli.main` hands the reporter the JVM's default-encoded standard streams, which
+  nothing pins and no test covers.
+
+  The README's Standards Conformance table had been the whole declaration since
+  it was added, and its Responsible-Tech row said as much in so many words. Every
+  standard already had a row; what was missing were the per-repository *values*
+  the standards set puts in these three files. The remaining gap is named in all
+  three and stays open: this repository has no entry in the portfolio's
+  `STANDARDS/applicability.yml`, which lives elsewhere.
 
 - What bumping the parity pin to the reference's current release costs, measured
   rather than estimated. `parity/ahead/` was built to expire when the reference

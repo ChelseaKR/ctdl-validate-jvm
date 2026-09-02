@@ -62,6 +62,7 @@ class PublishedFiguresTest {
           "README.md",
           "CITATION.cff",
           "CONTRIBUTING.md",
+          "docs/ROADMAP.md",
           "parity/PROVENANCE.md",
           "src/main/java/io/github/chelseakr/ctdlvalidate/SchemaIndex.java");
 
@@ -232,6 +233,10 @@ class PublishedFiguresTest {
             "the dispositions that withdraw or downgrade an ERROR",
             AheadOfReferenceTest.dispositionsThatRemoveAnError(),
             List.of("All ([^ ]+) withdraw or downgrade an ERROR")),
+        new Claim(
+            "the workflow steps pinned to a full commit SHA",
+            shaPinnedWorkflowSteps(),
+            List.of("all ([^ ]+) `uses:` steps carry a full commit SHA")),
         new Claim(
             "the properties the vendored snapshot declares an owl:inverseOf for",
             propertiesDeclaringAnInverse(schema),
@@ -480,6 +485,37 @@ class PublishedFiguresTest {
       }
     }
     return count;
+  }
+
+  /**
+   * How many {@code uses:} steps the workflows carry, failing if any is not pinned to a full commit
+   * SHA.
+   *
+   * <p>The README and the metrics ledger both state that every action is pinned. That was a
+   * sentence a human kept true. It is now a count, and an unpinned step fails here rather than
+   * being noticed on the next read: a supply-chain control nothing measures is a control nobody is
+   * checking.
+   */
+  private static int shaPinnedWorkflowSteps() throws IOException {
+    Pattern uses = Pattern.compile("uses:\\s*(\\S+)");
+    List<String> unpinned = new ArrayList<>();
+    int steps = 0;
+    List<Path> workflows;
+    try (Stream<Path> files = Files.list(ROOT.resolve(".github/workflows"))) {
+      workflows = files.filter(path -> String.valueOf(path).endsWith(".yml")).sorted().toList();
+    }
+    assertTrue(!workflows.isEmpty(), "no workflows found, so this figure is derived from nothing");
+    for (Path workflow : workflows) {
+      Matcher matcher = uses.matcher(Files.readString(workflow, StandardCharsets.UTF_8));
+      while (matcher.find()) {
+        steps++;
+        if (!matcher.group(1).matches(".+@[0-9a-f]{40}")) {
+          unpinned.add(workflow.getFileName() + ": " + matcher.group(1));
+        }
+      }
+    }
+    assertEquals(List.of(), unpinned, "a workflow step is not pinned to a full commit SHA");
+    return steps;
   }
 
   private static int propertiesRangingOn(SchemaIndex schema, String rangeTerm) {
