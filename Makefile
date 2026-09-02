@@ -5,7 +5,7 @@
 
 GRADLE ?= ./gradlew
 
-.PHONY: verify format lint test parity clean
+.PHONY: verify format lint test parity fuzz clean
 
 # Compile with -Werror, spotlessCheck, spotbugsMain, spotbugsTest, test
 # (including ParityTest), and the branch-coverage gate. The same target CI runs.
@@ -35,6 +35,16 @@ test:
 #   python3 -m pip install --require-hashes -r parity/reference-requirements.txt
 parity:
 	python3 tools/generate_expectations.py --check
+
+# Differential fuzzing against the pinned reference. Deliberately not part of
+# `verify`: it is nondeterministic in what it reaches, it needs both toolchains
+# and a built CLI, and a gate that sometimes finds nothing teaches people to
+# ignore it. The merge gate is the deterministic corpus. Needs the same pinned
+# reference `make parity` does, plus `./gradlew installDist`.
+fuzz:
+	$(GRADLE) installDist
+	python3 tools/differential_fuzz.py --self-check
+	python3 tools/differential_fuzz.py --count 1000 --seed 1
 
 clean:
 	$(GRADLE) clean

@@ -362,8 +362,24 @@ by reading, which is the argument for having it.
   extended beyond the sibling's own fixtures for that reason; the other 2 codes
   are the ones this port emits ahead of the pinned release, covered by
   `parity/ahead/` where byte equality is not available. It is still a corpus.
-  Agreement on it is evidence, not a theorem, and no property-based or
-  differential fuzzing has been run across the two implementations.
+  Agreement on it is evidence, not a theorem.
+
+  Differential fuzzing is now the second kind of evidence, and it is weaker than
+  a theorem too. `tools/differential_fuzz.py` generates CTDL-shaped JSON-LD from
+  the vendored snapshot's own class and property names, with a value pool biased
+  at supplementary-plane characters, floats around the notation boundary, empty
+  containers, and inline objects nested several deep, then runs both
+  implementations over each payload and compares the whole parity document byte
+  for byte. Measured 2026-09-01, on 3,000 generated payloads across three seeds:
+  92 of them disagreed, in 104 findings, over 60 distinct properties. Every one
+  of the 104 was a `RANGE_VIOLATION`/ERROR the pinned release raises — 99
+  withdrawn, 3 restated as `CONCEPT_RANGE_CONFLICT`/INFO, 2 as
+  `VERSION_RANGE_CONFLICT`/INFO. That is the declared table above and nothing
+  else. Nothing was found that the port emits and the reference does not,
+  nothing ordered differently, and no code outside the dispositions. That is a
+  measurement, not a proof: it says the generator did not reach a disagreement
+  this repository has not already written down, which is a smaller claim than
+  there being none.
 - **Malformed JSON is out of scope for parity.** The two implementations both
   exit 2, but the message comes from the language's JSON parser — Jackson's
   wording is not `json.JSONDecodeError`'s — and pinning that would be
