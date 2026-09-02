@@ -1,0 +1,27 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "@type": "ceterms:Course",
+      "ceterms:ctid": "ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "ceterms:name": { "en-US": "Course A" },
+      "ceterms:hasPart": [
+        "https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e"
+      ]
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e",
+      "@type": "ceterms:Course",
+      "ceterms:ctid": "ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e",
+      "ceterms:name": { "en-US": "Course B: part of Course A, said with an inline object" },
+      "ceterms:isPartOf": [
+        {
+          "@id": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+          "@type": "ceterms:Course",
+          "ceterms:name": { "en-US": "Course A, described inline rather than named by IRI" }
+        }
+      ]
+    }
+  ]
+}

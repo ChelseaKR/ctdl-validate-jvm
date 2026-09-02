@@ -11,6 +11,27 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Fixed
 
+- `INVERSE_MISMATCH` was raised on documents where both directions of an
+  `owl:inverseOf` pair genuinely agree. `InversesCheck.pointsBackAt` compared
+  only `Value.Text`, so an inverse asserted as an inline object carrying the
+  referenced `@id` — an ordinary, spec-legal CTDL idiom, and one the parser
+  records as `Value.Nested` — read as the absence of a back-reference rather
+  than as one. A false ERROR, and one that gates the exit code, on a document
+  that is self-consistent. The fix matches a `Value.Nested` whose `targetId` is
+  the node being checked for; a nested reference to a genuinely different `@id`
+  is still a mismatch. Reproduced against the CLI before fixing, and covered by
+  `InversesCheckTest` in both directions.
+
+  No fixture in `parity/fixtures/` reaches this shape — every reference in
+  `inverse_mismatch.json` is a bare IRI — which is why byte equality with the
+  pinned reference never caught it: both implementations shared the defect and
+  agreed on the wrong answer. It is now `parity/ahead/fixtures/nested_inverse_back_reference.json`
+  with a fourth declared disposition, gated like the others on a predicate read
+  out of the vendored snapshot, so the corpus is no longer silent on it and the
+  divergence is bounded rather than merely fixed. The reference has not fixed it
+  in any release: `0.2.1` still raises the ERROR, so this entry does not expire
+  on a pin bump.
+
 - The parity drift check could pass on an incomplete corpus, and healed drift in
   the working tree while it looked. It regenerated every expectation over the
   checkout and then asked `git diff --exit-code` what had moved. `git diff` does

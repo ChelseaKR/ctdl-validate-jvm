@@ -1,0 +1,39 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "INVERSE_MISMATCH",
+      "entity": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344",
+      "message": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344 asserts ceterms:hasPart https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e, but https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e asserts ceterms:isPartOf without pointing back at https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344. Both directions are present and they disagree.",
+      "property": "ceterms:hasPart",
+      "rule": {
+        "citation": "ceterms:hasPart declares owl:inverseOf ceterms:isPartOf in the schema encoding: if A ceterms:hasPart B is asserted, then B ceterms:isPartOf A must hold wherever both directions are stated.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "ERROR",
+      "value": "https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e"
+    },
+    {
+      "code": "INVERSE_ONE_DIRECTION",
+      "entity": "https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e",
+      "message": "https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e asserts ceterms:isPartOf but https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344 does not assert the declared inverse ceterms:hasPart. One direction alone is not an error.",
+      "property": "ceterms:isPartOf",
+      "rule": {
+        "citation": "ceterms:isPartOf declares owl:inverseOf ceterms:hasPart in the schema encoding: if A ceterms:isPartOf B is asserted, then B ceterms:hasPart A must hold wherever both directions are stated.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344"
+    }
+  ],
+  "summary": {
+    "ERROR": 1,
+    "INFO": 1,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": "ERROR        INVERSE_MISMATCH  entity=https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344\n    ceterms:hasPart = https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e\n    https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344 asserts ceterms:hasPart https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e, but https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e asserts ceterms:isPartOf without pointing back at https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344. Both directions are present and they disagree.\n    rule: ceterms:hasPart declares owl:inverseOf ceterms:isPartOf in the schema encoding: if A ceterms:hasPart B is asserted, then B ceterms:isPartOf A must hold wherever both directions are stated.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\nINFO         INVERSE_ONE_DIRECTION  entity=https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e\n    ceterms:isPartOf = https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344\n    https://credentialengineregistry.org/resources/ce-d9a8ddae-ea6e-4f69-9c36-3f51a3104a0e asserts ceterms:isPartOf but https://credentialengineregistry.org/resources/ce-59e8d15f-7895-4346-a5a8-7a0739a3d344 does not assert the declared inverse ceterms:hasPart. One direction alone is not an error.\n    rule: ceterms:isPartOf declares owl:inverseOf ceterms:hasPart in the schema encoding: if A ceterms:isPartOf B is asserted, then B ceterms:hasPart A must hold wherever both directions are stated.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\n2 finding(s): 1 ERROR, 0 WARNING, 1 INFO, 0 UNVERIFIABLE"
+}

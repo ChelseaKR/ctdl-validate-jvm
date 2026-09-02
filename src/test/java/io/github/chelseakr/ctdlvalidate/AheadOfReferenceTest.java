@@ -116,7 +116,14 @@ class AheadOfReferenceTest {
             WITHDRAWN,
             WITHDRAWN,
             prop -> schema.property(prop) != null && schema.property(prop).rangeIsUniversal(),
-            "a declared range of rdfs:Resource, which admits every entity there is"));
+            "a declared range of rdfs:Resource, which admits every entity there is"),
+        new Disposition(
+            "INVERSE_MISMATCH",
+            "ERROR",
+            WITHDRAWN,
+            WITHDRAWN,
+            prop -> schema.property(prop) != null && schema.property(prop).inverse() != null,
+            "a back-reference written as a nested object carrying the referenced @id"));
   }
 
   /**

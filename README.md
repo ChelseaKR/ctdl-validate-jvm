@@ -70,19 +70,31 @@ is not available to be had.
 
 ### Where the port leads the reference
 
-Three dispositions in this port are ahead of the pinned release:
-`CONCEPT_RANGE_CONFLICT`, `VERSION_RANGE_CONFLICT`, and the universal-range
-reading of `rdfs:Resource` (all below). Each fix exists on the reference's
-`main` and in no release, so the pin cannot reach it, and byte equality on a
-fixture exercising one is not available to be had. All three withdraw or
-downgrade an ERROR the pinned release raises, which is the direction that
-matters: a false ERROR tells a publisher to fix something correct.
+Four dispositions in this port are ahead of the pinned release. Three are
+readings of a rule: `CONCEPT_RANGE_CONFLICT`, `VERSION_RANGE_CONFLICT`, and the
+universal-range reading of `rdfs:Resource` (all below). Each of those fixes
+exists on the reference's `main` and in no release, so the pin cannot reach it,
+and byte equality on a fixture exercising one is not available to be had.
+
+The fourth is not a reading of a rule. It is an implementation defect both
+sides shared and only this one has fixed: an inverse asserted as a nested
+object carrying the referenced `@id` was compared as a string, so a
+back-reference that really is present read as a mismatch. The rule is
+unchanged — `hasPart`/`isPartOf` still have to agree — and only the
+recognition of one of the two shapes a reference can take was wrong. It is
+filed upstream as `ChelseaKR/ctdl-validate#32` and is present in `0.2.1`, the
+current release, as well as in the pinned `0.1.0`, so this entry does not
+collapse on a pin bump either.
+
+All four withdraw or downgrade an ERROR the pinned release raises, which is the
+direction that matters: a false ERROR tells a publisher to fix something
+correct.
 
 That divergence is recorded rather than hidden, in a second corpus whose only
 job is to bound it:
 
 ```
-parity/ahead/fixtures/    3 payloads this port answers differently, on purpose
+parity/ahead/fixtures/    4 payloads this port answers differently, on purpose
 parity/ahead/reference/   what the pinned release says about them, generated
 ```
 
@@ -96,14 +108,17 @@ declared withdrawal. The declared dispositions are:
 | `RANGE_VIOLATION` / ERROR | `CONCEPT_RANGE_CONFLICT` / INFO | the property declares `skos:Concept` and a `meta:targetScheme` |
 | `RANGE_VIOLATION` / ERROR | `VERSION_RANGE_CONFLICT` / INFO | the property is a version property whose range is a strict subset of its own domain |
 | `RANGE_VIOLATION` / ERROR | nothing at all | the property's declared range includes `rdfs:Resource` |
+| `INVERSE_MISMATCH` / ERROR | nothing at all | the property declares an `owl:inverseOf`, which 16 properties in the snapshot do |
 
 Every "only where" column is a predicate evaluated against the vendored
 snapshot on each run, not a list of property names, so a disagreement can never
 be justified by anything but the schema. A restatement must keep the same
 entity, property, and value. The port may never *add* a finding the reference
-does not have. Anything wider is a red build. When the pin is bumped to
-a release carrying the fix, the reference stops disagreeing and the suite
-fails, which is the instruction to fold the fixture back into
+does not have — which is also the bound on the fourth row: the nested-object
+reading can withdraw a mismatch that was never real, and it cannot raise one
+the reference does not already raise. Anything wider is a red build. When the
+pin is bumped to a release carrying the fix, the reference stops disagreeing
+and the suite fails, which is the instruction to fold the fixture back into
 `parity/fixtures/` and delete the entry. See
 [ADR 0004](docs/adr/0004-the-port-may-lead-the-pinned-reference.md).
 
