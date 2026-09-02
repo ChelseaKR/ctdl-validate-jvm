@@ -1,0 +1,32 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-11111111-1111-4111-8111-111111111111",
+      "@type": "ceterms:Collection",
+      "ceterms:ctid": "ce-11111111-1111-4111-8111-111111111111",
+      "ceterms:name": {"en-US": "A collection of assorted resources"},
+      "ceterms:hasMember": [
+        "https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222",
+        "https://credentialengineregistry.org/resources/ce-33333333-3333-4333-8333-333333333333"
+      ]
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222",
+      "@type": "ceterms:Course",
+      "ceterms:ctid": "ce-22222222-2222-4222-8222-222222222222",
+      "ceterms:name": {"en-US": "A course, which is a resource"},
+      "ceterms:isSimilarTo": [
+        "https://credentialengineregistry.org/resources/ce-33333333-3333-4333-8333-333333333333"
+      ],
+      "owl:sameAs": [
+        "https://credentialengineregistry.org/resources/ce-33333333-3333-4333-8333-333333333333"
+      ]
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-33333333-3333-4333-8333-333333333333",
+      "@type": "ceterms:Place",
+      "ceterms:name": {"en-US": "A place, which is also a resource"}
+    }
+  ]
+}

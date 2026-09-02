@@ -48,17 +48,34 @@ worst of the three: a green build that is green because nothing looks.
   implementation's own output is the self-comparison ADR 0003 rules out.
   `AheadOfReferenceTest` asserts the *shape* of the divergence instead: same
   number of findings, in the same order, each one either identical to the
-  reference's or a single declared substitution — a `RANGE_VIOLATION`/ERROR
-  becoming a `CONCEPT_RANGE_CONFLICT`/INFO on the same entity, property, and
-  value, for a property the vendored snapshot marks `meta:targetScheme`.
+  reference's, or one declared restatement, or one declared withdrawal. The
+  declared dispositions are a table in `AheadOfReferenceTest`, each row naming
+  the reference's code and severity, what this port says instead (or that it
+  says nothing at all), and a predicate evaluated against the vendored snapshot
+  that says which properties the row may reach. A restatement must keep the
+  same entity, property, and value; the port may never *add* a finding the
+  reference does not have.
 - **The corpus is self-expiring.** When the pin is bumped to a release
   carrying the fix, the reference stops disagreeing and the suite fails,
   which is the instruction to move the fixture into `parity/fixtures/` and
   delete the `parity/ahead/` entry. A divergence record that outlives its
   divergence is a lie, so it is arranged not to survive one.
 - Every fixture in `parity/ahead/` needs the divergence to be real: a fixture
-  that produces no substitution fails, rather than sitting there as a
-  parity fixture filed in the wrong place.
+  that produces no disposition fails, rather than sitting there as a
+  parity fixture filed in the wrong place. The reverse holds too: a declared
+  disposition no fixture reaches fails, because a permission nobody exercises
+  is a permission nobody is checking.
+- A disposition may withdraw a finding as well as restate one, because the
+  right answer to a range that excludes nothing is no finding rather than a
+  softer one. A withdrawal is held to the same schema-derived predicate. It is
+  not held to the withdrawn finding's entity and value, because there is no
+  counterpart to compare them against, and asserting otherwise would be
+  claiming a check this suite does not perform.
+- A fixture may still carry an ERROR both sides agree on. The suite asserts
+  that the dispositions strictly reduce the ERROR count and that the port's
+  exit code matches its own findings, rather than that the port exits 0, which
+  would be false for `universal_range.json` and would have to be worked around
+  rather than met.
 
 ## Consequences
 

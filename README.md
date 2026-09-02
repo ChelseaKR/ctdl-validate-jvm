@@ -2,8 +2,9 @@
 
 A Java port of the rule core of
 [`ChelseaKR/ctdl-validate`](https://github.com/ChelseaKR/ctdl-validate),
-kept honest by a test that runs both implementations over the same fixtures
-and fails the build if they disagree about anything.
+a validator for CTDL (Credential Transparency Description Language) JSON-LD
+payloads, kept honest by a test that runs both implementations over the same
+fixtures and fails the build if they disagree about anything.
 
 No network calls at validation time. No model calls, ever. Same input, same
 output, byte for byte. Every finding cites the published rule it came from,
@@ -61,29 +62,46 @@ which corrupts an expectation and asserts the comparison notices, so the
 suite does not depend on anyone remembering to try that by hand.
 
 The corpus is held to the rule set as well: `ParityTest` fails if any finding
-code the checks can emit has no fixture exercising it. All 20 do.
+code the checks can emit has no fixture exercising it, and the set of codes it
+holds them to is parsed out of `src/main/java` rather than read off a list this
+port maintains. All 21 have a fixture: 19 of them here, and the 2 this port
+emits ahead of the pinned release in `parity/ahead/` below, where byte equality
+is not available to be had.
 
 ### Where the port leads the reference
 
-One rule in this port is ahead of the pinned release: `CONCEPT_RANGE_CONFLICT`
-(see below). The fix exists on the reference's `main` and in no release, so
-the pin cannot reach it, and byte equality on a fixture exercising it is not
-available to be had.
+Three dispositions in this port are ahead of the pinned release:
+`CONCEPT_RANGE_CONFLICT`, `VERSION_RANGE_CONFLICT`, and the universal-range
+reading of `rdfs:Resource` (all below). Each fix exists on the reference's
+`main` and in no release, so the pin cannot reach it, and byte equality on a
+fixture exercising one is not available to be had. All three withdraw or
+downgrade an ERROR the pinned release raises, which is the direction that
+matters: a false ERROR tells a publisher to fix something correct.
 
 That divergence is recorded rather than hidden, in a second corpus whose only
 job is to bound it:
 
 ```
-parity/ahead/fixtures/    payloads this port answers differently, on purpose
+parity/ahead/fixtures/    3 payloads this port answers differently, on purpose
 parity/ahead/reference/   what the pinned release says about them, generated
 ```
 
 There is deliberately no Java-side golden file. `AheadOfReferenceTest` asserts
 the *shape* of the disagreement instead — same findings, same order, each one
-either identical to the reference's or one declared substitution, a
-`RANGE_VIOLATION`/ERROR becoming a `CONCEPT_RANGE_CONFLICT`/INFO on the same
-entity, property, and value, for a property the vendored snapshot marks with
-`meta:targetScheme`. Anything wider is a red build. When the pin is bumped to
+either identical to the reference's, or one declared restatement, or one
+declared withdrawal. The declared dispositions are:
+
+| The pinned release says | This port says | Only where the snapshot says |
+|---|---|---|
+| `RANGE_VIOLATION` / ERROR | `CONCEPT_RANGE_CONFLICT` / INFO | the property declares `skos:Concept` and a `meta:targetScheme` |
+| `RANGE_VIOLATION` / ERROR | `VERSION_RANGE_CONFLICT` / INFO | the property is a version property whose range is a strict subset of its own domain |
+| `RANGE_VIOLATION` / ERROR | nothing at all | the property's declared range includes `rdfs:Resource` |
+
+Every "only where" column is a predicate evaluated against the vendored
+snapshot on each run, not a list of property names, so a disagreement can never
+be justified by anything but the schema. A restatement must keep the same
+entity, property, and value. The port may never *add* a finding the reference
+does not have. Anything wider is a red build. When the pin is bumped to
 a release carrying the fix, the reference stops disagreeing and the suite
 fails, which is the instruction to fold the fixture back into
 `parity/fixtures/` and delete the entry. See
@@ -100,7 +118,7 @@ reporters. From
 | 1 | CTID grammar on `ceterms:ctid`, on `@id`, and on the tail of every Registry resource/graph URI; `ctid` must match the `@id` tail | `CTID_BARE_UUID`, `CTID_MALFORMED`, `CTID_UPPERCASE`, `CTID_NOT_UUIDV4`, `REGISTRY_URI_MALFORMED`, `CTID_URI_MISMATCH` |
 | 2 | Identifier kind: properties the CTDL context declares as `{"@type": "@id"}` with entity ranges must carry IRIs or blank node ids | `REF_BARE_UUID`, `REF_BARE_CTID`, `REF_NOT_IRI` |
 | 3 | Reference resolution inside the payload; undefined blank nodes are errors, external IRIs are UNVERIFIABLE | `REF_UNRESOLVED_BNODE`, `REF_OUTSIDE_PAYLOAD` |
-| 4 | Domain and range per `schema:domainIncludes` / `schema:rangeIncludes`, with `rdfs:subClassOf` closure, plus the wrong-framework `isPartOf` pattern | `DOMAIN_VIOLATION`, `RANGE_VIOLATION`, `ISPARTOF_FRAMEWORK_MISMATCH`, `UNKNOWN_CLASS`, `UNKNOWN_PROPERTY`, `RANGE_DOCS_CONFLICT`, `CONCEPT_RANGE_CONFLICT` |
+| 4 | Domain and range per `schema:domainIncludes` / `schema:rangeIncludes`, with `rdfs:subClassOf` closure, plus the wrong-framework `isPartOf` pattern | `DOMAIN_VIOLATION`, `RANGE_VIOLATION`, `ISPARTOF_FRAMEWORK_MISMATCH`, `UNKNOWN_CLASS`, `UNKNOWN_PROPERTY`, `RANGE_DOCS_CONFLICT`, `CONCEPT_RANGE_CONFLICT`, `VERSION_RANGE_CONFLICT` |
 | 5 | Inverse consistency for pairs the schema declares with `owl:inverseOf` | `INVERSE_MISMATCH`, `INVERSE_ONE_DIRECTION` |
 
 Severities mean what they mean in the sibling, because the parity test would
@@ -119,13 +137,14 @@ see. Never a pass, never a fail.
   no network calls at all, which is a property worth keeping whole
   (`OfflineGuaranteeTest`), and extraction is a much larger surface with none
   of the parity payoff.
-- **Nothing from the rule set itself.** All five checks and all 19 codes are
+- **Nothing from the rule set itself.** All five checks and all 21 codes are
   here. No rule was dropped as unportable.
 
 ## Running it
 
-Java 17 or newer, to build and to run. The CI gate builds on Temurin 21 and
-targets 17.
+Java 17 or newer, to build and to run. The CI gate compiles with `--release 17`
+and runs the whole suite twice, on Temurin 17 and on Temurin 21, so the floor is
+a runtime that gets exercised rather than only a compiler flag.
 
 ```
 ./gradlew verify        # compile, format, static analysis, tests, coverage
@@ -209,6 +228,43 @@ in the document, and neither gates the exit code:
   Engine ever resolves the conflict this disposition rests on, so it cannot
   outlive its own premise.
 
+- **`VERSION_RANGE_CONFLICT`** — CTDL's three version properties,
+  `ceterms:latestVersion`, `ceterms:nextVersion` and `ceterms:previousVersion`,
+  each declare a `schema:rangeIncludes` that is a strict subset of their own
+  `schema:domainIncludes`. In the vendored snapshot each declares a domain of
+  61 classes and a range of 55, and all three drop the identical six:
+  `ceasn:Competency`, `ceasn:CompetencyFramework`, `ceasn:Rubric`,
+  `ceterms:Collection`, `ceterms:Pathway`, `ceterms:TransferValueProfile`.
+
+  For a dropped class the two declarations cannot both hold: the domain says an
+  instance may have a version, the range says that version may not be an
+  instance of the same class. Published wording does not settle which of the
+  two is wrong, and this tool does not pick. What it rules out is the ERROR,
+  because the document satisfies a published declaration and there is nothing
+  to tell a publisher to change. Narrowed to a link between two entities of the
+  same dropped class; any other out-of-range class on these properties is still
+  a `RANGE_VIOLATION`.
+
+### When a range constrains nothing
+
+Not a conflict between sources, but a declaration that admits everything.
+
+`ceterms:hasMember` and `owl:sameAs` declare `schema:rangeIncludes` as exactly
+`rdfs:Resource`, and `ceterms:isSimilarTo` declares it among 83 terms. RDF
+Schema 1.1 (W3C Recommendation, 25 February 2014) section 3.1 defines that
+class: "All things described by RDF are called resources, and are instances of
+the class rdfs:Resource. This is the class of everything. All other classes are
+subclasses of this class." CTDL's own published comments agree —
+`ceterms:hasMember` is "Resource in a Collection", and `ceterms:isSimilarTo` is
+"generally applicable in describing the similarity between any two entities".
+
+The vendored snapshot does not declare `rdfs:Resource` as a class, and none of
+its 150 classes reaches it by `rdfs:subClassOf`. So a range check that matches a
+target's declared classes against it rejects **every** entity where the
+declaration accepts every entity. This port previously reported an ERROR on
+every reference through those three properties. It now reports nothing, which
+is what a range that excludes nothing means.
+
 ## What porting it actually took
 
 Most of the work was not the rules. The checks are short and the schema
@@ -241,9 +297,22 @@ by reading, which is the argument for having it.
 
 ## Limits, recorded
 
-- **The parity corpus is 21 payloads, not a proof.** It covers every finding
-  code and every document shape the parser accepts, and it was extended
-  beyond the sibling's own fixtures for that reason. It is still a corpus.
+- **A false ERROR this port knowingly still raises.** `owl:sameAs` declares
+  `schema:domainIncludes` as exactly `rdfs:Resource`, the same class of
+  everything the range section above quotes, so no subject can fall outside its
+  domain. Both implementations nonetheless report `DOMAIN_VIOLATION`/ERROR for
+  any subject using it, and `parity/ahead/fixtures/universal_range.json` records
+  that they still agree on it. It is not fixed here on purpose: the reference
+  has not fixed it either, and this README is explicit that the specification
+  work lives in the sibling and a rule change belongs there. Fixing it in the
+  port alone would be this repository inventing a disposition rather than
+  porting one. Reported upstream instead.
+
+- **The parity corpus is 22 payloads, not a proof.** It covers 19 of the 21
+  finding codes and every document shape the parser accepts, and it was
+  extended beyond the sibling's own fixtures for that reason; the other 2 codes
+  are the ones this port emits ahead of the pinned release, covered by
+  `parity/ahead/` where byte equality is not available. It is still a corpus.
   Agreement on it is evidence, not a theorem, and no property-based or
   differential fuzzing has been run across the two implementations.
 - **Malformed JSON is out of scope for parity.** The two implementations both
@@ -315,8 +384,8 @@ out.
 | Accessibility | N/A: an offline CLI and library with no human-facing HTML |
 | Internationalization | N/A: a developer-facing JVM validator whose operator output is English only, matching the reference implementation it is compared against byte for byte. Translating a message here would make the two implementations disagree, so it is a change to the sibling first, if ever |
 | AI Evaluation | N/A: a deterministic validator with no model component. There is no model anywhere in this repository and there will not be one, and the README says so in its first ten lines |
-| Documentation | Applies: README, [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), CHANGELOG, CITATION.cff, the ADR log under [`docs/adr/`](docs/adr/), the fixture provenance table in `parity/PROVENANCE.md`, and the vendored-source record in `src/main/resources/vendor/SOURCES.md` |
-| Quality & Metrics | Applies: the merge-blocking floors are byte-equality against the reference over every fixture, 85% branch coverage, zero SpotBugs findings, a clean formatter, and the offline guarantee. The parity corpus is 21 payloads and is recorded above as evidence, not a proof |
+| Documentation | Applies: README, [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), CHANGELOG, CITATION.cff, the ADR log under [`docs/adr/`](docs/adr/), the fixture provenance table in `parity/PROVENANCE.md`, and the vendored-source record in `src/main/resources/vendor/SOURCES.md`. The counts those documents publish about this repository are derived from it and gated by `PublishedFiguresTest`, on the pattern `VendorIntegrityTest` set, so a figure corrected in one file cannot be left stale in another |
+| Quality & Metrics | Applies: the merge-blocking floors are byte-equality against the reference over every fixture, 85% branch coverage, zero SpotBugs findings, a clean formatter, and the offline guarantee. The parity corpus is 22 payloads and is recorded above as evidence, not a proof |
 | AI Development Measurement | Applies: no tool-usage counter is collected and none gates a merge. The Disclosure section below records that the port was written with AI assistance and reviewed by a human; the gate is what a change clears regardless of how it was authored |
 | Incident Response | Applies: no incident to date, and nothing is released for one to reach. Vulnerabilities go through the path in [`SECURITY.md`](SECURITY.md), and a postmortem will be committed under `docs/incidents/` when there is one to write |
 | Data Governance | Applies: the validator reads a file you give it, keeps nothing, and makes no network call. Parity fixtures are synthetic by rule, with generated identifiers and invented names and nothing copied from a real organization or from the Credential Registry. The vendored CTDL and CTDL-ASN snapshots retain their origin and retrieval date in `src/main/resources/vendor/SOURCES.md` |

@@ -206,6 +206,53 @@ public final class Rules {
         RETRIEVED);
   }
 
+  /**
+   * A version property whose own range excludes a class its own domain admits.
+   *
+   * <p>CTDL's three version properties relate a resource to another version of the same resource.
+   * For each of them the encoding declares {@code schema:rangeIncludes} as a strict subset of
+   * {@code schema:domainIncludes}, dropping the same classes from all three. For a dropped class
+   * the two declarations cannot both be satisfied: the domain says an instance of that class may
+   * have a version, and the range says that version may not be an instance of that class, while a
+   * version of a thing is a thing of the same kind. The document is following the domain
+   * declaration, so the disagreement is inside the encoding and this is reported as INFO, not an
+   * error, the same disposition the isChildOf and concept-range conflicts get.
+   *
+   * <p>The wording is the reference implementation's rather than a paraphrase, for the reason the
+   * class comment gives.
+   *
+   * @param prop the version property
+   * @param cls the class the two declarations disagree about
+   * @param dropped every class this property's domain admits and its range excludes, from {@link
+   *     SchemaIndex#domainOnlyClasses}
+   */
+  public static Rule versionRangeConflict(String prop, String cls, Collection<String> dropped) {
+    List<String> others = new ArrayList<>(dropped);
+    others.remove(cls);
+    others.sort(CodePointOrder.COMPARATOR);
+    return new Rule(
+        "Conflicting declarations inside the schema encoding: "
+            + prop
+            + " declares schema:domainIncludes "
+            + cls
+            + ", so a "
+            + cls
+            + " may have a version, and omits "
+            + cls
+            + " from schema:rangeIncludes, so that version may not be a "
+            + cls
+            + ". The declared range of "
+            + prop
+            + " is a strict subset of its own declared domain; besides "
+            + cls
+            + " it also drops "
+            + String.join(", ", others)
+            + ". Reported as INFO, not an error, because the two declarations disagree with each"
+            + " other and the document satisfies one of them.",
+        vocabSchemaUrl(prop),
+        RETRIEVED);
+  }
+
   public static Rule inverse(String prop, String inverse) {
     return new Rule(
         prop

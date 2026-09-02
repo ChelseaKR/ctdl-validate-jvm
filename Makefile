@@ -21,12 +21,20 @@ lint:
 test:
 	$(GRADLE) test
 
-# Regenerate the parity expectations from the pinned reference implementation and
-# fail if they moved. Needs Python 3.12 and the pinned reference release:
+# Check the committed parity expectations against the pinned reference implementation.
+# --check regenerates them in memory and reports every difference without writing
+# anything, which is the whole point: the old form wrote the regenerated files into
+# your working tree and then asked git what had changed, so a failing run left you
+# holding modified files, and `git diff` could not see the one case that matters most.
+# git diff does not report an untracked file, so a fixture whose expectation was never
+# committed regenerated into a new file and the check passed green on it. --check
+# compares against the committed bytes directly and reports a missing expectation as a
+# difference. To write the files, run the script without --check.
+#
+# Needs Python 3.12 and the pinned reference release:
 #   python3 -m pip install --require-hashes -r parity/reference-requirements.txt
 parity:
-	python3 tools/generate_expectations.py
-	git --no-pager diff --exit-code -- parity/expected parity/ahead/reference
+	python3 tools/generate_expectations.py --check
 
 clean:
 	$(GRADLE) clean

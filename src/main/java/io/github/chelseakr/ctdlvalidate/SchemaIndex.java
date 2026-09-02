@@ -43,6 +43,38 @@ public final class SchemaIndex {
           "schema:Duration");
 
   /**
+   * Range terms that constrain nothing, because they admit every entity there is.
+   *
+   * <p>RDF Schema 1.1 (W3C Recommendation, 25 February 2014), section 3.1: "All things described by
+   * RDF are called resources, and are instances of the class rdfs:Resource. This is the class of
+   * everything. All other classes are subclasses of this class."
+   * (https://www.w3.org/TR/rdf11-schema/#ch_resource)
+   *
+   * <p>CTDL declares it as the entire {@code schema:rangeIncludes} of {@code ceterms:hasMember} and
+   * of {@code owl:sameAs}, and as one term among the declared range of {@code ceterms:isSimilarTo}.
+   * {@code schema:rangeIncludes} is a disjunction of expected types, so a disjunct admitting
+   * everything makes the whole range admit everything.
+   *
+   * <p>The vendored snapshot does not declare {@code rdfs:Resource} as a class, and none of the 150
+   * classes it does declare reaches it by {@code rdfs:subClassOf}. Matching a target's declared
+   * classes against it would therefore reject every entity where the declaration accepts every
+   * entity, which is an inversion of the published range rather than an enforcement of it.
+   */
+  public static final Set<String> UNIVERSAL_RANGE_TERMS = Set.of("rdfs:Resource");
+
+  /**
+   * CTDL's three version properties. Each relates a resource to another version of the same
+   * resource, and each declares a {@code schema:rangeIncludes} that is a strict subset of its own
+   * {@code schema:domainIncludes}.
+   *
+   * <p>Named here rather than derived, because the disposition rests on what a <em>version</em> is,
+   * which no part of the encoding states. The classes it applies to <em>are</em> derived; see
+   * {@link #domainOnlyClasses}.
+   */
+  public static final Set<String> VERSION_PROPERTIES =
+      Set.of("ceterms:latestVersion", "ceterms:nextVersion", "ceterms:previousVersion");
+
+  /**
    * Prefixes whose unknown terms are worth a WARNING. Terms in other namespaces (schema.org, dct,
    * foaf, ...) are not CTDL's to judge and are skipped.
    */
@@ -76,6 +108,22 @@ public final class SchemaIndex {
     public boolean rangeHasEntities() {
       for (String term : range) {
         if (!LITERAL_RANGE_TERMS.contains(term)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * True when the declared range admits every entity, so it rules nothing out.
+     *
+     * <p>See {@link #UNIVERSAL_RANGE_TERMS}. A property declared this way says "any resource may go
+     * here", and the honest reading of a range that excludes nothing is that no reference can fall
+     * outside it.
+     */
+    public boolean rangeIsUniversal() {
+      for (String term : range) {
+        if (UNIVERSAL_RANGE_TERMS.contains(term)) {
           return true;
         }
       }
@@ -211,6 +259,24 @@ public final class SchemaIndex {
     }
     siblings.sort(CodePointOrder.COMPARATOR);
     return List.copyOf(siblings);
+  }
+
+  /**
+   * Classes this property's domain admits and its own range excludes.
+   *
+   * <p>Read out of the vendored snapshot on every call rather than written down, so refreshing the
+   * snapshot refreshes the evidence. For CTDL's three version properties this set is the whole of
+   * the disagreement described in {@link Rules#versionRangeConflict}: the encoding says an instance
+   * of the class may <em>have</em> a version while saying its version may not <em>be</em> one.
+   */
+  public Set<String> domainOnlyClasses(String term) {
+    PropertyDef propDef = properties.get(term);
+    if (propDef == null) {
+      return Set.of();
+    }
+    Set<String> dropped = new HashSet<>(propDef.domain());
+    dropped.removeAll(propDef.range());
+    return Set.copyOf(dropped);
   }
 
   /** Every property the concept-range conflict disposition can apply to. */

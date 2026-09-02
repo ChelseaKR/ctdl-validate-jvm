@@ -14,11 +14,27 @@ concurrency:
 
 jobs:
   verify:
-    name: verify
+    name: verify (Temurin ${{ matrix.java }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
+    strategy:
+      # Both legs always report. Which JDK a failure belongs to is the whole
+      # point of running two, so cancelling the survivor would throw away the
+      # answer this matrix exists to give.
+      fail-fast: false
+      matrix:
+        # 17 is the floor docs/adr/0002-java-17-floor.md sets and README.md
+        # promises; 21 is what the build is developed on. `options.release = 17`
+        # is a compile-time guarantee only: it rejects an API that postdates 17,
+        # but it cannot tell you whether the bytecode this produces, plus
+        # Jackson, plus JUnit, actually starts on a 17 runtime. A dependency
+        # whose own class files target a higher version, a multi-release jar
+        # resolving differently, or a module 21 exposes and 17 does not are all
+        # invisible to a build that compiles on 21 and runs on 21. Running the
+        # suite on the floor itself is what makes the floor a tested claim.
+        java: ["17", "21"]
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -26,15 +42,17 @@ jobs:
           persist-credentials: false
 
       - name: Set up JDK
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: ${{ matrix.java }}
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          # One leg writes the cache on main and the rest read it, so the two
+          # jobs cannot race to publish the same entry.
+          cache-read-only: ${{ github.ref != 'refs/heads/main' || matrix.java != '21' }}
 
       # The same target a contributor runs locally: compile, formatter,
       # static analysis, tests including the cross-language parity suite,
@@ -46,7 +64,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: reports
+          # Unique per leg: upload-artifact v4 and newer reject a second upload
+          # under a name already claimed, so a shared name would fail the matrix.
+          name: reports-temurin-${{ matrix.java }}
           path: |
             build/reports/tests/test
             build/reports/spotbugs
@@ -82,7 +102,46 @@ jobs:
       - name: Install the pinned reference implementation
         run: python -m pip install --require-hashes -r parity/reference-requirements.txt
 
-      - name: Regenerate the expectations and fail on any drift
+      # --check regenerates in memory and compares against the committed bytes.
+      # It replaced `regenerate, then git diff --exit-code`, which was unsound in
+      # one direction and destructive in another. Unsound: git diff does not
+      # report an untracked file, so a fixture committed without its expectation
+      # regenerated into a brand new file and this step passed green on a corpus
+      # whose expectations were incomplete. Measured, not theorised. Destructive:
+      # it wrote every regenerated file into the working tree, so the run that
+      # detected drift was also the run that healed it locally, which is how a
+      # committed artifact stays stale while the check that watches it goes green.
+      # --check reports a missing expectation as a difference and writes nothing.
+      - name: Check the expectations against the pinned reference
+        run: python3 tools/generate_expectations.py --check
+
+      # A check nobody has watched fail is a check you are trusting on faith, and
+      # this one guards the only property the repository exists to demonstrate.
+      # Perturb one committed expectation the way a real divergence would, in a
+      # copy of the tree so the checkout is never touched, and require the check
+      # to notice. The guards matter as much as the probe: if the perturbation
+      # changed nothing, or if the run left a mark on the working tree, this step
+      # fails rather than reporting a proof it did not obtain.
+      - name: Prove the check can fail
         run: |
-          python3 tools/generate_expectations.py
-          git --no-pager diff --exit-code -- parity/expected parity/ahead/reference
+          set -eu
+          probe="$(mktemp -d)"
+          mkdir -p "${probe}/tools"
+          cp tools/generate_expectations.py "${probe}/tools/"
+          cp -R parity "${probe}/parity"
+          target="${probe}/parity/expected/identifier_kind.json"
+          sed -i 's/"severity": "ERROR"/"severity": "WARNING"/' "${target}"
+          if cmp -s parity/expected/identifier_kind.json "${target}"; then
+            echo "the perturbation changed nothing, so this proves nothing" >&2
+            exit 1
+          fi
+          if python3 "${probe}/tools/generate_expectations.py" --check; then
+            echo "the check passed on a perturbed expectation" >&2
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain -- parity tools)" ]; then
+            echo "the check wrote into the working tree" >&2
+            git status --porcelain -- parity tools >&2
+            exit 1
+          fi
+          echo "the check failed on the perturbation and left the checkout untouched"

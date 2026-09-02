@@ -23,16 +23,23 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import sys
 from pathlib import Path
 
+import ctdl_validate
 from ctdl_validate import __version__ as reference_version
 from ctdl_validate.findings import Finding, Severity
 from ctdl_validate.graph import DocumentError
 from ctdl_validate.validator import validate_document
 
 ROOT = Path(__file__).resolve().parent.parent
+
+#: Where the reference implementation's own finding-code census is written.
+#: ParityTest reads it to answer "what rules does the other side have?", which
+#: this port cannot answer from anything it maintains itself.
+REFERENCE_CODES = ROOT / "parity" / "reference-codes.json"
 
 #: (fixtures, output) pairs. The first is the byte-equality corpus; the second
 #: records what the pinned reference says about the fixtures this port answers
@@ -47,6 +54,49 @@ CORPORA = (
 #: Restated here rather than imported: it moved modules between 0.1.0 and the
 #: reference's main branch, and this script pins to the released 0.1.0.
 SEVERITY_ORDER = (Severity.ERROR, Severity.WARNING, Severity.INFO, Severity.UNVERIFIABLE)
+
+
+def reference_finding_codes() -> list[str]:
+    """Every finding code the installed reference implementation can construct.
+
+    Parsed out of the reference's own source with ``ast``, not read off a list
+    either side maintains. That is the whole point: a rule the reference has and
+    this port has never heard of is invisible to a coverage test built from the
+    port's own ``FindingCodes.ALL``, because such a rule is missing from the
+    port's list, from the port's output, and from parity/expected/ alike.
+
+    A ``Finding(...)`` call whose ``code`` is not a plain string literal raises
+    rather than being skipped. A census that silently drops what it cannot read
+    would report a smaller rule set than the reference really has, which is the
+    same blindness in a new place.
+    """
+    package = Path(ctdl_validate.__file__).parent
+    sources = sorted(package.rglob("*.py"))
+    if not sources:
+        raise SystemExit(f"no reference source found under {package}")
+
+    codes: set[str] = set()
+    for source in sources:
+        tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            name = node.func.id if isinstance(node.func, ast.Name) else None
+            if name != "Finding":
+                continue
+            keywords = {kw.arg: kw.value for kw in node.keywords}
+            code = keywords.get("code")
+            if code is None and node.args:
+                code = node.args[0]
+            if not isinstance(code, ast.Constant) or not isinstance(code.value, str):
+                raise SystemExit(
+                    f"{source.relative_to(package)}:{node.lineno}: Finding() built with a "
+                    "non-literal code; this census cannot see it, so it must not pass silently"
+                )
+            codes.add(code.value)
+    if not codes:
+        raise SystemExit(f"parsed {len(sources)} reference source file(s) and found no codes")
+    return sorted(codes)
 
 
 def counts(findings: list[Finding]) -> dict[str, int]:
@@ -134,8 +184,25 @@ def main(argv: list[str] | None = None) -> int:
             if not args.check:
                 (output_dir / name).unlink()
 
+    codes = reference_finding_codes()
+    rendered_codes = render(
+        {
+            "reference": "ctdl-validate",
+            "version": reference_version,
+            "codes": codes,
+        }
+    )
+    if args.check:
+        current = REFERENCE_CODES.read_text(encoding="utf-8") if REFERENCE_CODES.exists() else ""
+        if current != rendered_codes:
+            differences += 1
+            print(f"differs: {REFERENCE_CODES.relative_to(ROOT)}", file=sys.stderr)
+    else:
+        REFERENCE_CODES.write_text(rendered_codes, encoding="utf-8")
+
     print(
-        f"{total} fixture(s) against ctdl-validate {reference_version}"
+        f"{total} fixture(s) and {len(codes)} reference finding code(s) "
+        f"against ctdl-validate {reference_version}"
         + (f"; {differences} difference(s)" if args.check else "")
     )
     return 1 if differences else 0
