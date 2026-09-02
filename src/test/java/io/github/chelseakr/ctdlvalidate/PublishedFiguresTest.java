@@ -233,6 +233,10 @@ class PublishedFiguresTest {
             AheadOfReferenceTest.dispositionsThatRemoveAnError(),
             List.of("All ([^ ]+) withdraw or downgrade an ERROR")),
         new Claim(
+            "the properties the vendored snapshot declares an owl:inverseOf for",
+            propertiesDeclaringAnInverse(schema),
+            List.of("which ([^ ]+) properties in the snapshot do")),
+        new Claim(
             "the classes the vendored snapshot declares",
             schema.classes().size(),
             List.of("none of (?:its|the) ([^ ]+) classes (?:it does declare )?reaches it by")),
@@ -458,6 +462,24 @@ class PublishedFiguresTest {
             + ", which is not a whole percentage. The documents state it as a whole number; either"
             + " state it the way the build now expresses it, or move the floor back to one.");
     return percent.intValueExact();
+  }
+
+  /**
+   * How many properties the vendored snapshot gives an {@code owl:inverseOf}.
+   *
+   * <p>This is the whole reach of the nested-back-reference disposition, so the README states it to
+   * say how narrow the permission is. Derived rather than typed: a refreshed snapshot that declares
+   * more inverse pairs widens that disposition, and the sentence claiming it is narrow has to move
+   * with it.
+   */
+  private static int propertiesDeclaringAnInverse(SchemaIndex schema) {
+    int count = 0;
+    for (SchemaIndex.PropertyDef property : schema.properties().values()) {
+      if (property.inverse() != null) {
+        count++;
+      }
+    }
+    return count;
   }
 
   private static int propertiesRangingOn(SchemaIndex schema, String rangeTerm) {
