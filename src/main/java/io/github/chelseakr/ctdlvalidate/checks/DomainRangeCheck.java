@@ -135,6 +135,9 @@ public final class DomainRangeCheck implements Check {
       if (schema.classMatches(targetTypes, propDef.range())) {
         continue;
       }
+      if (anotherDeclarationSatisfies(graph, schema, target, propDef.range())) {
+        continue;
+      }
       String valueText = value instanceof Value.Text text ? text.text() : target.label();
       // CTDL ranges a reference to a term from one of its own concept schemes on
       // skos:Concept for some properties and on CredentialAlignmentObject for
@@ -188,6 +191,38 @@ public final class DomainRangeCheck implements Check {
       }
     }
     return findings;
+  }
+
+  /**
+   * Whether some other declaration of the resolved target's {@code @id} satisfies the range.
+   *
+   * <p>A payload may declare the same {@code @id} more than once — a stub embedded inline beside a
+   * fuller top-level entity is the ordinary way it happens — and {@link Graph#byId} keeps only
+   * whichever the walk reached first. That is depth-first into an earlier entity's inline objects
+   * before the next top-level entry, so a reference is judged against the declaration that happens
+   * to sit earliest in the document rather than against the declaration the document means. Where
+   * the winner's classes fall outside the range and another declaration of the same identifier is
+   * squarely inside it, the ERROR is an artefact of walk order and not a fact about the payload.
+   *
+   * <p>Asked only after {@link SchemaIndex#classMatches} has already failed, so it can withdraw a
+   * finding and can never raise one. That direction is deliberate and is the limit of what is fixed
+   * here: the mirror case, where the first-walked declaration satisfies a range and a later one
+   * does not, still passes, exactly as the reference does. Reporting it would mean raising an ERROR
+   * the pinned reference does not raise, which {@code parity/ahead/} is arranged not to permit, and
+   * it is a rule-level ruling that belongs in the sibling. See the README limits and ADR 0005.
+   */
+  private static boolean anotherDeclarationSatisfies(
+      Graph graph, SchemaIndex schema, Graph.Node target, Set<String> range) {
+    for (Graph.Node declaration : graph.declarationsOf(target.nodeId())) {
+      if (declaration == target) {
+        continue;
+      }
+      List<String> declared = schema.knownTypes(declaration.types());
+      if (!declared.isEmpty() && schema.classMatches(declared, range)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

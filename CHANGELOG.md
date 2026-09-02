@@ -11,6 +11,32 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Fixed
 
+- A class ruling could be decided by whichever declaration of a duplicated
+  `@id` the walk happened to reach first. `Graph.byId` keeps the first arrival
+  and the walk descends into an earlier entity's inline objects before it
+  reaches the next top-level entry, so a stub embedded under an unrelated
+  entity became "the" node for every later bare-IRI resolution of that
+  identifier. Measured against the CLI: a `ceterms:address` reference to an
+  `@id` the same `@graph` declares at top level as a `ceterms:Place` — in range
+  — was reported `RANGE_VIOLATION`/ERROR because an inline
+  `ceterms:Organization` stub for that `@id` sat three lines earlier. A range
+  ruling now asks every declaration of the identifier, and asks only after the
+  ordinary ruling has already failed, so it can withdraw a false ERROR and can
+  never raise one.
+
+  The mirror case is deliberately not fixed and is now written down in the
+  README limits and asserted by `DuplicateIdShadowingTest`: where the
+  first-walked declaration satisfies a range and a later one does not, a genuine
+  violation is still suppressed, as it is in the reference. Fixing that means
+  raising an ERROR the pinned release does not raise, which `parity/ahead/` is
+  arranged not to permit and which belongs in the sibling first
+  (`ChelseaKR/ctdl-validate#33`, still present in `0.2.1`).
+
+  `parity/fixtures/mixed_shapes.json` duplicates an `@id` and produces no
+  findings either way, so byte equality never reached the shape that produces a
+  wrong verdict. It is now `parity/ahead/fixtures/shadowed_duplicate_id.json`
+  with a fifth declared disposition.
+
 - `INVERSE_MISMATCH` was raised on documents where both directions of an
   `owl:inverseOf` pair genuinely agree. `InversesCheck.pointsBackAt` compared
   only `Value.Text`, so an inverse asserted as an inline object carrying the
@@ -74,6 +100,15 @@ Nothing has been released. There is no tag and no published artifact.
   rule sets. Every figure was established by reading the artifact it describes.
 
 ### Added
+
+- [ADR 0005](docs/adr/0005-a-disposition-may-be-gated-on-the-payload.md), which
+  extends ADR 0004 so a `parity/ahead/` entry may also be gated on a fact read
+  out of the fixture. Three of the five dispositions are schema arguments and
+  the property name is the whole of the case; the duplicate-`@id` one is not, and
+  a property predicate for it would admit every ranged property in the schema —
+  a gate that admits everything is worse than none, because it looks like one.
+  Both gates must hold, the document gate fails closed, and the fix it covers
+  can only withdraw a finding.
 
 - The parity CI job now proves on every run that it can fail. It perturbs one
   committed expectation the way a real divergence would, in a copy of the tree so

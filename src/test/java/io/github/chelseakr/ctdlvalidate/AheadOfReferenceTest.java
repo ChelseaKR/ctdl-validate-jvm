@@ -15,10 +15,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -61,6 +64,12 @@ class AheadOfReferenceTest {
   private static final String WITHDRAWN = null;
 
   /**
+   * The default document gate: none. A disposition whose whole argument is about the schema does
+   * not care what else is in the payload, and says so by not asking.
+   */
+  private static final BiPredicate<JsonNode, JsonNode> ANY_DOCUMENT = (fixture, finding) -> true;
+
+  /**
    * One way this port is permitted to answer differently from the pinned reference.
    *
    * @param referenceCode the code the pinned reference emits
@@ -69,6 +78,15 @@ class AheadOfReferenceTest {
    * @param portSeverity the severity this port emits instead, or {@link #WITHDRAWN}
    * @param appliesTo which properties may be disposed of this way, read out of the vendored
    *     snapshot rather than listed, so refreshing the schema refreshes the permission
+   * @param inTheDocument a second gate, over the fixture and the reference's own finding, for a
+   *     disposition whose argument is not about the property at all. Three of the four rows below
+   *     are readings of what the schema declares, and the property name is the whole of the
+   *     argument. The shadowed-declaration row is not: every ranged property can produce that
+   *     finding, so a property predicate narrows nothing, and what makes the disagreement
+   *     legitimate is a fact about the payload — the referenced identifier really is declared more
+   *     than once, with declarations that really do differ in class. Reading it out of the fixture
+   *     keeps the row from being the licence a property predicate alone would make it. See ADR
+   *     0005.
    * @param why the disposition, for a failure message that says what was expected
    */
   private record Disposition(
@@ -77,10 +95,27 @@ class AheadOfReferenceTest {
       String portCode,
       String portSeverity,
       Predicate<String> appliesTo,
+      BiPredicate<JsonNode, JsonNode> inTheDocument,
       String why) {
+
+    /** A disposition whose argument is the schema alone, and asks nothing of the payload. */
+    Disposition(
+        String referenceCode,
+        String referenceSeverity,
+        String portCode,
+        String portSeverity,
+        Predicate<String> appliesTo,
+        String why) {
+      this(referenceCode, referenceSeverity, portCode, portSeverity, appliesTo, ANY_DOCUMENT, why);
+    }
 
     boolean withdraws() {
       return portCode == null;
+    }
+
+    /** Whether this disposition may reach the reference's finding in this fixture at all. */
+    boolean reaches(JsonNode fixture, JsonNode finding, String property) {
+      return appliesTo.test(property) && inTheDocument.test(fixture, finding);
     }
   }
 
@@ -123,7 +158,119 @@ class AheadOfReferenceTest {
             WITHDRAWN,
             WITHDRAWN,
             prop -> schema.property(prop) != null && schema.property(prop).inverse() != null,
-            "a back-reference written as a nested object carrying the referenced @id"));
+            "a back-reference written as a nested object carrying the referenced @id"),
+        new Disposition(
+            "RANGE_VIOLATION",
+            "ERROR",
+            WITHDRAWN,
+            WITHDRAWN,
+            prop ->
+                schema.property(prop) != null
+                    && schema.property(prop).rangeHasEntities()
+                    && !schema.property(prop).rangeIsUniversal(),
+            AheadOfReferenceTest::shadowedDeclarationDecidedIt,
+            "a class ruling decided by whichever declaration of a duplicated @id was walked"
+                + " first"));
+  }
+
+  /**
+   * Whether the reference's finding is one a shadowed duplicate {@code @id} decided.
+   *
+   * <p>The property predicate on that row admits every property that can produce a {@code
+   * RANGE_VIOLATION} at all, which narrows nothing, so this is where the row is actually bounded.
+   * Three things have to be true of the fixture itself, all read out of it rather than asserted:
+   * the identifier the finding names as its value is declared more than once; those declarations do
+   * not agree about {@code @type}, so there was something to shadow; and the entity the finding is
+   * about really does carry that property with that value, so the row cannot be reached by a
+   * finding relabelled onto a property the document never used.
+   *
+   * <p>Fails closed. A fixture written in a shape this cannot read — full-IRI property keys, say —
+   * reports no shadowing and the disagreement goes undeclared, which is a red build rather than a
+   * quiet permission.
+   */
+  private static boolean shadowedDeclarationDecidedIt(JsonNode fixture, JsonNode finding) {
+    String value = text(finding, "value");
+    List<Set<String>> declarations = declarationsIn(fixture).getOrDefault(value, List.of());
+    if (new HashSet<>(declarations).size() < 2) {
+      return false;
+    }
+    return carries(fixture, text(finding, "entity"), text(finding, "property"), value);
+  }
+
+  /**
+   * Every {@code @id} the fixture declares, and the {@code @type} set each declaration carries.
+   *
+   * <p>An object whose only member is {@code @id} is a reference and not a declaration, the same
+   * way {@code GraphParser} reads it, so a payload that merely mentions an identifier twice does
+   * not count as declaring it twice.
+   */
+  private static Map<String, List<Set<String>>> declarationsIn(JsonNode fixture) {
+    Map<String, List<Set<String>>> declarations = new LinkedHashMap<>();
+    collectDeclarations(fixture, declarations);
+    return declarations;
+  }
+
+  private static void collectDeclarations(
+      JsonNode node, Map<String, List<Set<String>>> declarations) {
+    if (node.isArray()) {
+      node.forEach(item -> collectDeclarations(item, declarations));
+      return;
+    }
+    if (!node.isObject()) {
+      return;
+    }
+    JsonNode id = node.get("@id");
+    if (id != null && id.isTextual() && node.size() > 1) {
+      Set<String> types = new TreeSet<>();
+      JsonNode declared = node.get("@type");
+      if (declared != null) {
+        for (JsonNode type :
+            declared.isArray() ? declared : MAPPER.createArrayNode().add(declared)) {
+          if (type.isTextual()) {
+            types.add(type.textValue());
+          }
+        }
+      }
+      declarations.computeIfAbsent(id.textValue(), key -> new ArrayList<>()).add(types);
+    }
+    node.forEach(child -> collectDeclarations(child, declarations));
+  }
+
+  /**
+   * Whether the fixture's declaration of {@code entity} carries {@code property} = {@code value}.
+   */
+  private static boolean carries(JsonNode fixture, String entity, String property, String value) {
+    for (JsonNode node : objectsIn(fixture)) {
+      JsonNode id = node.get("@id");
+      if (id == null || !id.isTextual() || !entity.equals(id.textValue())) {
+        continue;
+      }
+      JsonNode held = node.get(property);
+      if (held == null) {
+        continue;
+      }
+      for (JsonNode item : held.isArray() ? held : MAPPER.createArrayNode().add(held)) {
+        if (item.isTextual() && value.equals(item.textValue())) {
+          return true;
+        }
+        JsonNode nestedId = item.isObject() ? item.get("@id") : null;
+        if (nestedId != null && nestedId.isTextual() && value.equals(nestedId.textValue())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static List<JsonNode> objectsIn(JsonNode node) {
+    List<JsonNode> objects = new ArrayList<>();
+    if (node.isObject()) {
+      objects.add(node);
+    }
+    if (node.isContainerNode()) {
+      node.forEach(child -> objects.addAll(objectsIn(child)));
+    }
+    return objects;
   }
 
   /**
@@ -189,7 +336,7 @@ class AheadOfReferenceTest {
     JsonNode port = portDocument(name);
 
     assertTrue(
-        disagreementsBetween(name, reference, port) > 0,
+        disagreementsBetween(name, fixtureDocument(name), reference, port) > 0,
         name + ": nothing was disposed of, so this fixture belongs in parity/fixtures/");
     assertEquals(
         1, reference.get("exit_code").asInt(), name + ": the reference was expected to fail this");
@@ -227,7 +374,7 @@ class AheadOfReferenceTest {
     // mark, and dropping a finding nothing permits dropping.
     JsonNode port = portDocument(name);
     Map<String, String> corruptions =
-        new java.util.LinkedHashMap<>(
+        new LinkedHashMap<>(
             Map.of(
                 "code", "DOMAIN_VIOLATION",
                 "severity", "WARNING",
@@ -250,7 +397,7 @@ class AheadOfReferenceTest {
               referenceDocument(name), port, corruption.getKey(), corruption.getValue());
       assertThrows(
           AssertionError.class,
-          () -> disagreementsBetween(name, reference, port),
+          () -> disagreementsBetween(name, fixtureDocument(name), reference, port),
           "the comparison waved through a changed " + corruption.getKey());
     }
 
@@ -268,7 +415,7 @@ class AheadOfReferenceTest {
     findings.remove(removable);
     assertThrows(
         AssertionError.class,
-        () -> disagreementsBetween(name, shortened, port),
+        () -> disagreementsBetween(name, fixtureDocument(name), shortened, port),
         "the comparison waved through a finding the reference never reported");
   }
 
@@ -306,7 +453,8 @@ class AheadOfReferenceTest {
    *
    * @return the number of findings disposed of
    */
-  private static int disagreementsBetween(String name, JsonNode reference, JsonNode port) {
+  private static int disagreementsBetween(
+      String name, JsonNode fixture, JsonNode reference, JsonNode port) {
     List<Disposition> allowed = dispositions();
     JsonNode portFindings = port.get("findings");
 
@@ -327,8 +475,12 @@ class AheadOfReferenceTest {
             || !disposition.referenceSeverity().equals(text(expected, "severity"))) {
           continue;
         }
-        if (!disposition.appliesTo().test(property)) {
-          tried.add(disposition.why() + " (the snapshot does not mark " + property + ")");
+        if (!disposition.reaches(fixture, expected, property)) {
+          tried.add(
+              disposition.why()
+                  + (disposition.appliesTo().test(property)
+                      ? " (this fixture does not have that shape for " + property + ")"
+                      : " (the snapshot does not mark " + property + ")"));
           continue;
         }
         if (disposition.withdraws()) {
@@ -443,7 +595,7 @@ class AheadOfReferenceTest {
         }
         for (Disposition disposition : dispositions()) {
           if (disposition.referenceCode().equals(text(expected, "code"))
-              && disposition.appliesTo().test(text(expected, "property"))) {
+              && disposition.reaches(fixtureDocument(name), expected, text(expected, "property"))) {
             exercised.add(disposition.why());
           }
         }
@@ -472,6 +624,11 @@ class AheadOfReferenceTest {
         fixtures,
         recorded,
         "every ahead fixture needs a reference document; run tools/generate_expectations.py");
+  }
+
+  /** The fixture itself, for the dispositions gated on what the payload actually contains. */
+  private static JsonNode fixtureDocument(String name) throws IOException {
+    return MAPPER.readTree(FIXTURES.resolve(name).toFile());
   }
 
   /** What this Java implementation reports, parsed back for structural comparison. */

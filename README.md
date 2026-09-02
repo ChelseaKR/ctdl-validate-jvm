@@ -70,23 +70,31 @@ is not available to be had.
 
 ### Where the port leads the reference
 
-Four dispositions in this port are ahead of the pinned release. Three are
+Five dispositions in this port are ahead of the pinned release. Three are
 readings of a rule: `CONCEPT_RANGE_CONFLICT`, `VERSION_RANGE_CONFLICT`, and the
 universal-range reading of `rdfs:Resource` (all below). Each of those fixes
 exists on the reference's `main` and in no release, so the pin cannot reach it,
 and byte equality on a fixture exercising one is not available to be had.
 
-The fourth is not a reading of a rule. It is an implementation defect both
-sides shared and only this one has fixed: an inverse asserted as a nested
-object carrying the referenced `@id` was compared as a string, so a
-back-reference that really is present read as a mismatch. The rule is
-unchanged — `hasPart`/`isPartOf` still have to agree — and only the
-recognition of one of the two shapes a reference can take was wrong. It is
-filed upstream as `ChelseaKR/ctdl-validate#32` and is present in `0.2.1`, the
-current release, as well as in the pinned `0.1.0`, so this entry does not
-collapse on a pin bump either.
+The other two are not readings of a rule at all. They are implementation defects
+both sides shared and only this one has fixed, where the rule is unchanged and
+only the reading of the *document* was wrong:
 
-All four withdraw or downgrade an ERROR the pinned release raises, which is the
+- An inverse asserted as a nested object carrying the referenced `@id` was
+  compared as a string, so a back-reference that really is present read as a
+  mismatch. `hasPart`/`isPartOf` still have to agree; one of the two shapes a
+  reference can take was not being recognised. Filed upstream as
+  `ChelseaKR/ctdl-validate#32`.
+- A class ruling was decided by whichever declaration of a duplicated `@id` the
+  walk reached first, which is depth-first into an earlier entity's inline
+  objects. A reference to an entity the same `@graph` declares in range was
+  reported as out of range because an unrelated stub sharing its `@id` sat
+  earlier in the document. Filed upstream as `ChelseaKR/ctdl-validate#33`.
+
+Both are present in `0.2.1`, the current release, as well as in the pinned
+`0.1.0`, measured rather than assumed, so neither entry collapses on a pin bump.
+
+All five withdraw or downgrade an ERROR the pinned release raises, which is the
 direction that matters: a false ERROR tells a publisher to fix something
 correct.
 
@@ -94,7 +102,7 @@ That divergence is recorded rather than hidden, in a second corpus whose only
 job is to bound it:
 
 ```
-parity/ahead/fixtures/    4 payloads this port answers differently, on purpose
+parity/ahead/fixtures/    5 payloads this port answers differently, on purpose
 parity/ahead/reference/   what the pinned release says about them, generated
 ```
 
@@ -109,16 +117,26 @@ declared withdrawal. The declared dispositions are:
 | `RANGE_VIOLATION` / ERROR | `VERSION_RANGE_CONFLICT` / INFO | the property is a version property whose range is a strict subset of its own domain |
 | `RANGE_VIOLATION` / ERROR | nothing at all | the property's declared range includes `rdfs:Resource` |
 | `INVERSE_MISMATCH` / ERROR | nothing at all | the property declares an `owl:inverseOf`, which 16 properties in the snapshot do |
+| `RANGE_VIOLATION` / ERROR | nothing at all | the property ranges on entity classes and not on `rdfs:Resource` — *and* the fixture itself declares the referenced `@id` more than once, with declarations that disagree about `@type` |
 
-Every "only where" column is a predicate evaluated against the vendored
-snapshot on each run, not a list of property names, so a disagreement can never
-be justified by anything but the schema. A restatement must keep the same
-entity, property, and value. The port may never *add* a finding the reference
-does not have — which is also the bound on the fourth row: the nested-object
-reading can withdraw a mismatch that was never real, and it cannot raise one
-the reference does not already raise. Anything wider is a red build. When the
-pin is bumped to a release carrying the fix, the reference stops disagreeing
-and the suite fails, which is the instruction to fold the fixture back into
+Every "only where" column is a predicate evaluated on each run rather than a
+list of property names, so a disagreement can never be justified by anything but
+the artifact it claims to rest on. Four of the five rest on the vendored
+snapshot alone. The last one cannot: every property that ranges on entity
+classes can produce a `RANGE_VIOLATION`, so a property predicate there would
+admit the whole schema and look like a gate while being a licence. What makes
+that disagreement legitimate is a fact about the payload, so it is read out of
+the payload — [ADR 0005](docs/adr/0005-a-disposition-may-be-gated-on-the-payload.md),
+which extends 0004 rather than loosening it, and fails closed on a fixture it
+cannot read.
+
+A restatement must keep the same entity, property, and value. The port may never
+*add* a finding the reference does not have, and both document-shaped rows are
+bounded by construction rather than by care: each asks its extra question only
+after the ordinary ruling has already produced a finding, so each can withdraw
+one and neither can raise one. Anything wider is a red build. When the pin is
+bumped to a release carrying the fix, the reference stops disagreeing and the
+suite fails, which is the instruction to fold the fixture back into
 `parity/fixtures/` and delete the entry. See
 [ADR 0004](docs/adr/0004-the-port-may-lead-the-pinned-reference.md).
 
@@ -322,6 +340,22 @@ by reading, which is the argument for having it.
   work lives in the sibling and a rule change belongs there. Fixing it in the
   port alone would be this repository inventing a disposition rather than
   porting one. Reported upstream instead.
+
+- **Half of the duplicate-`@id` defect is fixed, and the other half is not.**
+  Where a payload declares the same `@id` twice, `Graph.byId` keeps whichever
+  declaration the walk reached first — depth-first into an earlier entity's
+  inline objects, so a stub sitting under some unrelated entity can decide what
+  class every later bare-IRI reference to that identifier is judged against. A
+  range ruling now asks *every* declaration, so a reference the document really
+  does put in range is no longer an ERROR because a stub was walked first. The
+  mirror case still passes silently: where the first-walked declaration
+  satisfies a range and a later one does not, a genuine violation is suppressed
+  here exactly as it is in the reference. Reporting it means raising an ERROR
+  the pinned release does not raise, which `parity/ahead/` is arranged not to
+  permit and which is a rule ruling that belongs in the sibling — filed there as
+  `ChelseaKR/ctdl-validate#33`. `DuplicateIdShadowingTest` asserts the
+  suppression, so it cannot change without this paragraph changing with it. See
+  [ADR 0005](docs/adr/0005-a-disposition-may-be-gated-on-the-payload.md).
 
 - **The parity corpus is 22 payloads, not a proof.** It covers 19 of the 21
   finding codes and every document shape the parser accepts, and it was

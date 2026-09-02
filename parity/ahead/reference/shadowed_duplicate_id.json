@@ -1,0 +1,39 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "RANGE_VIOLATION",
+      "entity": "https://credentialengineregistry.org/resources/ce-33333333-3333-4333-8333-333333333333",
+      "message": "Referenced entity https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222 is typed [ceterms:Organization], which is outside the declared range of ceterms:address.",
+      "property": "ceterms:address",
+      "rule": {
+        "citation": "ceterms:address declares schema:rangeIncludes [ceterms:Place] in the schema encoding; the referenced entity's class is not among them or their subclasses.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "ERROR",
+      "value": "https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222"
+    },
+    {
+      "code": "RANGE_VIOLATION",
+      "entity": "https://credentialengineregistry.org/resources/ce-33333333-3333-4333-8333-333333333333",
+      "message": "Referenced entity https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222 is typed [ceterms:Organization], which is outside the declared range of ceterms:jurisdiction.",
+      "property": "ceterms:jurisdiction",
+      "rule": {
+        "citation": "ceterms:jurisdiction declares schema:rangeIncludes [ceterms:JurisdictionProfile] in the schema encoding; the referenced entity's class is not among them or their subclasses.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "ERROR",
+      "value": "https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222"
+    }
+  ],
+  "summary": {
+    "ERROR": 2,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": "ERROR        RANGE_VIOLATION  entity=https://credentialengineregistry.org/resources/ce-33333333-3333-4333-8333-333333333333\n    ceterms:address = https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222\n    Referenced entity https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222 is typed [ceterms:Organization], which is outside the declared range of ceterms:address.\n    rule: ceterms:address declares schema:rangeIncludes [ceterms:Place] in the schema encoding; the referenced entity's class is not among them or their subclasses.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\nERROR        RANGE_VIOLATION  entity=https://credentialengineregistry.org/resources/ce-33333333-3333-4333-8333-333333333333\n    ceterms:jurisdiction = https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222\n    Referenced entity https://credentialengineregistry.org/resources/ce-22222222-2222-4222-8222-222222222222 is typed [ceterms:Organization], which is outside the declared range of ceterms:jurisdiction.\n    rule: ceterms:jurisdiction declares schema:rangeIncludes [ceterms:JurisdictionProfile] in the schema encoding; the referenced entity's class is not among them or their subclasses.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\n2 finding(s): 2 ERROR, 0 WARNING, 0 INFO, 0 UNVERIFIABLE"
+}
