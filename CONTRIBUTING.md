@@ -101,6 +101,31 @@ corpus misses.
    `PROVENANCE.md` to the directory listing, so a new fixture moves the prose
    too.
 
+## Finding a divergence rather than guessing at one
+
+`tools/differential_fuzz.py` generates CTDL-shaped payloads from the vendored
+snapshot's own terms, runs both implementations over each one, and compares the
+whole parity document byte for byte. It is the answer to "which shapes does the
+corpus reach", and it is how a new fixture stops being a guess.
+
+```sh
+python3 -m pip install --require-hashes -r parity/reference-requirements.txt
+make fuzz                    # self-check, then 1000 payloads on a fixed seed
+python3 tools/differential_fuzz.py --count 3000 --seed 7 --out /tmp/found
+```
+
+It is not part of `verify` and must not become part of it: it is
+nondeterministic in what it reaches, needs both toolchains and a built CLI, and
+a gate that sometimes finds nothing is a gate people learn to ignore. It also
+runs `--self-check` first, which plants a divergence and requires the comparison
+to notice, because a fuzzer reporting "nothing found" and a fuzzer comparing
+nothing look identical from the outside.
+
+Read its output as triage, not as a verdict. A withdrawal or a restatement may
+be one of the dispositions `parity/ahead/` already declares — minimise the
+payload, put it in `parity/ahead/fixtures/`, and let `AheadOfReferenceTest` rule
+on it. A line beginning `THE PORT ADDED` is never allowed and is a defect here.
+
 ## Architecture decisions
 
 Structural choices are recorded in [`docs/adr/`](docs/adr/). An ADR here

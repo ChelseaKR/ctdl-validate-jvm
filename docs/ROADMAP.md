@@ -83,8 +83,18 @@ exactly that gap: byte equality was green because both implementations shared
 the mistake and no fixture reached the shape.
 
 **Done when** there is a mechanical answer to "which shapes does the corpus
-reach", not a longer list of fixtures. Differential fuzzing against the pinned
-reference (issue #7) is the shape of that answer.
+reach", not a longer list of fixtures.
+
+`tools/differential_fuzz.py` is that answer, and it is now here: it generates
+CTDL-shaped payloads from the vendored snapshot's own terms, runs both
+implementations, and compares the whole parity document byte for byte. Measured
+2026-09-01 over 3,000 payloads on three seeds, every disagreement it found was
+one of the declared dispositions and nothing else. What is left of this item is
+a decision rather than work: whether to run it on a schedule. A nightly job
+spends Actions minutes on a check that will usually find nothing, and the
+honest alternative — running it before a change to the checks, and after one —
+costs nothing and is what `CONTRIBUTING.md` now asks for. That call is not made
+here.
 
 ### 2. Port `--resolve`, then bump the pin
 

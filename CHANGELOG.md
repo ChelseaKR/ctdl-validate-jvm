@@ -101,6 +101,31 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Added
 
+- `tools/differential_fuzz.py`, and with it the second kind of evidence this
+  repository has ever had about the two implementations agreeing. The corpus
+  covers every finding *code*; it does not cover every document *shape* that
+  reaches one, and both defects fixed this week hid in that gap. The harness
+  generates CTDL-shaped JSON-LD from the vendored snapshot's own class and
+  property names — not arbitrary JSON, because the point is to reach the checks
+  rather than to test two JSON parsers — with a value pool biased at
+  supplementary-plane characters, floats around the notation boundary, empty
+  strings and containers, and inline objects nested several deep. It runs both
+  implementations over each payload, compares the whole parity document byte for
+  byte, minimises anything that disagrees, and reports what changed by shape.
+
+  Measured 2026-09-01, 3,000 payloads across three seeds: 92 disagreed, in 104
+  findings, over 60 distinct properties, and every one of the 104 was a
+  `RANGE_VIOLATION`/ERROR either withdrawn or restated below ERROR — the
+  declared dispositions and nothing else. Nothing the port emits and the
+  reference does not, nothing ordered differently, no code outside the table.
+
+  It is deliberately not a merge gate, for the reason `CONTRIBUTING.md` gives:
+  it is nondeterministic in what it reaches, and a gate that sometimes finds
+  nothing is a gate people learn to ignore. `--self-check` plants a divergence
+  and requires the comparison to notice it on all twelve payloads, because a
+  fuzzer reporting "nothing found" and a fuzzer comparing nothing look the same
+  from outside. `make fuzz` runs the self-check and then a fixed seed.
+
 - [ADR 0005](docs/adr/0005-a-disposition-may-be-gated-on-the-payload.md), which
   extends ADR 0004 so a `parity/ahead/` entry may also be gated on a fact read
   out of the fixture. Three of the five dispositions are schema arguments and
