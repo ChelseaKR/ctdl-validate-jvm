@@ -10,7 +10,12 @@ import java.util.Map;
  * @param nodes every entity in the payload, in document order, parents before the objects nested
  *     inside them
  * @param byId nodes reachable by {@code @id}; where an identifier is declared twice the first
- *     declaration wins, as it does in the reference implementation
+ *     declaration wins, as it does in the reference implementation. "First" is a function of walk
+ *     order — depth-first into an earlier entity's inline objects before the next top-level entry —
+ *     so which declaration a bare-IRI reference resolves to depends on where in the document a
+ *     same-{@code @id} stub happens to be written. {@link #declarationsOf} is how a check asks the
+ *     question the document actually answers: what does this payload declare about this identifier,
+ *     all of it, rather than whichever declaration was reached first.
  * @param byPath nodes reachable by their location in the document
  */
 public record Graph(List<Node> nodes, Map<String, Node> byId, Map<String, Node> byPath) {
@@ -39,6 +44,30 @@ public record Graph(List<Node> nodes, Map<String, Node> byId, Map<String, Node> 
     public List<Value> valuesOf(String property) {
       return props.getOrDefault(property, List.of());
     }
+  }
+
+  /**
+   * Every node in the payload declaring this {@code @id}, in document order.
+   *
+   * <p>{@link #byId} keeps one of them and drops the rest, which is fine for asking "does this
+   * reference resolve at all" and wrong for asking "what class is it". A document that declares the
+   * same {@code @id} twice asserts both declarations; keeping only the first makes the answer a
+   * function of walk order rather than of the document.
+   *
+   * @param nodeId the identifier to look up, or null
+   * @return the declarations, in document order; empty when the id is null or absent
+   */
+  public List<Node> declarationsOf(String nodeId) {
+    if (nodeId == null) {
+      return List.of();
+    }
+    List<Node> declarations = new ArrayList<>(1);
+    for (Node node : nodes) {
+      if (nodeId.equals(node.nodeId())) {
+        declarations.add(node);
+      }
+    }
+    return List.copyOf(declarations);
   }
 
   /** Resolve a reference value to an in-payload node, or null when it does not resolve. */
