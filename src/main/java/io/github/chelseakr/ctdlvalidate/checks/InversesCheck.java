@@ -91,6 +91,14 @@ public final class InversesCheck implements Check {
       if (value instanceof Value.Text text && text.text().equals(nodeId)) {
         return true;
       }
+      // An inline (nested) object still points back when its own @id is the
+      // node being checked -- it is a fuller description of the same
+      // reference, not the absence of one. Only a bare-string assertion was
+      // recognised before, so a real back-reference written as a nested
+      // object with an @id read as a mismatch instead of agreement.
+      if (value instanceof Value.Nested nested && nodeId.equals(nested.targetId())) {
+        return true;
+      }
     }
     return false;
   }
