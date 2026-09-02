@@ -67,6 +67,8 @@ tasks.test {
             file("README.md"),
             file("CITATION.cff"),
             file("CONTRIBUTING.md"),
+            file("docs/ROADMAP.md"),
+            fileTree(".github/workflows"),
             file("build.gradle.kts"),
             file("src/main/resources/vendor/SOURCES.md"),
         )
