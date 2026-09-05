@@ -380,6 +380,15 @@ by reading, which is the argument for having it.
   measurement, not a proof: it says the generator did not reach a disagreement
   this repository has not already written down, which is a smaller claim than
   there being none.
+
+  It runs beside a change to the checks rather than on a clock, and nothing
+  schedules it. That is a decision with a reason:
+  [ADR 0006](docs/adr/0006-the-differential-fuzzer-runs-beside-a-change-not-on-a-clock.md).
+  The harness exits non-zero on any divergence and cannot tell a declared
+  disposition from an undeclared one, so on this pinned pair it always exits
+  non-zero — a nightly job failing on that would be red every night on findings
+  already ruled on here. `CONTRIBUTING.md` has the before/after procedure that
+  replaces it.
 - **Malformed JSON is out of scope for parity.** The two implementations both
   exit 2, but the message comes from the language's JSON parser — Jackson's
   wording is not `json.JSONDecodeError`'s — and pinning that would be

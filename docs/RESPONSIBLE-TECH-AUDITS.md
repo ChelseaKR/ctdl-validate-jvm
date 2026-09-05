@@ -89,9 +89,13 @@ because the reference agreed — it had the same bug. `FindingCodeCensusTest`
 answers "what rules does the other side have that this one does not" by parsing
 the reference's own source, which closes part of the gap. The rest is the shape
 gap: the corpus covers every finding *code* and not every document *shape* that
-reaches one, which is what issue #7's differential fuzzing is for. It is item 1
-on the roadmap and it is stated in the README's limits as an open weakness, not
-as a solved problem.
+reaches one, which is what issue #7's differential fuzzing is for.
+`tools/differential_fuzz.py` now closes part of it, and where it runs is settled
+in [ADR 0006](adr/0006-the-differential-fuzzer-runs-beside-a-change-not-on-a-clock.md):
+beside a change to the checks, not on a schedule. It is still stated in the
+README's limits as a weakness rather than as a solved problem, and the reason is
+worth repeating here — a generator that has not reached an undeclared
+disagreement is not a generator that has shown there is none.
 
 **Divergence is bounded rather than hidden.** Where this port answers differently
 from the pinned release on purpose, the divergence lives in `parity/ahead/` with a

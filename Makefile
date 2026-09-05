@@ -41,6 +41,20 @@ parity:
 # and a built CLI, and a gate that sometimes finds nothing teaches people to
 # ignore it. The merge gate is the deterministic corpus. Needs the same pinned
 # reference `make parity` does, plus `./gradlew installDist`.
+#
+# THIS TARGET EXITS NON-ZERO, and that is the expected outcome rather than a
+# failure. The harness returns 1 whenever anything diverged and has no notion of
+# which disagreements are declared; on the pinned pair the RANGE_VIOLATION
+# withdrawals in parity/ahead/ are reached constantly, so a clean tree still
+# ends here with an error. Measured 2026-09-05, seed 1, 1000 payloads: 34
+# diverging payloads, every one of them a declared disposition.
+#
+# The exit code is deliberately not swallowed. Reporting 0 on a run that found
+# something would be a worse lie than a non-zero exit that needs this comment.
+# The artifact is the shape summary, and the method is a run before a change to
+# the checks and a run after it at the same seed -- CONTRIBUTING.md has the
+# procedure, docs/adr/0006-the-differential-fuzzer-runs-beside-a-change-not-on-a-clock.md
+# has the reason there is no nightly job doing it instead.
 fuzz:
 	$(GRADLE) installDist
 	python3 tools/differential_fuzz.py --self-check
