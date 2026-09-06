@@ -497,7 +497,13 @@ class PublishedFiguresTest {
    * checking.
    */
   private static int shaPinnedWorkflowSteps() throws IOException {
-    Pattern uses = Pattern.compile("uses:\\s*(\\S+)");
+    // Anchored to the start of a line so that prose mentioning `uses` inside a YAML
+    // comment is not counted as a step and then reported as unpinned. Writing the
+    // word in a comment on the trufflehog step was enough to fail this assertion
+    // with "trufflehog.yml: `" as the offending "action". Measured against every
+    // workflow in this repository: the anchored form yields the same step count,
+    // because no real step is written any other way.
+    Pattern uses = Pattern.compile("^\\s*(?:-\\s*)?uses:\\s*(\\S+)", Pattern.MULTILINE);
     List<String> unpinned = new ArrayList<>();
     int steps = 0;
     List<Path> workflows;
