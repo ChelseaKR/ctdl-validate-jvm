@@ -44,8 +44,7 @@ class VendorIntegrityTest {
    */
   private static final Pattern SOURCES_ROW =
       Pattern.compile(
-          "^\\|\\s*`([^`]+)`\\s*\\|[^|]*\\|\\s*`([0-9a-f]{64})`\\s*\\|\\s*$",
-          Pattern.MULTILINE);
+          "^\\|\\s*`([^`]+)`\\s*\\|[^|]*\\|\\s*`([0-9a-f]{64})`\\s*\\|\\s*$", Pattern.MULTILINE);
 
   private static Map<String, String> recordedHashes() throws IOException {
     String sources =
