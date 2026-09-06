@@ -126,6 +126,54 @@ be one of the dispositions `parity/ahead/` already declares — minimise the
 payload, put it in `parity/ahead/fixtures/`, and let `AheadOfReferenceTest` rule
 on it. A line beginning `THE PORT ADDED` is never allowed and is a defect here.
 
+### It exits non-zero, and that is not a failure
+
+The harness returns 1 whenever anything diverged, and on the pinned pair
+something always diverges: the `RANGE_VIOLATION` withdrawals in
+`parity/ahead/`'s disposition table are reached constantly. Measured 2026-09-05,
+seed 1, 1,000 payloads: 34 diverging payloads, every one of them a declared
+disposition. So `make fuzz` fails today, on a tree with nothing wrong with it.
+
+That exit code is not swallowed on purpose. A wrapper that reported 0 on a run
+that found something would be a worse lie than a non-zero exit that needs this
+paragraph. What it means is that **the exit code is not the artifact — the
+shape summary is.**
+
+### Run it either side of a change to the checks
+
+This is the rule, and [ADR 0006](docs/adr/0006-the-differential-fuzzer-runs-beside-a-change-not-on-a-clock.md)
+is why it is a rule rather than a nightly job.
+
+1. Before you change anything under `src/main/java/.../checks/`, run the fuzzer
+   and keep the output:
+
+   ```sh
+   ./gradlew installDist
+   python3 tools/differential_fuzz.py --count 1000 --seed 1 > /tmp/fuzz-before.txt
+   ```
+
+2. Make your change, rebuild, and run it again at **the same seed and the same
+   count**, so the two runs generate the identical documents:
+
+   ```sh
+   ./gradlew installDist
+   python3 tools/differential_fuzz.py --count 1000 --seed 1 > /tmp/fuzz-after.txt
+   diff /tmp/fuzz-before.txt /tmp/fuzz-after.txt
+   ```
+
+3. Read the diff, not the exit codes. A shape in the after-list that is not in
+   the before-list is what the run is for. A `THE PORT ADDED` line that was not
+   there before is a defect in the change. An unchanged summary is the ordinary
+   outcome and is worth stating in the pull request, because "I ran it and
+   nothing moved" and "I did not run it" are indistinguishable otherwise.
+
+Raise `--count`, and add seeds, when the change is large enough to warrant it.
+Nothing is stopping a 50,000-payload sweep; the point of running it beside the
+change is that a divergence found today is found while someone is still holding
+the code that caused it.
+
+`.github/PULL_REQUEST_TEMPLATE.md` asks for the seed, the count and what moved.
+
 ## Architecture decisions
 
 Structural choices are recorded in [`docs/adr/`](docs/adr/). An ADR here

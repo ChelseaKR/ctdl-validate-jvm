@@ -11,6 +11,13 @@
       `python3 tools/generate_expectations.py` against the pinned reference,
       not edited by hand
 - [ ] If a fixture was added, `parity/PROVENANCE.md` says what it is for
+- [ ] If this changes the checks, the differential fuzzer was run either side of
+      the change at the same seed and count, and the seed, the count and what
+      moved in the shape summary are stated below. "Nothing moved" is an
+      answer; saying nothing is not. See
+      [ADR 0006](../docs/adr/0006-the-differential-fuzzer-runs-beside-a-change-not-on-a-clock.md)
+      — the harness exits non-zero on the pinned pair either way, so the diff
+      between the two summaries is the artifact, not the exit code.
 
 ## Checks
 

@@ -89,12 +89,28 @@ reach", not a longer list of fixtures.
 CTDL-shaped payloads from the vendored snapshot's own terms, runs both
 implementations, and compares the whole parity document byte for byte. Measured
 2026-09-01 over 3,000 payloads on three seeds, every disagreement it found was
-one of the declared dispositions and nothing else. What is left of this item is
-a decision rather than work: whether to run it on a schedule. A nightly job
-spends Actions minutes on a check that will usually find nothing, and the
-honest alternative — running it before a change to the checks, and after one —
-costs nothing and is what `CONTRIBUTING.md` now asks for. That call is not made
-here.
+one of the declared dispositions and nothing else.
+
+**Done.** The remaining question was where it runs, and the call is made in
+[ADR 0006](adr/0006-the-differential-fuzzer-runs-beside-a-change-not-on-a-clock.md):
+beside a change to the checks, not on a clock. There is no scheduled workflow
+and no CI job runs it.
+
+What settled it was running the harness rather than reasoning about it. It
+returns 1 whenever anything diverged and has no notion of which disagreements
+are declared, and on the pinned pair something always diverges — 34 of 1,000
+payloads on seed 1, measured 2026-09-05, every one a `RANGE_VIOLATION` the
+disposition table already covers. The nightly that was sketched, failing on a
+non-zero exit, would therefore be red every night on findings this repository
+has already ruled on. Making it green would need a second parity corpus
+evaluated at fuzz time, which **Decided against** below already refuses. The
+Actions-minutes argument is real and is the smaller half.
+
+The decision is cheap to reverse and one capability would reverse it: a harness
+that can separate declared disagreements from undeclared ones. Until that
+exists, `CONTRIBUTING.md` carries the before/after procedure and
+`.github/PULL_REQUEST_TEMPLATE.md` asks a pull request to state its seed, its
+count and what moved.
 
 ### 2. Port `--resolve`, then bump the pin
 
@@ -138,5 +154,9 @@ issue #9.
   self-expiring, and unpleasant to grow on purpose. See
   [ADR 0004](adr/0004-the-port-may-lead-the-pinned-reference.md) and
   [ADR 0005](adr/0005-a-disposition-may-be-gated-on-the-payload.md).
+- **A nightly differential-fuzz job.** It would be red every night on declared
+  dispositions, because the harness exits non-zero on any divergence and the
+  pinned pair always produces some. It runs beside a change instead. See
+  [ADR 0006](adr/0006-the-differential-fuzzer-runs-beside-a-change-not-on-a-clock.md).
 - **Rule changes made here first.** The rules belong to the sibling. A rule
   change made here would fail this repository's own build, and correctly so.

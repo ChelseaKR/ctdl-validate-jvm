@@ -126,6 +126,30 @@ Nothing has been released. There is no tag and no published artifact.
   fuzzer reporting "nothing found" and a fuzzer comparing nothing look the same
   from outside. `make fuzz` runs the self-check and then a fixed seed.
 
+- [ADR 0006](docs/adr/0006-the-differential-fuzzer-runs-beside-a-change-not-on-a-clock.md),
+  settling where that harness runs: beside a change to the checks, not on a
+  clock. Nothing schedules it and no CI job runs it.
+
+  The Actions-minutes argument the roadmap recorded turned out to be the smaller
+  half, and running the harness is what showed it. It returns 1 whenever
+  anything diverged and has no notion of which disagreements are declared, and
+  on the pinned pair something always diverges: measured 2026-09-05, seed 1,
+  1,000 payloads, 34 diverging payloads, every one a `RANGE_VIOLATION` the
+  disposition table already covers. The nightly that had been sketched — install
+  the reference, `installDist`, fail on a non-zero exit — would have been red
+  every night on findings this repository has already ruled on, and making it
+  green needs a second parity corpus evaluated at fuzz time, which ADR 0004 and
+  ADR 0005 refuse.
+
+  What replaces it is executable rather than aspirational. `CONTRIBUTING.md`
+  defines before/after concretely — same seed, same count, diff the two shape
+  summaries, read the diff and not the exit code — and says plainly that
+  `make fuzz` exits non-zero on a clean tree, which it does and which nothing
+  had written down. `.github/PULL_REQUEST_TEMPLATE.md` asks a pull request that
+  touches the checks for its seed, its count and what moved, so "nothing moved"
+  is an answer a reviewer can see rather than a claim to believe. The exit code
+  is deliberately not swallowed.
+
 - [ADR 0005](docs/adr/0005-a-disposition-may-be-gated-on-the-payload.md), which
   extends ADR 0004 so a `parity/ahead/` entry may also be gated on a fact read
   out of the fixture. Three of the five dispositions are schema arguments and
