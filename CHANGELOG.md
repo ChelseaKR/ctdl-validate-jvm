@@ -11,6 +11,40 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Fixed
 
+- **The full-history secret scan could not fail on a credential that had been
+  revoked.** `trufflehog.yml` ran `--only-verified`, which reports a finding
+  only when TruffleHog authenticates the credential against the live service.
+  A credential that leaked and was then revoked -- the normal end state of a
+  real incident, and the exact case a scheduled history sweep exists to catch
+  -- answers "no", and TruffleHog files that answer under `unverified`. The
+  sweep was therefore structurally incapable of failing on the thing it exists
+  for. Measured on a throwaway clone with a real-shaped AWS key planted in one
+  commit and deleted in the next: `--only-verified`, `--results=verified` and
+  `--results=verified,unknown` all exited 0 reporting nothing;
+  `--results=verified,unknown,unverified` exited 183 reporting it.
+
+  The scan now runs `--results=verified,unknown,unverified`. This repository's
+  entire history was re-scanned under the widened tier before the change and
+  reported nothing, so no allowlist was needed. The `--exclude-detectors=Lob`
+  exclusion is kept; it was re-measured and still suppresses only test
+  identifiers.
+
+  The step also had no `version:` input, which selects the scanning binary and
+  defaults to `latest`, so the SHA pin on `uses` pinned only the wrapper. It is
+  now pinned to 3.97.1, the release the SHA names.
+  `SecretScanTiersTest` fails if any lane drops the `unverified` tier,
+  reintroduces `--only-verified`, loses `fetch-depth: 0` or `path: ./`, or lets
+  the pinned ref and the `version:` input name different releases.
+
+- **The SHA-pin census counted prose as a workflow step.**
+  `PublishedFiguresTest.shaPinnedWorkflowSteps` matched `uses:` anywhere in a
+  workflow file, including inside a YAML comment, and then reported the
+  following token as an unpinned action. Writing the word in a comment on the
+  trufflehog step was enough to fail the published-figures gate with
+  ``trufflehog.yml: ` `` as the offending "action". The pattern is now anchored
+  to the start of a line; measured against every workflow here, the step count
+  is unchanged, because no real step is written any other way.
+
 - A class ruling could be decided by whichever declaration of a duplicated
   `@id` the walk happened to reach first. `Graph.byId` keeps the first arrival
   and the walk descends into an earlier entity's inline objects before it

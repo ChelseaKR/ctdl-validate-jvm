@@ -38,7 +38,7 @@ fails on it without a human deciding anything.
 | The vendored CTDL and CTDL-ASN snapshots are the ones `SOURCES.md` names | hashes match | `VendorIntegrityTest` | AUTO | maintainer |
 | Figures the documents publish about this repository | derived, never typed | `PublishedFiguresTest` over README, `CONTRIBUTING.md`, `CITATION.cff`, `parity/PROVENANCE.md`, this file, and one Javadoc paragraph. Rewording a sentence past the pattern that reads it also fails | AUTO | maintainer |
 | Taint-style SAST | 0 blocking findings | Semgrep (`--config auto`), own workflow | AUTO | maintainer |
-| Verified secrets in the whole history | 0 | TruffleHog full-clone scan, own workflow, weekly and per PR | AUTO | maintainer |
+| Secrets in the whole history, in any TruffleHog result tier (a revoked credential is `unverified`) | 0 | TruffleHog full-clone scan, own workflow, weekly and per PR | AUTO | maintainer |
 | SHA-pinned `uses:` in workflows [SEC-25] | 100%: all 9 `uses:` steps carry a full commit SHA, and the Semgrep container is pinned by image digest | `PublishedFiguresTest` counts them and fails on an unpinned one; Dependabot maintains the pins | AUTO | maintainer |
 | Dependency freshness | Dependabot, Gradle and Actions, seven-day cooldown | Dependabot; the reference pin is excluded on purpose | REVIEW | maintainer |
 | Published artifact, tag, or release | none, deliberately | nothing to gate; see the exceptions below | REVIEW | maintainer |
