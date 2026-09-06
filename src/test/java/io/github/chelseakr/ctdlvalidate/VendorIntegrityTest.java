@@ -1,6 +1,7 @@
 package io.github.chelseakr.ctdlvalidate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -11,7 +12,12 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -33,19 +39,69 @@ class VendorIntegrityTest {
       List.of(
           "ctdl/schema.json", "ctdl/context.json", "ctdlasn/schema.json", "ctdlasn/context.json");
 
-  @Test
-  @DisplayName("every vendored file matches the hash SOURCES.md records for it")
-  void hashesMatchSources() throws IOException, NoSuchAlgorithmException {
+  /**
+   * One row of SOURCES.md's table: the file, its source URL, and the hash recorded for that file.
+   */
+  private static final Pattern SOURCES_ROW =
+      Pattern.compile(
+          "^\\|\\s*`([^`]+)`\\s*\\|[^|]*\\|\\s*`([0-9a-f]{64})`\\s*\\|\\s*$", Pattern.MULTILINE);
+
+  private static Map<String, String> recordedHashes() throws IOException {
     String sources =
         Files.readString(
             ROOT.resolve("src/main/resources/vendor/SOURCES.md"), StandardCharsets.UTF_8);
+    Map<String, String> recorded = new LinkedHashMap<>();
+    Matcher row = SOURCES_ROW.matcher(sources);
+    while (row.find()) {
+      recorded.put(row.group(1), row.group(2));
+    }
+    return recorded;
+  }
+
+  @Test
+  @DisplayName("every vendored file matches the hash SOURCES.md records for it")
+  void hashesMatchSources() throws IOException, NoSuchAlgorithmException {
+    // This used to ask whether each hash appeared *somewhere* in SOURCES.md, and
+    // separately whether the file was named *somewhere*, which is not the same
+    // question as whether the table pairs them. Transposing two vendored files
+    // left both hashes and both names present and the gate green, on a build
+    // reading different bytes than the table says it reads. SOURCES.md itself
+    // promises this test "recomputes all four hashes off the classpath and
+    // checks them against this table"; now it does.
+    Map<String, String> recorded = recordedHashes();
+    assertEquals(
+        Set.copyOf(VENDORED),
+        recorded.keySet(),
+        "SOURCES.md's table and the vendored file list disagree about which files are carried");
     for (String relative : VENDORED) {
-      String digest = sha256(relative);
-      assertTrue(
-          sources.contains(digest),
-          () -> "SOURCES.md records no entry with the current hash of " + relative + ": " + digest);
-      assertTrue(
-          sources.contains("`" + relative + "`"), () -> "SOURCES.md does not name " + relative);
+      assertEquals(
+          recorded.get(relative),
+          sha256(relative),
+          () -> "the vendored " + relative + " is not the file SOURCES.md records in its row");
+    }
+  }
+
+  @Test
+  @DisplayName("transposing two vendored files would be caught")
+  void transpositionWouldBeCaught() throws IOException, NoSuchAlgorithmException {
+    // Pairing a file with a hash only means something if the pairs differ. If
+    // two rows ever recorded the same digest, swapping those files would again
+    // be invisible, so this holds the property the check above depends on.
+    Map<String, String> recorded = recordedHashes();
+    for (String held : VENDORED) {
+      for (String other : VENDORED) {
+        if (!held.equals(other)) {
+          assertNotEquals(
+              recorded.get(held),
+              sha256(other),
+              () ->
+                  "SOURCES.md records the same hash for "
+                      + held
+                      + " and "
+                      + other
+                      + ", so transposing them would not be detected");
+        }
+      }
     }
   }
 
