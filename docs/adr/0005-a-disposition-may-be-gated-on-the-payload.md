@@ -45,7 +45,8 @@ fixture contains and a test can read.
 
 - A `Disposition` may carry a **second gate over the fixture and the reference's
   own finding**, alongside the property predicate. Both must hold. The default is
-  no document gate, so the three existing rows are unchanged and unaffected.
+  no document gate, so every row that does not carry one is unchanged and
+  unaffected.
 - The document gate is **read out of the fixture**, never asserted. For the
   shadowed-declaration row it requires three things: the `@id` the finding names
   as its value is declared more than once in the payload; those declarations do
