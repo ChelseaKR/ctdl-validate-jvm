@@ -447,10 +447,11 @@ gives its reason, and a row that records a gap says so rather than being left
 out. Per-repository values live where the standards set says they live: the
 metrics ledger in [`docs/ROADMAP.md`](docs/ROADMAP.md), the dated audit in
 [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md), and the
-internationalization declaration in [`docs/I18N.md`](docs/I18N.md). One gap is
-open and named in all three: this repository has no entry in the portfolio's
-`STANDARDS/applicability.yml`, which the weekly conformance run treats as a loud
-failure rather than a silent skip.
+internationalization declaration in [`docs/I18N.md`](docs/I18N.md). This
+repository is registered in the portfolio's `STANDARDS/applicability.yml` --
+archetype `cli-utility`, tier C, `publication: cleared`, with per-standard rows
+mirroring the table below -- so the weekly conformance run sees it rather than
+treating it as the loud failure an unregistered repository is.
 
 | Standard | State |
 |---|---|

@@ -136,15 +136,21 @@ pinned reference does not raise, which `parity/ahead/` is arranged not to permit
 **Done when** each has a decision in the sibling — fixed, or refused with a
 reason — and this repository either ports it or records the refusal.
 
-### 4. Register in the portfolio standards manifest
+### 4. Register in the portfolio standards manifest -- done
 
-`STANDARDS/applicability.yml` has no entry for this repository, which the
-conformance check treats as a loud failure rather than a silent skip. The entry
-itself lives in the private standards repository and its `publication` field is
-a decision about this repository's public status, so it is not written here. See
-issue #9.
+`STANDARDS/applicability.yml` carries this repository: archetype `cli-utility`,
+tier C, `publication: cleared`, and per-standard applies/na rows mirroring the
+README's Standards Conformance table. It was added to the manifest on
+2026-08-15, which is before the declaration in this repository was written, so
+the "no entry" wording that stood in this section, in the README and in
+`docs/RESPONSIBLE-TECH-AUDITS.md` was describing a gap that the manifest had
+already had filled. The entry lives in the private standards repository and its
+`publication` field is a decision about this repository's public status, so it
+is maintained there rather than from here.
 
-**Done when** the weekly conformance run passes with this repository in it.
+What this does *not* claim is that the weekly conformance run is green overall;
+that run covers every repository and its state is not observable from here. What
+was checked is the one thing this item was about: the manifest has the entry.
 
 ## Decided against
 
