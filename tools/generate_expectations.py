@@ -13,8 +13,14 @@ by the same code path for the same reason: what is written down there has to be
 what the pinned reference really says, not a recollection of it. See
 docs/adr/0004-the-port-may-lead-the-pinned-reference.md.
 
+The pinned release is the one named in parity/reference-requirements.txt, and
+this script refuses to run against any other. Everything it writes is evidence
+about that specific published artifact -- parity/expected/ is what it prints,
+and parity/reference-codes.json records its version in its own body -- so the
+version that happens to be installed must not be what decides.
+
 Usage:
-    pip install ctdl-validate==<pinned version>
+    python3 -m pip install --require-hashes -r parity/reference-requirements.txt
     python3 tools/generate_expectations.py [--check]
 
 --check regenerates into memory and reports differences without writing.
@@ -25,6 +31,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -40,6 +47,15 @@ ROOT = Path(__file__).resolve().parent.parent
 #: ParityTest reads it to answer "what rules does the other side have?", which
 #: this port cannot answer from anything it maintains itself.
 REFERENCE_CODES = ROOT / "parity" / "reference-codes.json"
+
+#: The requirements file that pins the reference release. It is the pin: ADR
+#: 0003 makes parity byte-equality against one immutable published artifact,
+#: and ROADMAP section 2 says the pin does not move until --resolve is ported.
+REFERENCE_REQUIREMENTS = ROOT / "parity" / "reference-requirements.txt"
+
+#: The pin line in that file. Anchored at the start of a line so a version
+#: named in the prose above it is never mistaken for the pin.
+PIN = re.compile(r"^ctdl-validate\s*==\s*([^\s\\]+)", re.MULTILINE)
 
 #: (fixtures, output) pairs. The first is the byte-equality corpus; the second
 #: records what the pinned reference says about the fixtures this port answers
@@ -99,6 +115,64 @@ def reference_finding_codes() -> list[str]:
     return sorted(codes)
 
 
+def pinned_version() -> str:
+    """The reference version parity/reference-requirements.txt pins.
+
+    Raises rather than returning ``None`` when the file names no pin or names
+    more than one. A parser that answered "I could not tell" would make the
+    check below skip exactly when the pin file is the thing that is wrong,
+    which is the shape of a guard that cannot fail.
+    """
+    if not REFERENCE_REQUIREMENTS.exists():
+        raise SystemExit(f"{REFERENCE_REQUIREMENTS.relative_to(ROOT)} is missing; there is no pin")
+    found = PIN.findall(REFERENCE_REQUIREMENTS.read_text(encoding="utf-8"))
+    if len(found) != 1:
+        raise SystemExit(
+            f"{REFERENCE_REQUIREMENTS.relative_to(ROOT)} names {len(found)} pinned "
+            "ctdl-validate version(s); exactly one is required"
+        )
+    return found[0]
+
+
+def require_the_pinned_reference() -> str:
+    """Refuse to speak for the reference unless it is the pinned one.
+
+    Everything this script writes is evidence about a *specific published
+    release*: parity/expected/ is what that release prints, and
+    parity/reference-codes.json records its version in its own body. Nothing
+    here read the pin, so the version installed in the environment decided
+    what the evidence said.
+
+    Measured on 2026-09-06 with 0.2.1 installed instead of the pinned 0.1.0.
+    ``--check`` still failed -- but it failed with four ordinary "differs"
+    lines, the same message a genuine expectation drift produces, naming no
+    cause. And the obvious response to that message, running the script
+    without ``--check``, rewrote parity/expected/ and moved
+    reference-codes.json from 0.1.0/19 codes to 0.2.1/20 codes, exiting 0.
+    That is the pin move ROADMAP section 2 forbids until #35 is ported,
+    performed silently and arriving in ``git diff`` looking like an ordinary
+    expectation update.
+
+    CI cannot hit it, because the job installs from the hash-pinned
+    requirements file immediately before running this. A developer following
+    the Makefile's comment on a machine with the sibling repository installed
+    can, and the sibling is exactly what such a machine has installed.
+    """
+    pinned = pinned_version()
+    if reference_version != pinned:
+        raise SystemExit(
+            f"the installed ctdl-validate is {reference_version} and "
+            f"{REFERENCE_REQUIREMENTS.relative_to(ROOT)} pins {pinned}. Everything this "
+            "script writes is evidence about the pinned release, so it will not run "
+            "against another one.\n"
+            "  python3 -m pip install --require-hashes -r "
+            f"{REFERENCE_REQUIREMENTS.relative_to(ROOT)}\n"
+            "Moving the pin is a deliberate act: see docs/ROADMAP.md section 2 and "
+            "parity/PROVENANCE.md."
+        )
+    return pinned
+
+
 def counts(findings: list[Finding]) -> dict[str, int]:
     return {s.value: sum(1 for f in findings if f.severity is s) for s in SEVERITY_ORDER}
 
@@ -155,6 +229,9 @@ def main(argv: list[str] | None = None) -> int:
         help="report differences instead of writing files",
     )
     args = parser.parse_args(argv)
+
+    # Before anything is read or written: see require_the_pinned_reference.
+    require_the_pinned_reference()
 
     total = 0
     differences = 0

@@ -11,6 +11,38 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Fixed
 
+- **The parity evidence never checked that it came from the pinned reference.**
+  Everything `tools/generate_expectations.py` writes is a claim about one
+  immutable published artifact: `parity/expected/` is what that release prints,
+  and `parity/reference-codes.json` records its version in its own body. The
+  script imported `ctdl_validate` and never read
+  `parity/reference-requirements.txt`, so whichever version happened to be
+  installed decided what the evidence said.
+
+  Measured on 2026-09-06 with `0.2.1` installed instead of the pinned `0.1.0`.
+  `--check` did fail -- but it failed with four ordinary `differs:` lines, the
+  same message a genuine expectation drift produces, naming no cause. And the
+  obvious response to that message, running the script without `--check`,
+  rewrote `parity/expected/` and moved `parity/reference-codes.json` from
+  `0.1.0` to `0.2.1` -- exiting 0. That is the pin move `docs/ROADMAP.md`
+  section 2 forbids until `--resolve` is ported, performed silently, arriving
+  in `git diff` looking like an ordinary expectation update. (Reproduced in a
+  temporary copy of the tree; the checkout was never written to.)
+
+  CI could not hit it, because the parity job installs from the hash-pinned
+  requirements file seconds before running the script. A developer following
+  the Makefile's own instructions on a machine that has the sibling repository
+  installed can -- and the sibling is precisely what such a machine has
+  installed.
+
+  The script now reads the pin and refuses, naming both versions and the
+  command that fixes it, before it reads or writes anything. A requirements
+  file that names no pin, or more than one, is refused as well rather than
+  being shrugged at: a parser that answered "I could not tell" would make the
+  guard vanish exactly when the pin file is the thing that is wrong. A new CI
+  step proves both refusals in a copy of the tree, alongside the existing step
+  that proves the check can fail on a perturbed expectation.
+
 - **The full-history secret scan could not fail on a credential that had been
   revoked.** `trufflehog.yml` ran `--only-verified`, which reports a finding
   only when TruffleHog authenticates the credential against the live service.

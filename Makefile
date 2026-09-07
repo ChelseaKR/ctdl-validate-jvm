@@ -31,7 +31,10 @@ test:
 # compares against the committed bytes directly and reports a missing expectation as a
 # difference. To write the files, run the script without --check.
 #
-# Needs Python 3.12 and the pinned reference release:
+# Needs Python 3.12 and the pinned reference release. The script now refuses to
+# run against any other version rather than quietly regenerating the corpus
+# against whatever happens to be importable, so this is enforced and not merely
+# advised:
 #   python3 -m pip install --require-hashes -r parity/reference-requirements.txt
 parity:
 	python3 tools/generate_expectations.py --check
