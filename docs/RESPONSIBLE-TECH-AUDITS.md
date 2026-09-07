@@ -121,11 +121,26 @@ bytes stop matching what that file says.
 - **No dated audit record before this one.** This file is the first. The README's
   Standards Conformance table previously carried the declaration on its own,
   which is what issue #9 filed.
-- **Not registered in the portfolio standards manifest.** This repository has no
-  entry in `STANDARDS/applicability.yml`, which the weekly conformance run treats
-  as a loud failure rather than a silent skip. The entry lives in the private
-  standards repository and its `publication` field is a decision about this
-  repository's public status, so it is not written from here. Issue #9.
 - **Two known-wrong verdicts, upstream.** The `owl:sameAs` `DOMAIN_VIOLATION` and
   the suppressing half of the duplicate-`@id` defect. Both are in the README
   limits with the reason each is not fixed here.
+
+## Corrections
+
+- **2026-09-06: "not registered in the portfolio standards manifest" was never
+  true.** This file, the README's Standards Conformance table and
+  `docs/ROADMAP.md` plan item 4 all stated that `STANDARDS/applicability.yml`
+  had no entry for this repository. It has had one since 2026-08-15 --
+  archetype `cli-utility`, tier C, `publication: cleared`, with per-standard
+  applies/na rows mirroring the README table -- which is before any of those
+  three sentences was written. All three are corrected.
+
+  The correction is logged rather than quietly edited because a document that
+  misreports its own conformance state is exactly the harm surface this file
+  exists to name, and because the mechanism that catches it for *numbers* --
+  `PublishedFiguresTest`, which derives every published count from the
+  repository and fails when two documents disagree -- has no equivalent for
+  prose claims about state held outside this repository. Nothing here can gate
+  a sentence about a file in a different, private repository, so the residual
+  control is that this claim now names a date and a manifest field that can be
+  checked by hand.
