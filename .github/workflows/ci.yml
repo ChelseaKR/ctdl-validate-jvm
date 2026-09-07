@@ -152,3 +152,46 @@ jobs:
             exit 1
           fi
           echo "the check failed on the perturbation and left the checkout untouched"
+
+      # The same discipline for the other half of the check's claim. The
+      # expectations are evidence about ONE published release, and until now
+      # nothing related the reference the script imported to the one
+      # parity/reference-requirements.txt pins. Measured with 0.2.1 installed
+      # instead of the pinned 0.1.0: --check still failed, but with four
+      # ordinary "differs" lines naming no cause, and a plain write run
+      # rewrote the corpus and moved reference-codes.json to 0.2.1/20 codes,
+      # exiting 0. This job can never reproduce that, because the step above
+      # installs the pin seconds earlier -- so the probe moves the pin in a
+      # copy of the tree instead, which reaches the same comparison.
+      - name: Prove the check refuses an unpinned reference
+        run: |
+          set -eu
+          probe="$(mktemp -d)"
+          mkdir -p "${probe}/tools"
+          cp tools/generate_expectations.py "${probe}/tools/"
+          cp -R parity "${probe}/parity"
+          requirements="${probe}/parity/reference-requirements.txt"
+
+          # A pin that is not what is installed.
+          sed -i 's/^ctdl-validate==.*/ctdl-validate==99.0.0 \\/' "${requirements}"
+          grep -q '^ctdl-validate==99\.0\.0' "${requirements}" || {
+            echo "the probe did not change the pin, so it proves nothing" >&2; exit 1; }
+          if python3 "${probe}/tools/generate_expectations.py" --check; then
+            echo "the check ran against a reference the requirements do not pin" >&2
+            exit 1
+          fi
+
+          # No pin at all must refuse too: a parser that shrugged here would
+          # make the guard disappear exactly when the pin file is what is wrong.
+          sed -i 's/^ctdl-validate==.*//' "${requirements}"
+          if python3 "${probe}/tools/generate_expectations.py" --check; then
+            echo "the check ran with no pin in the requirements file at all" >&2
+            exit 1
+          fi
+
+          if [ -n "$(git status --porcelain -- parity tools)" ]; then
+            echo "the probe wrote into the working tree" >&2
+            git status --porcelain -- parity tools >&2
+            exit 1
+          fi
+          echo "the check refused both an unpinned reference and a missing pin"
