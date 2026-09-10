@@ -167,6 +167,73 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Added
 
+- **`tools/reference_gap.py`: how much of the reference's rule set this port
+  implements, and which part it does not.**
+  `FindingCodeCensusTest` answers that against the **pinned release**, which is
+  the right question for the parity corpus and the wrong one for planning. The
+  pin is `0.1.0`; the reference has released twice since and moved further on
+  `main`, so the census is green, correctly, over a port that is behind by
+  rules nothing here counts. `parity/PROVENANCE.md` had one such figure,
+  measured by hand against `0.2.1` on 2026-08-29 — a number that goes stale on
+  the sibling's next commit.
+
+  This reads both rule sets out of source: the port's out of `src/main/java`
+  the way the census parses them, the reference's out of its Python by AST at a
+  git ref. No install, no network, no built CLI — a checkout of the sibling and
+  nothing else.
+
+  It prints two numbers and refuses to print one. "This port implements 21
+  rules" reads well and means nothing; "21 of the reference's 28 validation
+  rules" is the figure that decides what ROADMAP section 2 costs. Measured
+  2026-09-10 against `origin/main` at `e017a5e0afc0`:
+
+  | reference ref | its validation rules | this port implements | behind by | ahead by |
+  |---|---:|---|---:|---:|
+  | `v0.1.0` (the pin) | 19 | 19 of 19 | 0 | 2 |
+  | `v0.2.1` (newest release) | 20 | 19 of 20 | 1 | 2 |
+  | `origin/main` | 28 | 21 of 28 | **7** | 0 |
+
+  **The pin row is a cross-check, not an output.** `FindingCodeCensusTest`
+  reaches the same answer from `parity/reference-codes.json`, a record
+  generated from the *installed* release; this reads the reference's *source*
+  at a git ref. Two readers, two languages, two data paths, agreeing that at the
+  pin the port is behind by nothing and ahead by exactly the two declared
+  dispositions.
+
+  **On `main` the port is ahead by nothing**: both dispositions are now on the
+  reference's `main`, so `parity/ahead/` is ahead of the *pin* and no longer
+  ahead of the *reference*. It stays exactly as it is — the pin is what it is
+  measured against — but what it bounds is now a version gap.
+
+  The reference's other **20** codes are extraction notes under
+  `src/ctdl_validate/extract/`, a subcommand this port does not have. They are
+  excluded by name and both totals are printed, because counting them would
+  report this port as covering 44% of the reference rather than 75% and would
+  move whenever the sibling touched a surface out of scope here.
+
+  It is **not** part of `verify` and must not become part of it: it needs a
+  checkout of another repository, which CI does not have, and a check that
+  cannot run in CI is a check that reports agreement from a machine that never
+  asked. `--self-check` plants every way it can fail to measure — an absent
+  reference, a ref that will not resolve, a package that has moved, a code
+  built at run time on either side, a scan that matches nothing — and requires
+  each to refuse rather than return a number, because a harness whose whole
+  output is "behind by N" will print a plausible N from a scan that read
+  nothing.
+
+  One refusal was wrong and a positive control found it. Run against `v0.1.0`,
+  the first version refused with "the reference's package layout has moved":
+  `0.1.0` predates the `extract` subcommand entirely, so zero extraction notes
+  is the *right* answer for that release. An **absent** optional package is now
+  a measured state; a package that is present and empty is still a refusal,
+  because that is the one a reader gone wrong produces. Both cases are in
+  `--self-check`.
+
+  Part of #41, which asks for the full matrix — every release installed with
+  hashes, `main` pinned by commit, and the table generated into
+  `PROVENANCE.md` rather than written there. That issue stays open for it.
+
+
 - `tools/differential_fuzz.py`, and with it the second kind of evidence this
   repository has ever had about the two implementations agreeing. The corpus
   covers every finding *code*; it does not cover every document *shape* that
