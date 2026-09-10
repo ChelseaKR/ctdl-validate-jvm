@@ -101,6 +101,34 @@ corpus misses.
    `PROVENANCE.md` to the directory listing, so a new fixture moves the prose
    too.
 
+## Knowing what the port is behind by
+
+`tools/reference_gap.py` reads this port's finding codes out of
+`src/main/java` and the reference's out of its Python source, and prints how
+many of the reference's validation rules this port implements and out of how
+many. It needs a checkout of the sibling and nothing else.
+
+```sh
+python3 tools/reference_gap.py --self-check          # needs no checkout
+python3 tools/reference_gap.py --reference ../ctdl-validate
+python3 tools/reference_gap.py --reference ../ctdl-validate --ref v0.2.1 --json
+```
+
+Read it before proposing a pin bump: the count is what ROADMAP section 2 costs.
+`parity/PROVENANCE.md` records the current figures and what they mean.
+
+It is not part of `verify` and must not become part of it. It needs a checkout
+of another repository, which CI does not have, and a check that cannot run in
+CI is a check that reports agreement from a machine that never asked. Its
+`--self-check` plants every way it can fail to measure and requires each one to
+refuse, because a harness whose output is "behind by N" will print a plausible
+N from a scan that read nothing.
+
+Exit code is 0 when the two rule sets were measured and 2 when they were not.
+There is deliberately no code for "there is a gap": being behind the
+reference's `main` is the expected state, and a harness that went red for it
+would be red forever.
+
 ## Finding a divergence rather than guessing at one
 
 `tools/differential_fuzz.py` generates CTDL-shaped payloads from the vendored
