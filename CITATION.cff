@@ -3,7 +3,7 @@ message: "If you use ctdl-validate-jvm, please cite it as below."
 title: "ctdl-validate-jvm: a JVM port of the ctdl-validate rule core, reconciled by a cross-language parity test"
 abstract: >-
   A Java reimplementation of the rule core of ChelseaKR/ctdl-validate: CTID
-  grammar, identifier kinds, reference resolution (in the payload, or in documents supplied with --resolve), domain and range
+  grammar, identifier kinds, in-payload reference resolution, domain and range
   validation with subclass closure, and inverse consistency over CTDL and
   CTDL-ASN JSON-LD payloads. Both implementations are tested against a shared
   fixture corpus and must agree finding for finding, with disagreement a build
