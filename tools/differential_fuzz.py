@@ -63,6 +63,12 @@ from generate_expectations import parity_document, render  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 PORT = ROOT / "build" / "install" / "ctdl-validate-jvm" / "bin" / "ctdl-validate-jvm"
+
+#: The exit code for "this harness could not make the comparison", which the
+#: module docstring already distinguishes from "the two implementations
+#: disagreed". Reporting a disagreement it could not have seen is the one
+#: outcome worth refusing outright.
+EXIT_CANNOT_RUN = 2
 VENDOR = ROOT / "src" / "main" / "resources" / "vendor"
 
 REGISTRY = "https://credentialengineregistry.org/resources/"
@@ -296,11 +302,30 @@ def port_output(document: object, directory: Path, index: int) -> str:
         capture_output=True,
         check=False,
     )
+    stderr = result.stderr.decode("utf-8", "replace").strip()
     if result.returncode not in (0, 1, 2):
-        raise SystemExit(
-            f"the port exited {result.returncode}: {result.stderr.decode('utf-8', 'replace')}"
+        print(f"the port exited {result.returncode}: {stderr}", file=sys.stderr)
+        raise SystemExit(EXIT_CANNOT_RUN)
+    stdout = result.stdout.decode("utf-8")
+    if not stdout.strip():
+        # Measured on a machine whose default java is 11: the launcher exits 1,
+        # which is inside the range above, prints nothing, and every payload then
+        # "diverges" -- 12 of 12 in the self-check, and a run writes minimised
+        # payloads that are nothing of the kind. A harness that cannot run one
+        # side has to say so rather than report what that looks like.
+        hint = (
+            " The port is built for Java 17 and the java on this PATH is older; set JAVA_HOME"
+            " to a JDK 17 or newer (see docs/adr/0002-java-17-floor.md)."
+            if "UnsupportedClassVersionError" in stderr
+            else ""
         )
-    return result.stdout.decode("utf-8")
+        print(
+            "the port printed nothing, so every comparison from here would report a divergence"
+            f" that is this harness failing to run it.{hint}\n{stderr}",
+            file=sys.stderr,
+        )
+        raise SystemExit(EXIT_CANNOT_RUN)
+    return stdout
 
 
 def reference_output(document: object, directory: Path, index: int) -> str:
@@ -548,7 +573,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if not PORT.exists():
         print(f"{PORT} is not built; run ./gradlew installDist", file=sys.stderr)
-        return 2
+        return EXIT_CANNOT_RUN
 
     if args.self_check:
         return self_check(args.workers)

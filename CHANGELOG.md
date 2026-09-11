@@ -11,6 +11,19 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Fixed
 
+- **The differential fuzzer reported divergences it could not have seen.** The
+  launcher exits 1 when the JVM cannot load the port's classes, which is inside
+  the range of exit codes the harness accepts, and it prints nothing -- so every
+  payload compared empty output against the reference and "diverged". Measured
+  on this machine, whose default java is 11 and whose JDK 17, 21 and 26 are
+  unlinked in Homebrew's cellar: `--self-check` reported 12 of 12 payloads
+  diverging with nothing corrupted, and a four-payload run wrote four minimised
+  "divergences" that were nothing of the kind before dying in a JSON decode
+  error. It now refuses with exit 2, the code its own docstring reserves for
+  "could not run", says the port printed nothing, and names the Java version
+  when that is why. With a JDK 17 or newer the self-check passes unchanged: 12
+  of 12 caught with a corrupted exit code, 0 without.
+
 - **The pin guard trusted a version string the reference's main branch
   shares with its last release.** A build of main reports `0.2.1`, so a build
   installed from a local path -- and the pinned wheel with a checkout of main
