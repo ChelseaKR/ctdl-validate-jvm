@@ -34,9 +34,9 @@
     },
     {
       "@id": "_:b0",
-      "@type": "ceterms:CredentialOrganization",
+      "@type": "ceterms:Certification",
       "ceterms:name": {
-        "en-US": "A Blank Node, Which Means Nothing Outside This File"
+        "en-US": "A Blank Node Typed Out Of Range, Meaning Nothing Outside This File"
       }
     }
   ]
