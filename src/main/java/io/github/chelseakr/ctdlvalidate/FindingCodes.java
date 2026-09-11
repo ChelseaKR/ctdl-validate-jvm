@@ -50,6 +50,19 @@ public final class FindingCodes {
   /** Check 5, inverse consistency. */
   public static final List<String> INVERSES = List.of("INVERSE_MISMATCH", "INVERSE_ONE_DIRECTION");
 
+  /** Check 6, identity. */
+  public static final List<String> IDENTITY = List.of("ID_DECLARED_MORE_THAN_ONCE");
+
+  /** Check 7, concept-scheme membership. */
+  public static final List<String> CONCEPT_SCHEME =
+      List.of("CONCEPT_OUTSIDE_SCHEME", "CONCEPT_OUTSIDE_SNAPSHOT", "CONCEPT_NOT_IDENTIFIED");
+
+  /** Check 8, language-map shape. */
+  public static final List<String> LANGUAGE_MAP = List.of("LANGUAGE_MAP_EXPECTED");
+
+  /** Check 9, term status. */
+  public static final List<String> TERM_STATUS = List.of("TERM_UNSTABLE");
+
   /** All of them, in check order. */
   public static final List<String> ALL = concat();
 
@@ -62,6 +75,10 @@ public final class FindingCodes {
     all.addAll(REFERENCES);
     all.addAll(DOMAIN_RANGE);
     all.addAll(INVERSES);
+    all.addAll(IDENTITY);
+    all.addAll(CONCEPT_SCHEME);
+    all.addAll(LANGUAGE_MAP);
+    all.addAll(TERM_STATUS);
     return List.copyOf(all);
   }
 }

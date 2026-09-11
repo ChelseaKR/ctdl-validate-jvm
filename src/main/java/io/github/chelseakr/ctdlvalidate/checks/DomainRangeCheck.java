@@ -111,7 +111,6 @@ public final class DomainRangeCheck implements Check {
   }
 
   private static List<Finding> rangeFindings(Graph.Node node, String prop, Session session) {
-    Graph graph = session.graph();
     SchemaIndex schema = session.schema();
     SchemaIndex.PropertyDef propDef = schema.property(prop);
     if (!propDef.rangeHasEntities()) {
@@ -128,12 +127,6 @@ public final class DomainRangeCheck implements Check {
     for (Value value : node.valuesOf(prop)) {
       Target hit = resolveTarget(value, session);
       if (hit == null || schema.classMatches(hit.types(), propDef.range())) {
-        continue;
-      }
-      // Only an in-payload target has other declarations to ask. A supplied
-      // entity is indexed once, first document wins, as the reference indexes it.
-      if (hit.node() != null
-          && anotherDeclarationSatisfies(graph, schema, hit.node(), propDef.range())) {
         continue;
       }
       List<String> targetTypes = hit.types();
@@ -204,10 +197,8 @@ public final class DomainRangeCheck implements Check {
    *     it was read from, so every judgement about it says which document it rests on
    * @param text what to print as the finding's value: the reference as written where there is one,
    *     the target's own label for a nested node
-   * @param node the in-payload node, or null for a supplied entity
    */
-  private record Target(
-      String label, List<String> types, String origin, String text, Graph.Node node) {}
+  private record Target(String label, List<String> types, String origin, String text) {}
 
   /**
    * The reference's target and declared classes, or null if it cannot be judged.
@@ -244,39 +235,7 @@ public final class DomainRangeCheck implements Check {
       return null; // cannot judge an undeclared or untyped target
     }
     String text = value instanceof Value.Text written ? written.text() : label;
-    return new Target(label, types, origin, text, target);
-  }
-
-  /**
-   * Whether some other declaration of the resolved target's {@code @id} satisfies the range.
-   *
-   * <p>A payload may declare the same {@code @id} more than once — a stub embedded inline beside a
-   * fuller top-level entity is the ordinary way it happens — and {@link Graph#byId} keeps only
-   * whichever the walk reached first. That is depth-first into an earlier entity's inline objects
-   * before the next top-level entry, so a reference is judged against the declaration that happens
-   * to sit earliest in the document rather than against the declaration the document means. Where
-   * the winner's classes fall outside the range and another declaration of the same identifier is
-   * squarely inside it, the ERROR is an artefact of walk order and not a fact about the payload.
-   *
-   * <p>Asked only after {@link SchemaIndex#classMatches} has already failed, so it can withdraw a
-   * finding and can never raise one. That direction is deliberate and is the limit of what is fixed
-   * here: the mirror case, where the first-walked declaration satisfies a range and a later one
-   * does not, still passes, exactly as the reference does. Reporting it would mean raising an ERROR
-   * the pinned reference does not raise, which {@code parity/ahead/} is arranged not to permit, and
-   * it is a rule-level ruling that belongs in the sibling. See the README limits and ADR 0005.
-   */
-  private static boolean anotherDeclarationSatisfies(
-      Graph graph, SchemaIndex schema, Graph.Node target, Set<String> range) {
-    for (Graph.Node declaration : graph.declarationsOf(target.nodeId())) {
-      if (declaration == target) {
-        continue;
-      }
-      List<String> declared = schema.knownTypes(declaration.types());
-      if (!declared.isEmpty() && schema.classMatches(declared, range)) {
-        return true;
-      }
-    }
-    return false;
+    return new Target(label, types, origin, text);
   }
 
   /**

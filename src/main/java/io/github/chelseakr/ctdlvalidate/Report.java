@@ -56,8 +56,18 @@ public final class Report {
     return payload;
   }
 
-  /** The plain-text report, block for block with the reference implementation. */
+  /** The plain-text report for findings with no document to measure. */
   public static String text(List<Finding> findings) {
+    return text(findings, null);
+  }
+
+  /**
+   * The plain-text report, block for block with the reference implementation.
+   *
+   * @param scope how much of the document the run had anything to say about, or null when there was
+   *     no document to measure; when nothing was checked, the report ends by saying so
+   */
+  public static String text(List<Finding> findings, DocumentScope scope) {
     Map<String, Object> counts = counts(findings);
     StringJoiner summary = new StringJoiner(", ");
     for (Severity severity : Severity.REPORT_ORDER) {
@@ -68,6 +78,10 @@ public final class Report {
       out.append(finding.renderText()).append("\n\n");
     }
     out.append(findings.size()).append(" finding(s): ").append(summary);
+    String nothingChecked = scope == null ? null : scope.nothingCheckedSentence();
+    if (nothingChecked != null) {
+      out.append("\n").append(nothingChecked);
+    }
     return out.toString();
   }
 }

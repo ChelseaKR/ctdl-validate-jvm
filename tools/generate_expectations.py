@@ -42,13 +42,23 @@ import json
 import os
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 import ctdl_validate
 from ctdl_validate import __version__ as reference_version
 from ctdl_validate.findings import SEVERITY_ORDER, Severity, counts, render_findings_text
 from ctdl_validate.graph import DocumentError
-from ctdl_validate.validator import validate_document
+from ctdl_validate.validator import build_session, validate
+
+try:
+    # The reference's CLI measures how much of a document it could judge and
+    # hands that to the renderer, which ends the text report with a sentence
+    # when nothing was checked. 0.2.1 has no such measurement, and its CLI
+    # prints no such sentence.
+    from ctdl_validate.graph import scope_of
+except ImportError:  # pragma: no cover - depends on the installed reference
+    scope_of = None
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -86,6 +96,23 @@ RESOLVE_DIRNAME = "resolve"
 # thing it copied. A second copy of what a program prints is a second program.
 
 
+#: Modules that build a Finding from a code they *read* rather than write, each
+#: with the reason it is not a rule. Named rather than inferred: a census that
+#: skipped every non-literal site would be blind to the one this refusal exists
+#: to catch. Each is held to exactly one such site, so the exemption cannot
+#: quietly grow to cover a rule someone later computes there.
+#:
+#: The reference's main branch added ``compare.py`` for ``ctdl-validate diff``,
+#: and without this entry the census refuses the reference's next release
+#: outright -- the pin could not move to it at all.
+REBUILDS_SAVED_FINDINGS = {
+    "compare.py": (
+        "reads a saved JSON report back into findings for `diff`, copying each code from the "
+        "report; it declares no rule of its own"
+    ),
+}
+
+
 def reference_finding_codes() -> list[str]:
     """Every finding code the installed reference implementation can construct.
 
@@ -106,6 +133,7 @@ def reference_finding_codes() -> list[str]:
         raise SystemExit(f"no reference source found under {package}")
 
     codes: set[str] = set()
+    rebuilt: Counter[str] = Counter()
     for source in sources:
         tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
         for node in ast.walk(tree):
@@ -119,6 +147,10 @@ def reference_finding_codes() -> list[str]:
             if code is None and node.args:
                 code = node.args[0]
             if not isinstance(code, ast.Constant) or not isinstance(code.value, str):
+                relative = str(source.relative_to(package))
+                if relative in REBUILDS_SAVED_FINDINGS:
+                    rebuilt[relative] += 1
+                    continue
                 raise SystemExit(
                     f"{source.relative_to(package)}:{node.lineno}: Finding() built with a "
                     "non-literal code; this census cannot see it, so it must not pass silently"
@@ -126,6 +158,14 @@ def reference_finding_codes() -> list[str]:
             codes.add(code.value)
     if not codes:
         raise SystemExit(f"parsed {len(sources)} reference source file(s) and found no codes")
+    # An exemption is for one site. A release without the module does not use
+    # it; a module that grew a second computed code is not what it was exempted as.
+    for module, sites in sorted(rebuilt.items()):
+        if sites != 1:
+            raise SystemExit(
+                f"{module} builds {sites} findings from codes it does not write; it is exempted "
+                f"for one ({REBUILDS_SAVED_FINDINGS[module]}), so read what changed"
+            )
     return sorted(codes)
 
 
@@ -199,6 +239,20 @@ def resolve_for(fixture: Path) -> list[Path] | None:
     return [directory.resolve().relative_to(ROOT)]
 
 
+def text_report(findings: list[object], session: object) -> str:
+    """The text report exactly as the reference's CLI prints it.
+
+    The CLI builds a session, validates it, measures the document's scope and
+    renders with it, and this does the same, in that order, with the same
+    functions. Rendering without the scope would be a second, shorter copy of
+    what the CLI prints: measured on the reference's main branch, it drops the
+    sentence a document with nothing to check ends with.
+    """
+    if scope_of is None:
+        return render_findings_text(findings)
+    return render_findings_text(findings, scope=scope_of(session.graph))  # type: ignore[attr-defined]
+
+
 def parity_document(path: Path, resolve: list[Path] | None = None) -> dict[str, object]:
     """The comparable result of validating one fixture.
 
@@ -209,7 +263,8 @@ def parity_document(path: Path, resolve: list[Path] | None = None) -> dict[str, 
     """
     data = json.loads(path.read_text(encoding="utf-8"))
     try:
-        findings = validate_document(data, resolve)
+        session = build_session(data, resolve)
+        findings = validate(session)
     except DocumentError as exc:
         # The CLI prints the message to stderr and nothing to stdout, so there
         # is no text report to compare in this case.
@@ -226,7 +281,7 @@ def parity_document(path: Path, resolve: list[Path] | None = None) -> dict[str, 
         "error": None,
         "findings": [f.to_dict() for f in findings],
         "summary": counts(findings),
-        "text_report": render_findings_text(findings),
+        "text_report": text_report(findings, session),
     }
 
 

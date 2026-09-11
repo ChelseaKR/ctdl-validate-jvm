@@ -1,0 +1,14 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@id": "https://credentialengineregistry.org/graph/ce-9fece7e1-ca5e-42c3-9cf1-dcac78723340",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-104d3aec-e16f-419d-abbb-93c47355aba5",
+      "@type": "ceterms:Certificate",
+      "ceterms:ctid": "ce-104d3aec-e16f-419d-abbb-93c47355aba5",
+      "ceterms:name": {
+        "en-US": "An Entity The Graph URI Does Not Name"
+      }
+    }
+  ]
+}
