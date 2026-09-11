@@ -15,11 +15,12 @@
     "REF_BARE_UUID",
     "REF_NOT_IRI",
     "REF_OUTSIDE_PAYLOAD",
+    "REF_RESOLVED_SUPPLIED",
     "REF_UNRESOLVED_BNODE",
     "REGISTRY_URI_MALFORMED",
     "UNKNOWN_CLASS",
     "UNKNOWN_PROPERTY"
   ],
   "reference": "ctdl-validate",
-  "version": "0.1.0"
+  "version": "0.2.1"
 }

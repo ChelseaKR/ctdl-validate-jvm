@@ -8,7 +8,9 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Command line interface.
@@ -35,6 +37,7 @@ public final class Cli {
   static int run(String[] args, PrintStream out, PrintStream err) {
     String format = "text";
     String file = null;
+    List<String> resolve = new ArrayList<>();
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];
       if ("--help".equals(arg) || "-h".equals(arg)) {
@@ -48,6 +51,14 @@ public final class Cli {
         format = args[++i];
       } else if (arg.startsWith("--format=")) {
         format = arg.substring("--format=".length());
+      } else if ("--resolve".equals(arg)) {
+        if (i + 1 >= args.length) {
+          err.println(TOOL_NAME + ": --resolve needs a path");
+          return 2;
+        }
+        resolve.add(args[++i]);
+      } else if (arg.startsWith("--resolve=")) {
+        resolve.add(arg.substring("--resolve=".length()));
       } else if (arg.startsWith("-")) {
         err.println(TOOL_NAME + ": unknown option " + arg);
         return 2;
@@ -85,14 +96,14 @@ public final class Cli {
     }
 
     if ("parity".equals(format)) {
-      out.print(ParityDocument.render(data));
-      Object exitCode = ParityDocument.of(data).get("exit_code");
-      return (Integer) exitCode;
+      Map<String, Object> document = ParityDocument.of(data, resolve, Path.of(""));
+      out.print(ParityDocument.render(document));
+      return (Integer) document.get("exit_code");
     }
 
     List<Finding> findings;
     try {
-      findings = Validator.validate(data);
+      findings = Validator.validate(Validator.session(data, resolve, Path.of("")));
     } catch (Graph.DocumentException exception) {
       err.println(TOOL_NAME + ": " + file + ": " + exception.getMessage());
       return 2;
@@ -116,7 +127,7 @@ public final class Cli {
 
   private static String usage() {
     return """
-        usage: ctdl-validate-jvm [--format text|json|parity] <file.json>
+        usage: ctdl-validate-jvm [--format text|json|parity] [--resolve PATH]... <file.json>
 
         Deterministic structural validation of CTDL JSON-LD payloads. Reads an object
         with @graph, a single entity, or an array of entities. No network calls, no
@@ -125,6 +136,10 @@ public final class Cli {
           --format text     the human-readable report (default)
           --format json     the machine-readable report
           --format parity   the document the cross-language parity suite compares
+          --resolve PATH    a further CTDL document, or a directory of them, whose
+                            entities this run can resolve references against.
+                            Repeatable. Read from disk, never fetched, and never
+                            itself validated.
 
         Exit codes: 0 = no ERROR findings, 1 = at least one, 2 = unreadable input.
         """

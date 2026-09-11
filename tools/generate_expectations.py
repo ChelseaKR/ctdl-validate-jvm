@@ -19,6 +19,14 @@ about that specific published artifact -- parity/expected/ is what it prints,
 and parity/reference-codes.json records its version in its own body -- so the
 version that happens to be installed must not be what decides.
 
+A fixture can also be validated *with* documents, the way ``--resolve`` passes
+them: a directory named for the fixture under ``resolve/`` beside its corpus
+(``parity/resolve/<fixture stem>/``) is handed to the reference as one
+``--resolve`` argument. The reference prints the path of every supplied
+document inside its findings, so the path it is given is spelled relative to
+the repository root and every run happens from there; an absolute path would
+put this machine's layout into a committed file.
+
 Usage:
     python3 -m pip install --require-hashes -r parity/reference-requirements.txt
     python3 tools/generate_expectations.py [--check]
@@ -31,13 +39,14 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
 import ctdl_validate
 from ctdl_validate import __version__ as reference_version
-from ctdl_validate.findings import Finding, Severity
+from ctdl_validate.findings import SEVERITY_ORDER, Severity, counts, render_findings_text
 from ctdl_validate.graph import DocumentError
 from ctdl_validate.validator import validate_document
 
@@ -66,10 +75,15 @@ CORPORA = (
     (ROOT / "parity" / "ahead" / "fixtures", ROOT / "parity" / "ahead" / "reference"),
 )
 
-#: The order the reference implementation counts and prints severities in.
-#: Restated here rather than imported: it moved modules between 0.1.0 and the
-#: reference's main branch, and this script pins to the released 0.1.0.
-SEVERITY_ORDER = (Severity.ERROR, Severity.WARNING, Severity.INFO, Severity.UNVERIFIABLE)
+#: The directory, beside each corpus, holding the documents a fixture is
+#: validated with. See the module docstring.
+RESOLVE_DIRNAME = "resolve"
+
+# The severity order, the counts and the text report are the reference's own
+# (``ctdl_validate.findings``), imported rather than restated. Until the pin
+# reached 0.2.1 they could not be: in 0.1.0 they were private to its CLI, so
+# this script carried a copy of the renderer and nothing held the copy to the
+# thing it copied. A second copy of what a program prints is a second program.
 
 
 def reference_finding_codes() -> list[str]:
@@ -173,20 +187,19 @@ def require_the_pinned_reference() -> str:
     return pinned
 
 
-def counts(findings: list[Finding]) -> dict[str, int]:
-    return {s.value: sum(1 for f in findings if f.severity is s) for s in SEVERITY_ORDER}
+def resolve_for(fixture: Path) -> list[Path] | None:
+    """The ``--resolve`` argument a fixture is validated with, or None for none.
+
+    Relative to the repository root, and read from there: see the module
+    docstring for why the spelling is load-bearing.
+    """
+    directory = fixture.parent.parent / RESOLVE_DIRNAME / fixture.stem
+    if not directory.is_dir():
+        return None
+    return [directory.resolve().relative_to(ROOT)]
 
 
-def render_text(findings: list[Finding]) -> str:
-    """The plain-text report, exactly as the reference implementation prints it."""
-    lines = [f.render_text() + "\n" for f in findings]
-    tally = counts(findings)
-    summary = ", ".join(f"{tally[s.value]} {s.value}" for s in SEVERITY_ORDER)
-    lines.append(f"{len(findings)} finding(s): {summary}")
-    return "\n".join(lines)
-
-
-def parity_document(path: Path) -> dict[str, object]:
+def parity_document(path: Path, resolve: list[Path] | None = None) -> dict[str, object]:
     """The comparable result of validating one fixture.
 
     Deliberately excludes the tool name and version: those differ between the
@@ -196,7 +209,7 @@ def parity_document(path: Path) -> dict[str, object]:
     """
     data = json.loads(path.read_text(encoding="utf-8"))
     try:
-        findings = validate_document(data)
+        findings = validate_document(data, resolve)
     except DocumentError as exc:
         # The CLI prints the message to stderr and nothing to stdout, so there
         # is no text report to compare in this case.
@@ -213,7 +226,7 @@ def parity_document(path: Path) -> dict[str, object]:
         "error": None,
         "findings": [f.to_dict() for f in findings],
         "summary": counts(findings),
-        "text_report": render_text(findings),
+        "text_report": render_findings_text(findings),
     }
 
 
@@ -232,6 +245,9 @@ def main(argv: list[str] | None = None) -> int:
 
     # Before anything is read or written: see require_the_pinned_reference.
     require_the_pinned_reference()
+    # Supplied documents are named in findings by the path the reference was
+    # given, which is relative to here. See resolve_for.
+    os.chdir(ROOT)
 
     total = 0
     differences = 0
@@ -245,7 +261,7 @@ def main(argv: list[str] | None = None) -> int:
         output_dir.mkdir(parents=True, exist_ok=True)
         for fixture in fixtures:
             target = output_dir / fixture.name
-            rendered = render(parity_document(fixture))
+            rendered = render(parity_document(fixture, resolve_for(fixture)))
             if args.check:
                 current = target.read_text(encoding="utf-8") if target.exists() else ""
                 if current != rendered:
@@ -260,6 +276,20 @@ def main(argv: list[str] | None = None) -> int:
             print(f"expectation with no fixture: {name}", file=sys.stderr)
             if not args.check:
                 (output_dir / name).unlink()
+
+        # Documents for a fixture that no longer exists would be read by
+        # nothing, and a directory nothing reads is a claim nothing checks.
+        # Refused in both modes and never deleted: unlike an expectation, these
+        # are written by hand, so removing them is a decision for a person.
+        resolve_root = fixture_dir.parent / RESOLVE_DIRNAME
+        if resolve_root.is_dir():
+            orphans = {d.name for d in resolve_root.iterdir() if d.is_dir()}
+            for name in sorted(orphans - {f.stem for f in fixtures}):
+                differences += 1
+                print(
+                    f"resolve documents with no fixture: {(resolve_root / name).relative_to(ROOT)}",
+                    file=sys.stderr,
+                )
 
     codes = reference_finding_codes()
     rendered_codes = render(

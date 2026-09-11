@@ -1,0 +1,44 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@id": "https://credentialengineregistry.org/graph/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "@type": "ceterms:Certificate",
+      "ceterms:ctid": "ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "ceterms:name": {
+        "en-US": "A Certificate Whose Neighbours Were Supplied"
+      },
+      "ceterms:ownedBy": [
+        "https://credentialengineregistry.org/resources/ce-62bd81d9-f961-44cd-9922-e8c29e51673e"
+      ],
+      "ceterms:offeredBy": [
+        "https://credentialengineregistry.org/resources/ce-bd6f4e65-25ea-4591-89e2-274335fecd3d"
+      ],
+      "ceterms:accreditedBy": [
+        "https://credentialengineregistry.org/resources/ce-e91f16c7-e0f3-4c16-a4e0-244870b1fb7c"
+      ],
+      "ceterms:approvedBy": [
+        "https://credentialengineregistry.org/resources/ce-9839354d-0468-4c97-9421-50ff5df63d38"
+      ],
+      "ceterms:recognizedBy": [
+        "https://credentialengineregistry.org/resources/ce-b5d13a29-e91e-4c3b-a63a-51b9711222fd"
+      ],
+      "ceterms:availableAt": [
+        "https://credentialengineregistry.org/resources/ce-27056b38-ac62-43e7-8c07-e52d236ac721"
+      ],
+      "ceterms:regulatedBy": [
+        "_:b0"
+      ]
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-1268f52b-6d6c-4128-bc50-211edbc32f48",
+      "@type": "ceasn:Competency",
+      "ceterms:ctid": "ce-1268f52b-6d6c-4128-bc50-211edbc32f48",
+      "ceasn:competencyText": {
+        "en-US": "A competency naming a framework no document declares"
+      },
+      "ceasn:isPartOf": "https://credentialengineregistry.org/resources/ce-259b6182-c723-4880-a1b5-3d9d8e932c80"
+    }
+  ]
+}

@@ -4,7 +4,9 @@ import io.github.chelseakr.ctdlvalidate.Finding;
 import io.github.chelseakr.ctdlvalidate.Graph;
 import io.github.chelseakr.ctdlvalidate.Rules;
 import io.github.chelseakr.ctdlvalidate.SchemaIndex;
+import io.github.chelseakr.ctdlvalidate.Session;
 import io.github.chelseakr.ctdlvalidate.Severity;
+import io.github.chelseakr.ctdlvalidate.Supplied;
 import io.github.chelseakr.ctdlvalidate.Value;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +49,9 @@ public final class DomainRangeCheck implements Check {
   private static final Set<String> COMPETENCY_FRAMEWORK = Set.of("ceasn:CompetencyFramework");
 
   @Override
-  public List<Finding> run(Graph graph, SchemaIndex schema) {
+  public List<Finding> run(Session session) {
+    Graph graph = session.graph();
+    SchemaIndex schema = session.schema();
     List<Finding> findings = new ArrayList<>();
     for (Graph.Node node : graph.nodes()) {
       findings.addAll(unknownTypeFindings(node, schema));
@@ -81,9 +85,9 @@ public final class DomainRangeCheck implements Check {
                   prop + " is not declared for class(es) [" + String.join(", ", nodeTypes) + "].",
                   Rules.domain(prop, propDef.domain())));
         }
-        findings.addAll(rangeFindings(node, prop, graph, schema));
+        findings.addAll(rangeFindings(node, prop, session));
       }
-      findings.addAll(isPartOfFrameworkFindings(node, graph, schema));
+      findings.addAll(isPartOfFrameworkFindings(node, session));
     }
     return findings;
   }
@@ -106,8 +110,9 @@ public final class DomainRangeCheck implements Check {
     return findings;
   }
 
-  private static List<Finding> rangeFindings(
-      Graph.Node node, String prop, Graph graph, SchemaIndex schema) {
+  private static List<Finding> rangeFindings(Graph.Node node, String prop, Session session) {
+    Graph graph = session.graph();
+    SchemaIndex schema = session.schema();
     SchemaIndex.PropertyDef propDef = schema.property(prop);
     if (!propDef.rangeHasEntities()) {
       return List.of();
@@ -121,24 +126,18 @@ public final class DomainRangeCheck implements Check {
     }
     List<Finding> findings = new ArrayList<>();
     for (Value value : node.valuesOf(prop)) {
-      if (value instanceof Value.Json) {
+      Target hit = resolveTarget(value, session);
+      if (hit == null || schema.classMatches(hit.types(), propDef.range())) {
         continue;
       }
-      Graph.Node target = graph.resolve(value);
-      if (target == null) {
-        continue; // resolution is check 3's job
-      }
-      List<String> targetTypes = schema.knownTypes(target.types());
-      if (targetTypes.isEmpty()) {
-        continue; // cannot judge an undeclared or untyped target
-      }
-      if (schema.classMatches(targetTypes, propDef.range())) {
+      // Only an in-payload target has other declarations to ask. A supplied
+      // entity is indexed once, first document wins, as the reference indexes it.
+      if (hit.node() != null
+          && anotherDeclarationSatisfies(graph, schema, hit.node(), propDef.range())) {
         continue;
       }
-      if (anotherDeclarationSatisfies(graph, schema, target, propDef.range())) {
-        continue;
-      }
-      String valueText = value instanceof Value.Text text ? text.text() : target.label();
+      List<String> targetTypes = hit.types();
+      String valueText = hit.text();
       // CTDL ranges a reference to a term from one of its own concept schemes on
       // skos:Concept for some properties and on CredentialAlignmentObject for
       // others, with nothing about the value to tell the families apart, and its
@@ -146,10 +145,11 @@ public final class DomainRangeCheck implements Check {
       // would report Credential Engine's dominant encoding as a defect, so this
       // is reported and not gated on.
       if (propDef.schemeBoundConcept() && schema.classMatches(targetTypes, ALIGNMENT_RANGE)) {
-        findings.add(conceptRangeConflict(node, prop, propDef, valueText, schema));
+        findings.add(conceptRangeConflict(node, prop, propDef, valueText, hit.origin(), schema));
         continue;
       }
-      Finding versionConflict = versionRangeConflict(node, prop, targetTypes, valueText, schema);
+      Finding versionConflict =
+          versionRangeConflict(node, prop, targetTypes, valueText, hit.origin(), schema);
       if (versionConflict != null) {
         findings.add(versionConflict);
         continue;
@@ -170,7 +170,8 @@ public final class DomainRangeCheck implements Check {
                     + ", which the declared range of "
                     + prop
                     + " does not include, but Credential Engine's own guidance and examples use"
-                    + " exactly this pattern.",
+                    + " exactly this pattern."
+                    + hit.origin(),
                 Rules.ISCHILDOF_RANGE_CONFLICT));
       } else {
         findings.add(
@@ -181,16 +182,69 @@ public final class DomainRangeCheck implements Check {
                 prop,
                 valueText,
                 "Referenced entity "
-                    + target.label()
+                    + hit.label()
                     + " is typed ["
                     + String.join(", ", targetTypes)
                     + "], which is outside the declared range of "
                     + prop
-                    + ".",
+                    + "."
+                    + hit.origin(),
                 Rules.range(prop, propDef.range())));
       }
     }
     return findings;
+  }
+
+  /**
+   * The entity a reference names, once the run has found it and typed it.
+   *
+   * @param label what findings call the target
+   * @param types its classes, filtered to the ones the snapshot declares; never empty
+   * @param origin empty for an in-payload target, otherwise a sentence naming the supplied document
+   *     it was read from, so every judgement about it says which document it rests on
+   * @param text what to print as the finding's value: the reference as written where there is one,
+   *     the target's own label for a nested node
+   * @param node the in-payload node, or null for a supplied entity
+   */
+  private record Target(
+      String label, List<String> types, String origin, String text, Graph.Node node) {}
+
+  /**
+   * The reference's target and declared classes, or null if it cannot be judged.
+   *
+   * <p>Null for a value that is not a reference, for one the run cannot see (check 3 reports that
+   * as UNVERIFIABLE, and it is not this check's job), and for one whose target declares no class
+   * the snapshot knows -- an undeclared or untyped target is not evidence of anything. A reference
+   * the payload does not contain is judged against the documents supplied with {@code --resolve},
+   * and only against those.
+   */
+  private static Target resolveTarget(Value value, Session session) {
+    if (value instanceof Value.Json) {
+      return null;
+    }
+    Graph.Node target = session.graph().resolve(value);
+    String label;
+    List<String> declared;
+    String origin;
+    if (target != null) {
+      label = target.label();
+      declared = target.types();
+      origin = "";
+    } else {
+      Supplied.Entity external = session.supplied().get(value);
+      if (external == null) {
+        return null; // resolution is check 3's job
+      }
+      label = external.nodeId();
+      declared = external.types();
+      origin = " That entity was read from " + external.source() + ", supplied with --resolve.";
+    }
+    List<String> types = session.schema().knownTypes(declared);
+    if (types.isEmpty()) {
+      return null; // cannot judge an undeclared or untyped target
+    }
+    String text = value instanceof Value.Text written ? written.text() : label;
+    return new Target(label, types, origin, text, target);
   }
 
   /**
@@ -245,6 +299,7 @@ public final class DomainRangeCheck implements Check {
       String prop,
       List<String> targetTypes,
       String valueText,
+      String origin,
       SchemaIndex schema) {
     if (!SchemaIndex.VERSION_PROPERTIES.contains(prop)) {
       return null;
@@ -279,7 +334,8 @@ public final class DomainRangeCheck implements Check {
             + cls
             + "'s version something other than a "
             + cls
-            + ", and there is no third option to point you at.",
+            + ", and there is no third option to point you at."
+            + origin,
         Rules.versionRangeConflict(prop, cls, dropped));
   }
 
@@ -292,6 +348,7 @@ public final class DomainRangeCheck implements Check {
       String prop,
       SchemaIndex.PropertyDef propDef,
       String valueText,
+      String origin,
       SchemaIndex schema) {
     List<String> schemes = new ArrayList<>(propDef.targetScheme());
     schemes.sort(io.github.chelseakr.ctdlvalidate.CodePointOrder.COMPARATOR);
@@ -308,14 +365,17 @@ public final class DomainRangeCheck implements Check {
             + " the range of other properties drawing on the same concept scheme ("
             + String.join(", ", schemes)
             + "), so this is very likely correct as written. Nothing to fix unless you meant to"
-            + " reference a skos:Concept directly.",
+            + " reference a skos:Concept directly."
+            + origin,
         Rules.conceptRangeConflict(
             prop, propDef.targetScheme(), schema.alignmentRangedSiblings(prop)));
   }
 
   /** The generic wrong-framework-identifier bug, as it shows up in competency extracts. */
-  private static List<Finding> isPartOfFrameworkFindings(
-      Graph.Node node, Graph graph, SchemaIndex schema) {
+  private static List<Finding> isPartOfFrameworkFindings(Graph.Node node, Session session) {
+    Graph graph = session.graph();
+    SchemaIndex schema = session.schema();
+    Supplied supplied = session.supplied();
     if (!schema.classMatches(schema.knownTypes(node.types()), COMPETENCY)) {
       return List.of();
     }
@@ -331,17 +391,30 @@ public final class DomainRangeCheck implements Check {
         frameworkIds.add(other.nodeId());
       }
     }
-    if (frameworkIds.isEmpty()) {
-      return List.of(); // no framework in the payload: nothing to compare against
+    // A framework handed to the run with --resolve is as much a candidate as one
+    // in the payload: the question is whether the identifier names a framework
+    // the run can see, not where it came from.
+    boolean fromSupplied = false;
+    for (Supplied.Entity entity : supplied.entities().values()) {
+      if (schema.classMatches(schema.knownTypes(entity.types()), COMPETENCY_FRAMEWORK)) {
+        frameworkIds.add(entity.nodeId());
+        fromSupplied = true;
+      }
     }
+    if (frameworkIds.isEmpty()) {
+      return List.of(); // no framework anywhere in reach: nothing to compare against
+    }
+    String where = fromSupplied ? "this payload or the documents supplied" : "this payload";
     List<Finding> findings = new ArrayList<>();
     for (Value value : values) {
       if (!(value instanceof Value.Text text)) {
         continue;
       }
       String raw = text.text();
-      if (frameworkIds.contains(raw) || graph.resolve(value) != null) {
-        // A value that resolves in-payload to a non-framework is RANGE_VIOLATION's business.
+      if (frameworkIds.contains(raw)
+          || graph.resolve(value) != null
+          || supplied.get(value) != null) {
+        // A value that resolves to a non-framework is RANGE_VIOLATION's business.
         continue;
       }
       findings.add(
@@ -351,8 +424,9 @@ public final class DomainRangeCheck implements Check {
               node.label(),
               "ceasn:isPartOf",
               raw,
-              "This competency's isPartOf identifier matches no CompetencyFramework in this"
-                  + " payload, although the payload contains one ("
+              "This competency's isPartOf identifier matches no CompetencyFramework in "
+                  + where
+                  + ", although this run can see one ("
                   + String.join(", ", frameworkIds)
                   + "). If this competency belongs to that framework, this identifier is the wrong"
                   + " one.",

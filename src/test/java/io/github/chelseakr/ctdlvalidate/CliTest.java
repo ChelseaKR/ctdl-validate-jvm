@@ -117,6 +117,68 @@ class CliTest {
   }
 
   @Test
+  @DisplayName("--resolve settles a reference, and repeats, and takes both spellings")
+  void resolveSettlesAReference() throws IOException {
+    Path documents = ROOT.resolve("parity/resolve/resolved_references");
+    Result result =
+        run(
+            "--resolve=" + documents.resolve("a_organizations.json"),
+            "--resolve",
+            documents.resolve("b_framework_and_certifications.json").toString(),
+            FIXTURES.resolve("resolved_references.json").toString());
+    assertEquals(1, result.code(), result.out());
+    assertTrue(result.out().contains("INFO         REF_RESOLVED_SUPPLIED"), result.out());
+    assertTrue(result.out().contains("supplied with --resolve."), result.out());
+    assertTrue(result.out().contains("ERROR        RANGE_VIOLATION"), result.out());
+  }
+
+  @Test
+  @DisplayName("--format parity with --resolve produces exactly the committed expectation")
+  void parityFormatWithResolveMatchesTheCommittedExpectation() throws IOException {
+    // The committed expectation names the supplied document by the path the
+    // reference was given, relative to the repository root, so this run has to
+    // be made from there too. Asserted rather than assumed: a skipped test here
+    // would read exactly like a passing one.
+    assertEquals(
+        ROOT.toRealPath(),
+        Path.of("").toRealPath(),
+        "the CLI reads --resolve paths against the working directory");
+    String name = "resolved_one_document.json";
+    Result result =
+        run(
+            "--format",
+            "parity",
+            "--resolve",
+            "parity/resolve/resolved_one_document",
+            FIXTURES.resolve(name).toString());
+    String expected =
+        Files.readString(ROOT.resolve("parity/expected").resolve(name), StandardCharsets.UTF_8);
+    assertEquals(expected, result.out());
+    assertEquals(0, result.code());
+  }
+
+  @Test
+  @DisplayName("a supplied document that cannot be read exits 2 and says why")
+  void unreadableSuppliedDocumentExitsTwo(@TempDir Path tempDir) throws IOException {
+    Path broken = tempDir.resolve("broken.json");
+    Files.writeString(broken, "{ not json");
+    String payload = FIXTURES.resolve("external_reference.json").toString();
+
+    Result missing = run("--resolve", tempDir.resolve("absent.json").toString(), payload);
+    assertEquals(2, missing.code());
+    assertTrue(missing.err().contains("cannot read"), missing.err());
+    assertTrue(missing.out().isEmpty(), missing.out());
+
+    Result invalid = run("--resolve", broken.toString(), payload);
+    assertEquals(2, invalid.code());
+    assertTrue(invalid.err().contains("is not valid JSON"), invalid.err());
+
+    Result parity = run("--format=parity", "--resolve", broken.toString(), payload);
+    assertEquals(2, parity.code());
+    assertTrue(parity.out().contains("\"exit_code\": 2"), parity.out());
+  }
+
+  @Test
   @DisplayName("bad usage is refused rather than guessed at")
   void badUsage() throws IOException {
     assertEquals(2, run().code());
@@ -124,6 +186,7 @@ class CliTest {
     assertEquals(2, run("--nope").code());
     assertEquals(2, run("a.json", "b.json").code());
     assertEquals(2, run("--format").code());
+    assertEquals(2, run("x.json", "--resolve").code());
     assertEquals(0, run("--help").code());
   }
 }

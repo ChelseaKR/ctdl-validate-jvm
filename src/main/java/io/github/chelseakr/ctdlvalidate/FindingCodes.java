@@ -33,7 +33,7 @@ public final class FindingCodes {
 
   /** Check 3, reference resolution. */
   public static final List<String> REFERENCES =
-      List.of("REF_UNRESOLVED_BNODE", "REF_OUTSIDE_PAYLOAD");
+      List.of("REF_UNRESOLVED_BNODE", "REF_OUTSIDE_PAYLOAD", "REF_RESOLVED_SUPPLIED");
 
   /** Check 4, domain and range. */
   public static final List<String> DOMAIN_RANGE =

@@ -1,0 +1,65 @@
+{
+  "error": null,
+  "exit_code": 0,
+  "findings": [
+    {
+      "code": "REF_OUTSIDE_PAYLOAD",
+      "entity": "https://credentialengineregistry.org/resources/ce-920b922d-39f9-4315-8dbd-92b5e342d1b4",
+      "message": "Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied. None of the 1 document supplied with --resolve (parity/resolve/resolved_one_document/framework.json) declares it.",
+      "property": "ceasn:creator",
+      "rule": {
+        "citation": "ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail. --resolve widens what the run can see, using documents the operator already has; it fetches nothing.",
+        "retrieved": "-",
+        "url": "README.md (Methodology)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "https://credentialengineregistry.org/resources/ce-e67bd9aa-1228-4f1e-9f3b-8ec4054c6a59"
+    },
+    {
+      "code": "RANGE_DOCS_CONFLICT",
+      "entity": "https://credentialengineregistry.org/resources/ce-920b922d-39f9-4315-8dbd-92b5e342d1b4",
+      "message": "Referenced entity is a ceasn:CompetencyFramework, which the declared range of ceasn:isChildOf does not include, but Credential Engine's own guidance and examples use exactly this pattern. That entity was read from parity/resolve/resolved_one_document/framework.json, supplied with --resolve.",
+      "property": "ceasn:isChildOf",
+      "rule": {
+        "citation": "Conflicting authoritative sources: the CTDL-ASN schema encoding does not list ceasn:CompetencyFramework in schema:rangeIncludes of ceasn:isChildOf, but the ceasn:isPartOf usage note instructs top-level statements to use isChildOf, and the CTDL Handbook's own examples point isChildOf at the framework. Reported as INFO, not an error, because the sources disagree.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdlasn/schema/encoding/json"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-fa77f89b-53fb-4967-941b-bb3e025b9dc6"
+    },
+    {
+      "code": "REF_RESOLVED_SUPPLIED",
+      "entity": "https://credentialengineregistry.org/resources/ce-920b922d-39f9-4315-8dbd-92b5e342d1b4",
+      "message": "Reference resolves in parity/resolve/resolved_one_document/framework.json, supplied with --resolve, typed [ceasn:CompetencyFramework]. Anything this report says about the referenced entity rests on that document.",
+      "property": "ceasn:isChildOf",
+      "rule": {
+        "citation": "ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.",
+        "retrieved": "-",
+        "url": "docs/adr/0004-resolution-is-additive.md"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-fa77f89b-53fb-4967-941b-bb3e025b9dc6"
+    },
+    {
+      "code": "REF_RESOLVED_SUPPLIED",
+      "entity": "https://credentialengineregistry.org/resources/ce-920b922d-39f9-4315-8dbd-92b5e342d1b4",
+      "message": "Reference resolves in parity/resolve/resolved_one_document/framework.json, supplied with --resolve, typed [ceasn:CompetencyFramework]. Anything this report says about the referenced entity rests on that document.",
+      "property": "ceasn:isPartOf",
+      "rule": {
+        "citation": "ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.",
+        "retrieved": "-",
+        "url": "docs/adr/0004-resolution-is-additive.md"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-fa77f89b-53fb-4967-941b-bb3e025b9dc6"
+    }
+  ],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 3,
+    "UNVERIFIABLE": 1,
+    "WARNING": 0
+  },
+  "text_report": "UNVERIFIABLE REF_OUTSIDE_PAYLOAD  entity=https://credentialengineregistry.org/resources/ce-920b922d-39f9-4315-8dbd-92b5e342d1b4\n    ceasn:creator = https://credentialengineregistry.org/resources/ce-e67bd9aa-1228-4f1e-9f3b-8ec4054c6a59\n    Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied. None of the 1 document supplied with --resolve (parity/resolve/resolved_one_document/framework.json) declares it.\n    rule: ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail. --resolve widens what the run can see, using documents the operator already has; it fetches nothing.\n    source: README.md (Methodology) (retrieved -)\n\nINFO         RANGE_DOCS_CONFLICT  entity=https://credentialengineregistry.org/resources/ce-920b922d-39f9-4315-8dbd-92b5e342d1b4\n    ceasn:isChildOf = https://credentialengineregistry.org/resources/ce-fa77f89b-53fb-4967-941b-bb3e025b9dc6\n    Referenced entity is a ceasn:CompetencyFramework, which the declared range of ceasn:isChildOf does not include, but Credential Engine's own guidance and examples use exactly this pattern. That entity was read from parity/resolve/resolved_one_document/framework.json, supplied with --resolve.\n    rule: Conflicting authoritative sources: the CTDL-ASN schema encoding does not list ceasn:CompetencyFramework in schema:rangeIncludes of ceasn:isChildOf, but the ceasn:isPartOf usage note instructs top-level statements to use isChildOf, and the CTDL Handbook's own examples point isChildOf at the framework. Reported as INFO, not an error, because the sources disagree.\n    source: https://credreg.net/ctdlasn/schema/encoding/json (retrieved 2026-08-06)\n\nINFO         REF_RESOLVED_SUPPLIED  entity=https://credentialengineregistry.org/resources/ce-920b922d-39f9-4315-8dbd-92b5e342d1b4\n    ceasn:isChildOf = https://credentialengineregistry.org/resources/ce-fa77f89b-53fb-4967-941b-bb3e025b9dc6\n    Reference resolves in parity/resolve/resolved_one_document/framework.json, supplied with --resolve, typed [ceasn:CompetencyFramework]. Anything this report says about the referenced entity rests on that document.\n    rule: ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.\n    source: docs/adr/0004-resolution-is-additive.md (retrieved -)\n\nINFO         REF_RESOLVED_SUPPLIED  entity=https://credentialengineregistry.org/resources/ce-920b922d-39f9-4315-8dbd-92b5e342d1b4\n    ceasn:isPartOf = https://credentialengineregistry.org/resources/ce-fa77f89b-53fb-4967-941b-bb3e025b9dc6\n    Reference resolves in parity/resolve/resolved_one_document/framework.json, supplied with --resolve, typed [ceasn:CompetencyFramework]. Anything this report says about the referenced entity rests on that document.\n    rule: ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.\n    source: docs/adr/0004-resolution-is-additive.md (retrieved -)\n\n4 finding(s): 0 ERROR, 0 WARNING, 3 INFO, 1 UNVERIFIABLE"
+}

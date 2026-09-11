@@ -1,0 +1,16 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-d9b71197-99d9-4a0a-8fcf-ae02f6c461df",
+      "@type": "ceterms:Certificate",
+      "ceterms:ctid": "ce-d9b71197-99d9-4a0a-8fcf-ae02f6c461df",
+      "ceterms:name": {
+        "en-US": "A Certificate Checked Against A Directory That Holds No Document"
+      },
+      "ceterms:ownedBy": [
+        "https://credentialengineregistry.org/resources/ce-2253bea8-81d5-4d55-823d-4d19c424d3e0"
+      ]
+    }
+  ]
+}

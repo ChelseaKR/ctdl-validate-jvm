@@ -1,0 +1,12 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-9839354d-0468-4c97-9421-50ff5df63d38",
+      "@type": "ceterms:CredentialOrganization",
+      "ceterms:name": {
+        "en-US": "Declared Only Where The Reference Does Not Look"
+      }
+    }
+  ]
+}
