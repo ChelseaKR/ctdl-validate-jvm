@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import importlib.metadata
 import json
 import os
 import re
@@ -148,6 +149,59 @@ def pinned_version() -> str:
     return found[0]
 
 
+def installed_from_somewhere_else() -> str | None:
+    """Why the imported reference is not the artifact the pin names, or None if it is.
+
+    The version is not enough. The reference's main branch reports the version
+    of its last release -- 0.2.1, measured 2026-09-11 -- so two things that are
+    not the pinned artifact pass a version comparison:
+
+    - a build of main installed from a local path, and
+    - the pinned wheel with a checkout of main ahead of it on ``PYTHONPATH``,
+      where ``importlib.metadata`` reads the installed wheel's version while
+      Python imports the checkout's code.
+
+    Both were measured reaching the corpus with the version check in place: ten
+    ordinary ``differs:`` lines, stopped only by an unrelated census refusal
+    further down. In write mode those ten expectations would already have been
+    rewritten.
+
+    Three facts separate the artifact from both. The metadata is an installer's
+    and not a source tree's -- an installed distribution carries a ``RECORD``,
+    and the ``.egg-info`` a build leaves beside its own source does not, which
+    is exactly what the second case above resolves to. The module imported is
+    the file that distribution recorded. And the distribution came from an index
+    rather than from a direct URL: PEP 610 has an installer record
+    ``direct_url.json`` for a URL, local path, VCS or editable install, and
+    nothing for an install from an index.
+    """
+    try:
+        distribution = importlib.metadata.distribution("ctdl-validate")
+    except importlib.metadata.PackageNotFoundError:
+        return "no ctdl-validate distribution is installed; the module came from a source tree"
+    if distribution.read_text("RECORD") is None:
+        metadata = getattr(distribution, "_path", "an unrecorded location")
+        return (
+            f"its metadata at {metadata} carries no installer RECORD, so it is a source tree's "
+            "own build information rather than an installed distribution"
+        )
+    installed = Path(str(distribution.locate_file("ctdl_validate/__init__.py"))).resolve()
+    imported = Path(ctdl_validate.__file__).resolve()
+    if installed != imported:
+        return (
+            f"ctdl_validate was imported from {imported}, not from the installed distribution "
+            f"at {installed}"
+        )
+    direct = distribution.read_text("direct_url.json")
+    if direct is not None:
+        try:
+            where = str(json.loads(direct).get("url", "an unrecorded location"))
+        except ValueError:
+            where = "a location whose installer record does not parse"
+        return f"the installed distribution came from {where}, not from the package index"
+    return None
+
+
 def require_the_pinned_reference() -> str:
     """Refuse to speak for the reference unless it is the pinned one.
 
@@ -183,6 +237,15 @@ def require_the_pinned_reference() -> str:
             f"{REFERENCE_REQUIREMENTS.relative_to(ROOT)}\n"
             "Moving the pin is a deliberate act: see docs/ROADMAP.md and "
             "parity/PROVENANCE.md."
+        )
+    elsewhere = installed_from_somewhere_else()
+    if elsewhere is not None:
+        raise SystemExit(
+            f"the installed ctdl-validate reports {reference_version}, the pinned version, but "
+            f"{elsewhere}. The reference's main branch reports the version of its last release, "
+            "so the version cannot tell an unreleased build from the pinned artifact.\n"
+            "  python3 -m pip install --force-reinstall --require-hashes -r "
+            f"{REFERENCE_REQUIREMENTS.relative_to(ROOT)}"
         )
     return pinned
 

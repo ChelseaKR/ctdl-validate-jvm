@@ -9,6 +9,20 @@ Nothing has been released. There is no tag and no published artifact.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The pin guard trusted a version string the reference's main branch
+  shares with its last release.** A build of main reports `0.2.1`, so a build
+  installed from a local path -- and the pinned wheel with a checkout of main
+  ahead of it on `PYTHONPATH` -- both passed `require_the_pinned_reference`.
+  Measured on 2026-09-11: each reached the corpus and printed ten ordinary
+  `differs:` lines, stopped only by an unrelated census refusal; in write mode
+  those ten expectations would already have been rewritten. The guard now also
+  requires the imported module to be the installed distribution's own file,
+  and the distribution to carry no PEP 610 `direct_url.json`, which an
+  installer records for every path, URL, VCS or editable install and never for
+  one from an index. A CI step proves both refusals with the pinned artifact.
+
 ### Added
 
 - **`--resolve`, ported** (#35). The reference's `0.2.1` added one thing to its
