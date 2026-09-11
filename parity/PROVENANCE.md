@@ -49,8 +49,8 @@ exercise 11 of the reference's 20 finding codes and a parity corpus that leaves
 `parity/resolve/<fixture>/` holds the documents a fixture is validated *with*,
 the way `--resolve` passes them: `tools/generate_expectations.py` hands the
 reference that directory as one `--resolve` argument, and `ParityTest` hands the
-port the same one. They are synthetic by the same rule as the fixtures, and were
-written for this repository.
+port the same one. They are synthetic by the same rule as the fixtures, and none
+of them is vendored from the sibling.
 
 The reference prints the path of every supplied document inside its findings,
 so the path is part of what the two implementations must agree on. It is spelled

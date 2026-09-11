@@ -90,8 +90,9 @@ public final class ReferencesCheck implements Check {
               + ". Anything this report says about the referenced entity rests on that document.",
           Rules.RESOLUTION_POLICY);
     }
-    // Supplying a directory that holds no document is still supplying nothing:
-    // the prompt stays the prompt, exactly as the reference words it.
+    // Supplying a directory that holds no document is still supplying nothing,
+    // so the sentence stays the one telling a reader to pass the document, exactly
+    // as the reference words it.
     String detail =
         supplied.anyDocuments()
             ? " " + supplied.shortfall()
