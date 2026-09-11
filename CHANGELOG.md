@@ -11,6 +11,22 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Added
 
+- **Checks 6 to 9, ported from the reference's main branch, where no release
+  carries them yet** (#40). Identity (`ID_DECLARED_MORE_THAN_ONCE`),
+  concept-scheme membership (`CONCEPT_OUTSIDE_SCHEME`,
+  `CONCEPT_OUTSIDE_SNAPSHOT`, `CONCEPT_NOT_IDENTIFIED`), language-map shape
+  (`LANGUAGE_MAP_EXPECTED`) and term status (`TERM_UNSTABLE`), with the rule-core
+  changes under them: a repeated `@id` is read as one entity, the union of its
+  declarations, de-duplicated by Python's `==`; the `@graph` envelope's own
+  `@id` is checked; the encodings' concepts, schemes and unstable terms are
+  indexed; and a document with nothing to check says so. Measured by
+  `tools/next_release_parity.py`: 35 of 35 parity documents byte-equal with the
+  reference at `816591ac6364`, and `tools/reference_gap.py` reads 28 of main's 28
+  validation rules, up from 22. ADR 0004 keeps this off `main` until the
+  reference releases it; ADR 0008 is the arrangement.
+- **`tools/next_release_parity.py`**, a temporary, non-gating comparison with
+  the reference at an unreleased commit, run by its own workflow.
+
 - **`--resolve`, ported** (#35). The reference's `0.2.1` added one thing to its
   rule core: a side index of documents the operator already has, so a reference
   into one of them stops being unknowable. It is ported as the reference's
@@ -30,6 +46,16 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Changed
 
+- **`tools/generate_expectations.py` renders the text report through the
+  reference's own session, validation and scope measurement**, in the order
+  its CLI does. Against `main` this is the difference between a
+  document-with-nothing-to-check report that ends by saying so and one that
+  does not; against the pinned 0.2.1, which measures no scope, it moves nothing.
+- **The reference-code census exempts one module by name.** The reference's
+  main branch builds findings in `compare.py` from codes it reads out of a saved
+  report, and the census refused the whole package over it -- so the pin could
+  not have moved to the next release at all. The exemption is for that one site,
+  with its reason, and refuses if the site count changes.
 - **The parity pin moved from `0.1.0` to `0.2.1`.** Regenerating moved exactly
   what `parity/PROVENANCE.md` predicted on 2026-08-29: three expectations on
   message and citation text, `parity/reference-codes.json` from 19 codes to 20,

@@ -1,0 +1,14 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@id": "https://credentialengineregistry.org/graph/f4be274f-f9a4-40ce-8630-24c3151e30cb",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-f4be274f-f9a4-40ce-8630-24c3151e30cb",
+      "@type": "ceterms:Certificate",
+      "ceterms:ctid": "ce-f4be274f-f9a4-40ce-8630-24c3151e30cb",
+      "ceterms:name": {
+        "en-US": "A Graph URI Missing Its ce- Prefix"
+      }
+    }
+  ]
+}

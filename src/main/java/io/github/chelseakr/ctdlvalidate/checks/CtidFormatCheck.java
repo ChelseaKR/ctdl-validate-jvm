@@ -1,5 +1,6 @@
 package io.github.chelseakr.ctdlvalidate.checks;
 
+import io.github.chelseakr.ctdlvalidate.CodePointOrder;
 import io.github.chelseakr.ctdlvalidate.Ctid;
 import io.github.chelseakr.ctdlvalidate.Finding;
 import io.github.chelseakr.ctdlvalidate.Graph;
@@ -9,7 +10,9 @@ import io.github.chelseakr.ctdlvalidate.Session;
 import io.github.chelseakr.ctdlvalidate.Severity;
 import io.github.chelseakr.ctdlvalidate.Value;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Check 1: CTID format.
@@ -25,7 +28,7 @@ public final class CtidFormatCheck implements Check {
   @Override
   public List<Finding> run(Session session) {
     Graph graph = session.graph();
-    List<Finding> findings = new ArrayList<>();
+    List<Finding> findings = new ArrayList<>(envelopeFindings(graph));
     for (Graph.Node node : graph.nodes()) {
       String entity = node.label();
       for (Value value : node.valuesOf(CTID_PROP)) {
@@ -136,6 +139,15 @@ public final class CtidFormatCheck implements Check {
   }
 
   private static List<Finding> registryUriFindings(String entity, String prop, String value) {
+    return registryUriFindings(entity, prop, value, "");
+  }
+
+  /**
+   * @param where appended to the message, so a finding about the envelope says which position its
+   *     URI sits in
+   */
+  private static List<Finding> registryUriFindings(
+      String entity, String prop, String value, String where) {
     String tail = Ctid.registryUriTail(value);
     if (tail == null) {
       return List.of();
@@ -160,8 +172,74 @@ public final class CtidFormatCheck implements Check {
             entity,
             prop,
             value,
-            message,
+            message + where,
             Rules.CTID_URI_STRUCTURE));
+  }
+
+  /** Appended to a finding about the envelope's own {@code @id}, which no node carries. */
+  private static final String ENVELOPE_WHERE =
+      " This URI is the @graph envelope's own @id ($.@id).";
+
+  /**
+   * Check 1 against the {@code @graph} envelope's own {@code @id}: the only position in which a
+   * Registry graph URI appears in a published Registry document. Until the parser kept it, no check
+   * could see it, and {@code REGISTRY_URI_MALFORMED} could not fire on a real Registry payload.
+   */
+  private static List<Finding> envelopeFindings(Graph graph) {
+    String envelopeId = graph.envelopeId();
+    if (envelopeId == null) {
+      return List.of();
+    }
+    List<Finding> findings =
+        new ArrayList<>(registryUriFindings(envelopeId, "@id", envelopeId, ENVELOPE_WHERE));
+    String tail = Ctid.registryUriTail(envelopeId);
+    if (tail == null || !Ctid.classify(tail).matchesShape()) {
+      return findings;
+    }
+    Set<String> declared = ctidsDeclared(graph);
+    if (declared.isEmpty() || declared.contains(tail)) {
+      return findings;
+    }
+    List<String> ordered = new ArrayList<>(declared);
+    ordered.sort(CodePointOrder.COMPARATOR);
+    findings.add(
+        new Finding(
+            "CTID_URI_MISMATCH",
+            Severity.ERROR,
+            envelopeId,
+            "@id",
+            envelopeId,
+            "The @graph envelope's own @id ($.@id) names CTID "
+                + tail
+                + ", which no entity in the payload declares -- neither as ceterms:ctid nor as the"
+                + " CTID portion of its own Registry @id. Declared here: "
+                + String.join(", ", ordered)
+                + ".",
+            Rules.CTID_URI_STRUCTURE));
+    return findings;
+  }
+
+  /**
+   * Every CTID the payload declares, however it declares it: a {@code ceterms:ctid} value, or the
+   * CTID tail of a node's own Registry {@code @id}. A graph URI is compared against this set rather
+   * than against one designated primary entity, because the document does not say which one is.
+   */
+  static Set<String> ctidsDeclared(Graph graph) {
+    Set<String> declared = new HashSet<>();
+    for (Graph.Node node : graph.nodes()) {
+      for (Value value : node.valuesOf(CTID_PROP)) {
+        if (value instanceof Value.Text text && Ctid.classify(text.text()).matchesShape()) {
+          declared.add(text.text());
+        }
+      }
+      if (node.nodeId() != null) {
+        String tail = Ctid.registryUriTail(node.nodeId());
+        if (tail != null && Ctid.classify(tail).matchesShape()) {
+          declared.add(tail);
+        }
+      }
+    }
+    return declared;
   }
 
   /**

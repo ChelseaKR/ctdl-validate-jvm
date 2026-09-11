@@ -13,17 +13,19 @@ import org.junit.jupiter.api.Test;
 /**
  * Check 4's range ruling, where the payload declares the referenced {@code @id} more than once.
  *
- * <p>{@code Graph.byId} keeps whichever declaration the walk reached first, and the walk goes
- * depth-first into an earlier entity's inline objects before it reaches the next top-level entry.
- * So a stub embedded under some unrelated entity can become "the" node for every later resolution
- * of that identifier, and a reference is judged against a class the document never meant. The
- * direction of the resulting mistake is a function of where the stub was written, not of the
- * payload.
+ * <p>The parser used to keep whichever declaration the walk reached first, depth-first into an
+ * earlier entity's inline objects, so a stub embedded under some unrelated entity decided the class
+ * of every later reference to that identifier, and the verdict was a function of array order. The
+ * reference fixed that on its main branch by reading the declarations as one entity -- the union of
+ * their types and properties -- and reporting the merge (its ADR 0005, issue #33), and this port
+ * reads them the same way.
  *
- * <p>What is asserted here is the half that can be fixed inside a port: a range ruling now asks
- * every declaration of the identifier, so a target the document really does declare in range is not
- * an ERROR because a stub was walked first. The mirror case is asserted too, as the limit it is —
- * see {@link #theMirrorCaseIsNotFixedAndTheDocumentsSaySo}.
+ * <p>Asserted here: the ruling no longer depends on {@code @graph} order, in either direction; a
+ * reference no declaration puts in range is still an ERROR; and the case issue #33 called a
+ * suppressed violation -- the first declaration in range, a later one not -- is decided the way the
+ * reference decided it, with no violation, because the document asserts the resource is both
+ * classes and the property admits one of them. That is a ruling the reference made, recorded in its
+ * {@code test_one_declaration_in_range_settles_it_from_either_order}, not one made here.
  */
 class DuplicateIdShadowingTest {
 
@@ -136,41 +138,74 @@ class DuplicateIdShadowingTest {
   }
 
   @Test
-  @DisplayName("every declaration of an @id is reachable, in document order")
-  void everyDeclarationIsReachable() throws IOException {
+  @DisplayName("two declarations of an @id are one node, typed with the union, reachable by both")
+  void twoDeclarationsAreOneNode() throws IOException {
     Graph graph =
         GraphParser.parse(MAPPER.readTree(shadowedDocument("ceterms:Place")), SchemaLoader.load());
 
-    List<Graph.Node> declarations = graph.declarationsOf(SHARED);
-    assertEquals(2, declarations.size(), "both declarations of the shared @id");
+    Graph.Node shared = graph.byId().get(SHARED);
     assertEquals(
-        List.of("ceterms:Organization"),
-        declarations.get(0).types(),
-        "the inline stub is walked first, which is the whole problem");
-    assertEquals(List.of("ceterms:Place"), declarations.get(1).types());
+        List.of("ceterms:Organization", "ceterms:Place"),
+        shared.types(),
+        "the union of both declarations' types, sorted, as the reference merges them");
     assertEquals(
-        graph.byId().get(SHARED),
-        declarations.get(0),
-        "byId still keeps the first declaration; declarationsOf is what sees past it");
-
-    assertEquals(List.of(), graph.declarationsOf(null), "a null @id declares nothing");
+        List.of("$.@graph[0].ceterms:parentOrganization[0]", "$.@graph[1]"),
+        graph.repeatedIds().get(SHARED),
+        "every declaration site, in walk order");
+    assertEquals(shared, graph.byPath().get("$.@graph[1]"));
+    assertEquals(shared, graph.byPath().get("$.@graph[0].ceterms:parentOrganization[0]"));
     assertEquals(
-        List.of(),
-        graph.declarationsOf("https://credentialengineregistry.org/resources/ce-nope"),
-        "an @id the payload does not declare");
+        2, shared.valuesOf("ceterms:name").size(), "both declarations' names survive the merge");
+    assertEquals(
+        1,
+        withCode(validate(shadowedDocument("ceterms:Place")), "ID_DECLARED_MORE_THAN_ONCE").size());
   }
 
   @Test
-  @DisplayName("the mirror case is not fixed, and the documents say so")
-  void theMirrorCaseIsNotFixedAndTheDocumentsSaySo() throws IOException {
-    // The same shadowing in the other direction: the first-walked declaration
-    // satisfies the range and the top-level one does not. A genuine violation
-    // is suppressed, and this port still suppresses it, exactly as the pinned
-    // reference does. Fixing it means raising an ERROR the reference does not
-    // raise, which parity/ahead/ is arranged not to permit and which is a
-    // rule-level ruling for the sibling. Asserted rather than left implicit so
-    // that whoever changes it has to come back through this test, the README
-    // limits, and ADR 0005 together.
+  @DisplayName("the ruling is the same from either @graph order")
+  void theRulingDoesNotDependOnArrayOrder() throws IOException {
+    for (String type : List.of("ceterms:Place", "ceterms:Course")) {
+      String forwards = shadowedDocument(type);
+      // Swap the stub's parent and the top-level declaration, so the top-level
+      // declaration is walked first.
+      com.fasterxml.jackson.databind.node.ObjectNode document =
+          (com.fasterxml.jackson.databind.node.ObjectNode) MAPPER.readTree(forwards);
+      com.fasterxml.jackson.databind.node.ArrayNode graph =
+          (com.fasterxml.jackson.databind.node.ArrayNode) document.get("@graph");
+      com.fasterxml.jackson.databind.JsonNode first = graph.get(0);
+      graph.set(0, graph.get(1));
+      graph.set(1, first);
+      assertEquals(
+          judgements(Validator.validate(MAPPER.readTree(forwards))),
+          judgements(Validator.validate(document)),
+          type + ": the verdict moved with the array order");
+    }
+  }
+
+  /**
+   * Every finding that judges the document. The merge disclosure is excluded: its message names the
+   * paths the declarations sit at, and rearranging the document moves them on purpose.
+   */
+  private static List<Finding> judgements(List<Finding> findings) {
+    List<Finding> judged = new ArrayList<>();
+    for (Finding finding : findings) {
+      if (!"ID_DECLARED_MORE_THAN_ONCE".equals(finding.code())) {
+        judged.add(finding);
+      }
+    }
+    return judged;
+  }
+
+  @Test
+  @DisplayName("one declaration in range settles it, as the reference rules, and the merge is said")
+  void oneDeclarationInRangeSettlesIt() throws IOException {
+    // The case issue #33 called a suppressed violation: the first-walked
+    // declaration is in range and the top-level one is not. The reference's
+    // main branch decided it: the document asserts the resource is both
+    // classes, ceterms:address admits one of them, so there is no violation --
+    // and the merge is disclosed, so a reader who did not mean one entity can
+    // see it was read as one. Recorded upstream as
+    // test_one_declaration_in_range_settles_it_from_either_order.
     String mirrored =
         MIRRORED
             .replace("__ORG_X__", ORG_X)
@@ -186,10 +221,12 @@ class DuplicateIdShadowingTest {
     }
     assertTrue(
         onTheAddress.isEmpty(),
-        "this port still suppresses the mirror case. If that has changed, the README limits and"
-            + " ADR 0005 both describe behaviour this repository no longer has, and parity/ahead/"
-            + " now carries a finding the pinned reference does not. All findings: "
+        "one declaration of the referenced @id is a Place, which ceterms:address admits: "
             + findings);
+    assertEquals(
+        1,
+        withCode(findings, "ID_DECLARED_MORE_THAN_ONCE").size(),
+        "the merge that settled it is disclosed: " + findings);
 
     // Org X's own parentOrganization does report, and must: its value is the
     // inline Place stub itself, resolved by path rather than by @id, and no
