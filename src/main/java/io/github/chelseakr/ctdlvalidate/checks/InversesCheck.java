@@ -4,6 +4,7 @@ import io.github.chelseakr.ctdlvalidate.Finding;
 import io.github.chelseakr.ctdlvalidate.Graph;
 import io.github.chelseakr.ctdlvalidate.Rules;
 import io.github.chelseakr.ctdlvalidate.SchemaIndex;
+import io.github.chelseakr.ctdlvalidate.Session;
 import io.github.chelseakr.ctdlvalidate.Severity;
 import io.github.chelseakr.ctdlvalidate.Value;
 import java.util.ArrayList;
@@ -20,7 +21,9 @@ import java.util.List;
 public final class InversesCheck implements Check {
 
   @Override
-  public List<Finding> run(Graph graph, SchemaIndex schema) {
+  public List<Finding> run(Session session) {
+    Graph graph = session.graph();
+    SchemaIndex schema = session.schema();
     List<Finding> findings = new ArrayList<>();
     for (Graph.Node node : graph.nodes()) {
       if (node.nodeId() == null) {

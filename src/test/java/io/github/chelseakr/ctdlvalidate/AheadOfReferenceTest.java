@@ -633,7 +633,17 @@ class AheadOfReferenceTest {
 
   /** What this Java implementation reports, parsed back for structural comparison. */
   static JsonNode portDocument(String name) throws IOException {
-    return MAPPER.readTree(ParityDocument.render(MAPPER.readTree(FIXTURES.resolve(name).toFile())));
+    // The generator hands the reference a fixture's resolve directory for this
+    // corpus as well as the byte-equality one, so the port is given it here
+    // too; otherwise an ahead fixture validated with supplied documents would
+    // disagree for a reason no disposition describes. There is none today.
+    String stem = name.substring(0, name.length() - ".json".length());
+    List<String> resolve =
+        Files.isDirectory(ROOT.resolve("parity/ahead/resolve").resolve(stem))
+            ? List.of("parity/ahead/resolve/" + stem)
+            : List.of();
+    return MAPPER.readTree(
+        ParityDocument.render(MAPPER.readTree(FIXTURES.resolve(name).toFile()), resolve, ROOT));
   }
 
   private static JsonNode referenceDocument(String name) throws IOException {

@@ -31,7 +31,7 @@ Both implementations are tested against the same corpus, and disagreement is
 a build failure.
 
 ```
-parity/fixtures/     22 CTDL JSON-LD payloads, one per rule and per document shape
+parity/fixtures/     25 CTDL JSON-LD payloads, one per rule and per document shape
 parity/expected/     what ChelseaKR/ctdl-validate reports for each of them
 ```
 
@@ -64,7 +64,7 @@ suite does not depend on anyone remembering to try that by hand.
 The corpus is held to the rule set as well: `ParityTest` fails if any finding
 code the checks can emit has no fixture exercising it, and the set of codes it
 holds them to is parsed out of `src/main/java` rather than read off a list this
-port maintains. All 21 have a fixture: 19 of them here, and the 2 this port
+port maintains. All 22 have a fixture: 20 of them here, and the 2 this port
 emits ahead of the pinned release in `parity/ahead/` below, where byte equality
 is not available to be had.
 
@@ -91,8 +91,9 @@ only the reading of the *document* was wrong:
   reported as out of range because an unrelated stub sharing its `@id` sat
   earlier in the document. Filed upstream as `ChelseaKR/ctdl-validate#33`.
 
-Both are present in `0.2.1`, the current release, as well as in the pinned
-`0.1.0`, measured rather than assumed, so neither entry collapses on a pin bump.
+Both are present in `0.2.1`, the pinned release, as they were in `0.1.0`
+before it, measured rather than assumed: moving the pin between the two changed
+not one byte of `parity/ahead/reference/`.
 
 All five withdraw or downgrade an ERROR the pinned release raises, which is the
 direction that matters: a false ERROR tells a publisher to fix something
@@ -142,15 +143,15 @@ suite fails, which is the instruction to fold the fixture back into
 
 ## What is ported
 
-The five checks, the finding model, the severity contract, and both
-reporters. From
+The five checks, `--resolve`, the finding model, the severity contract, and
+both reporters. From
 [the sibling's rule table](https://github.com/ChelseaKR/ctdl-validate#what-it-checks-v0):
 
 | # | Check | Codes |
 |---|---|---|
 | 1 | CTID grammar on `ceterms:ctid`, on `@id`, and on the tail of every Registry resource/graph URI; `ctid` must match the `@id` tail | `CTID_BARE_UUID`, `CTID_MALFORMED`, `CTID_UPPERCASE`, `CTID_NOT_UUIDV4`, `REGISTRY_URI_MALFORMED`, `CTID_URI_MISMATCH` |
 | 2 | Identifier kind: properties the CTDL context declares as `{"@type": "@id"}` with entity ranges must carry IRIs or blank node ids | `REF_BARE_UUID`, `REF_BARE_CTID`, `REF_NOT_IRI` |
-| 3 | Reference resolution inside the payload; undefined blank nodes are errors, external IRIs are UNVERIFIABLE | `REF_UNRESOLVED_BNODE`, `REF_OUTSIDE_PAYLOAD` |
+| 3 | Reference resolution across the payload and any documents supplied with `--resolve`; undefined blank nodes are errors, an IRI resolved in a supplied document is INFO naming the file, one resolved nowhere is UNVERIFIABLE | `REF_UNRESOLVED_BNODE`, `REF_OUTSIDE_PAYLOAD`, `REF_RESOLVED_SUPPLIED` |
 | 4 | Domain and range per `schema:domainIncludes` / `schema:rangeIncludes`, with `rdfs:subClassOf` closure, plus the wrong-framework `isPartOf` pattern | `DOMAIN_VIOLATION`, `RANGE_VIOLATION`, `ISPARTOF_FRAMEWORK_MISMATCH`, `UNKNOWN_CLASS`, `UNKNOWN_PROPERTY`, `RANGE_DOCS_CONFLICT`, `CONCEPT_RANGE_CONFLICT`, `VERSION_RANGE_CONFLICT` |
 | 5 | Inverse consistency for pairs the schema declares with `owl:inverseOf` | `INVERSE_MISMATCH`, `INVERSE_ONE_DIRECTION` |
 
@@ -165,13 +166,17 @@ see. Never a pass, never a fail.
 - **The CLI surface.** The reference has flags, packaging, a published
   distribution, and a browser build. Here there is one thin entry point,
   enough to run the validator over a file and to emit the document the parity
-  suite compares. Porting a CLI would demonstrate nothing the rules do not.
+  suite compares. `--resolve` is the one flag ported, because it changes what
+  the rules conclude rather than how they are invoked; porting the rest would
+  demonstrate nothing the rules do not.
 - **The `extract` subcommand.** It fetches a web page. This repository makes
   no network calls at all, which is a property worth keeping whole
   (`OfflineGuaranteeTest`), and extraction is a much larger surface with none
   of the parity payoff.
-- **Nothing from the rule set itself.** All five checks and all 21 codes are
-  here. No rule was dropped as unportable.
+- **Nothing from the pinned release's rule set.** All five checks and all 22
+  codes are here. No rule was dropped as unportable. The reference's `main`
+  carries four checks and six codes that no release has yet; they are what the
+  next pin bump costs, and `tools/reference_gap.py` names them.
 
 ## Running it
 
@@ -197,6 +202,17 @@ Exit code 0 when there are no ERROR findings, 1 when there are, 2 when the
 input cannot be read at all. `--format json` produces the machine-readable
 report; `--format parity` produces exactly the document in
 `parity/expected/`, so a divergence can be diffed by hand.
+
+`--resolve PATH`, repeatable, supplies further documents, or directories of
+them, whose entities a reference can resolve against, exactly as the
+reference's flag does: read from disk and never fetched, never themselves
+validated, and every resolution names the file it came from. A reference that
+resolves nowhere is still UNVERIFIABLE; supplying a document can turn a
+non-answer into an answer and never into a failure.
+
+```
+$ ctdl-validate-jvm --resolve parity/resolve/resolved_one_document parity/fixtures/resolved_one_document.json
+```
 
 (`./gradlew run --args="<file>"` works too, but a payload with an ERROR
 finding makes the validator exit 1, which Gradle then reports as a failed
@@ -357,7 +373,7 @@ by reading, which is the argument for having it.
   suppression, so it cannot change without this paragraph changing with it. See
   [ADR 0005](docs/adr/0005-a-disposition-may-be-gated-on-the-payload.md).
 
-- **The parity corpus is 22 payloads, not a proof.** It covers 19 of the 21
+- **The parity corpus is 25 payloads, not a proof.** It covers 20 of the 22
   finding codes and every document shape the parser accepts, and it was
   extended beyond the sibling's own fixtures for that reason; the other 2 codes
   are the ones this port emits ahead of the pinned release, covered by
@@ -466,7 +482,7 @@ treating it as the loud failure an unregistered repository is.
 | Internationalization | N/A: a developer-facing JVM validator whose operator output is English only, matching the reference implementation it is compared against byte for byte. Translating a message here would make the two implementations disagree, so it is a change to the sibling first, if ever. Recorded, with what is and is not pinned about encoding, in [`docs/I18N.md`](docs/I18N.md) |
 | AI Evaluation | N/A: a deterministic validator with no model component. There is no model anywhere in this repository and there will not be one, and the README says so in its first ten lines |
 | Documentation | Applies: README, [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), CHANGELOG, CITATION.cff, the ADR log under [`docs/adr/`](docs/adr/), the metrics ledger and plan in [`docs/ROADMAP.md`](docs/ROADMAP.md), the audit record in [`docs/RESPONSIBLE-TECH-AUDITS.md`](docs/RESPONSIBLE-TECH-AUDITS.md), the internationalization declaration in [`docs/I18N.md`](docs/I18N.md), the fixture provenance table in `parity/PROVENANCE.md`, and the vendored-source record in `src/main/resources/vendor/SOURCES.md`. The counts published by the documents that describe this repository as it is now -- this README, [`CONTRIBUTING.md`](CONTRIBUTING.md), `CITATION.cff`, [`docs/ROADMAP.md`](docs/ROADMAP.md), `parity/PROVENANCE.md` and `SchemaIndex`'s Javadoc -- are derived from the repository and gated by `PublishedFiguresTest`, on the pattern `VendorIntegrityTest` set, so a figure corrected in one file cannot be left stale in another. The ADR log and the CHANGELOG sit outside that gate deliberately: both are dated records of what was true when they were written, and holding them to today's count would rewrite the record rather than maintain it. A figure in them that was never true is a defect and is fixed by hand |
-| Quality & Metrics | Applies: the merge-blocking floors are byte-equality against the reference over every fixture, 85% branch coverage, zero SpotBugs findings, a clean formatter, and the offline guarantee. Every gate is in the ledger in [`docs/ROADMAP.md`](docs/ROADMAP.md), marked AUTO or REVIEW, with the reason the coverage floor is 85% and not the 90% a published library is asked for. The parity corpus is 22 payloads and is recorded above as evidence, not a proof |
+| Quality & Metrics | Applies: the merge-blocking floors are byte-equality against the reference over every fixture, 85% branch coverage, zero SpotBugs findings, a clean formatter, and the offline guarantee. Every gate is in the ledger in [`docs/ROADMAP.md`](docs/ROADMAP.md), marked AUTO or REVIEW, with the reason the coverage floor is 85% and not the 90% a published library is asked for. The parity corpus is 25 payloads and is recorded above as evidence, not a proof |
 | AI Development Measurement | Applies: no tool-usage counter is collected and none gates a merge. The Disclosure section below records that the port was written with AI assistance and reviewed by a human; the gate is what a change clears regardless of how it was authored |
 | Incident Response | Applies: no incident to date, and nothing is released for one to reach. Vulnerabilities go through the path in [`SECURITY.md`](SECURITY.md), and a postmortem will be committed under `docs/incidents/` when there is one to write |
 | Data Governance | Applies: the validator reads a file you give it, keeps nothing, and makes no network call. Parity fixtures are synthetic by rule, with generated identifiers and invented names and nothing copied from a real organization or from the Credential Registry. The vendored CTDL and CTDL-ASN snapshots retain their origin and retrieval date in `src/main/resources/vendor/SOURCES.md` |

@@ -1,0 +1,4 @@
+This directory is passed to --resolve and deliberately holds no .json file.
+The reference reads only the .json files directly inside a directory, so it
+supplies nothing, and the finding still says to pass the document with
+--resolve. See parity/PROVENANCE.md.

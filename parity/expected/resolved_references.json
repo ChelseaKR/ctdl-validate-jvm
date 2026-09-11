@@ -1,0 +1,143 @@
+{
+  "error": null,
+  "exit_code": 1,
+  "findings": [
+    {
+      "code": "ISPARTOF_FRAMEWORK_MISMATCH",
+      "entity": "https://credentialengineregistry.org/resources/ce-1268f52b-6d6c-4128-bc50-211edbc32f48",
+      "message": "This competency's isPartOf identifier matches no CompetencyFramework in this payload or the documents supplied, although this run can see one (https://credentialengineregistry.org/resources/ce-417cf79c-29ee-4c0e-9f4e-2d4558d4de3d). If this competency belongs to that framework, this identifier is the wrong one.",
+      "property": "ceasn:isPartOf",
+      "rule": {
+        "citation": "ceasn:isPartOf is defined as \"Competency framework that this competency is a part of\" (CTDL-ASN schema), and the CTDL Handbook states: \"In the Registry, Competency Frameworks and their member Competencies are published in the same JSON-LD Graph\". A member competency whose isPartOf identifier matches no framework in its own payload very likely carries the wrong identifier.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/handbook"
+      },
+      "severity": "WARNING",
+      "value": "https://credentialengineregistry.org/resources/ce-259b6182-c723-4880-a1b5-3d9d8e932c80"
+    },
+    {
+      "code": "REF_OUTSIDE_PAYLOAD",
+      "entity": "https://credentialengineregistry.org/resources/ce-1268f52b-6d6c-4128-bc50-211edbc32f48",
+      "message": "Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied. None of the 2 documents supplied with --resolve (parity/resolve/resolved_references/a_organizations.json, parity/resolve/resolved_references/b_framework_and_certifications.json) declares it.",
+      "property": "ceasn:isPartOf",
+      "rule": {
+        "citation": "ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail. --resolve widens what the run can see, using documents the operator already has; it fetches nothing.",
+        "retrieved": "-",
+        "url": "README.md (Methodology)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "https://credentialengineregistry.org/resources/ce-259b6182-c723-4880-a1b5-3d9d8e932c80"
+    },
+    {
+      "code": "REF_RESOLVED_SUPPLIED",
+      "entity": "https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "message": "Reference resolves in parity/resolve/resolved_references/a_organizations.json, supplied with --resolve, carrying no class this schema snapshot declares. Anything this report says about the referenced entity rests on that document.",
+      "property": "ceterms:accreditedBy",
+      "rule": {
+        "citation": "ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.",
+        "retrieved": "-",
+        "url": "docs/adr/0004-resolution-is-additive.md"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-e91f16c7-e0f3-4c16-a4e0-244870b1fb7c"
+    },
+    {
+      "code": "REF_OUTSIDE_PAYLOAD",
+      "entity": "https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "message": "Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied. None of the 2 documents supplied with --resolve (parity/resolve/resolved_references/a_organizations.json, parity/resolve/resolved_references/b_framework_and_certifications.json) declares it.",
+      "property": "ceterms:approvedBy",
+      "rule": {
+        "citation": "ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail. --resolve widens what the run can see, using documents the operator already has; it fetches nothing.",
+        "retrieved": "-",
+        "url": "README.md (Methodology)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "https://credentialengineregistry.org/resources/ce-9839354d-0468-4c97-9421-50ff5df63d38"
+    },
+    {
+      "code": "REF_RESOLVED_SUPPLIED",
+      "entity": "https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "message": "Reference resolves in parity/resolve/resolved_references/a_organizations.json, supplied with --resolve, typed [ceterms:Place]. Anything this report says about the referenced entity rests on that document.",
+      "property": "ceterms:availableAt",
+      "rule": {
+        "citation": "ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.",
+        "retrieved": "-",
+        "url": "docs/adr/0004-resolution-is-additive.md"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-27056b38-ac62-43e7-8c07-e52d236ac721"
+    },
+    {
+      "code": "RANGE_VIOLATION",
+      "entity": "https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "message": "Referenced entity https://credentialengineregistry.org/resources/ce-bd6f4e65-25ea-4591-89e2-274335fecd3d is typed [ceterms:Certification], which is outside the declared range of ceterms:offeredBy. That entity was read from parity/resolve/resolved_references/b_framework_and_certifications.json, supplied with --resolve.",
+      "property": "ceterms:offeredBy",
+      "rule": {
+        "citation": "ceterms:offeredBy declares schema:rangeIncludes [ceterms:CredentialOrganization, ceterms:Organization, ceterms:QACredentialOrganization] in the schema encoding; the referenced entity's class is not among them or their subclasses.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/schema/encoding/json"
+      },
+      "severity": "ERROR",
+      "value": "https://credentialengineregistry.org/resources/ce-bd6f4e65-25ea-4591-89e2-274335fecd3d"
+    },
+    {
+      "code": "REF_RESOLVED_SUPPLIED",
+      "entity": "https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "message": "Reference resolves in parity/resolve/resolved_references/b_framework_and_certifications.json, supplied with --resolve, typed [ceterms:Certification]. Anything this report says about the referenced entity rests on that document.",
+      "property": "ceterms:offeredBy",
+      "rule": {
+        "citation": "ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.",
+        "retrieved": "-",
+        "url": "docs/adr/0004-resolution-is-additive.md"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-bd6f4e65-25ea-4591-89e2-274335fecd3d"
+    },
+    {
+      "code": "REF_RESOLVED_SUPPLIED",
+      "entity": "https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "message": "Reference resolves in parity/resolve/resolved_references/a_organizations.json, supplied with --resolve, typed [ceterms:CredentialOrganization]. Anything this report says about the referenced entity rests on that document.",
+      "property": "ceterms:ownedBy",
+      "rule": {
+        "citation": "ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.",
+        "retrieved": "-",
+        "url": "docs/adr/0004-resolution-is-additive.md"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-62bd81d9-f961-44cd-9922-e8c29e51673e"
+    },
+    {
+      "code": "REF_RESOLVED_SUPPLIED",
+      "entity": "https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "message": "Reference resolves in parity/resolve/resolved_references/a_organizations.json, supplied with --resolve, typed [ceterms:CredentialOrganization]. Anything this report says about the referenced entity rests on that document.",
+      "property": "ceterms:recognizedBy",
+      "rule": {
+        "citation": "ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.",
+        "retrieved": "-",
+        "url": "docs/adr/0004-resolution-is-additive.md"
+      },
+      "severity": "INFO",
+      "value": "https://credentialengineregistry.org/resources/ce-b5d13a29-e91e-4c3b-a63a-51b9711222fd"
+    },
+    {
+      "code": "REF_UNRESOLVED_BNODE",
+      "entity": "https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9",
+      "message": "Blank node reference is not defined anywhere in this payload. A blank node identifier only has meaning inside the graph that declares it, so this reference cannot identify anything.",
+      "property": "ceterms:regulatedBy",
+      "rule": {
+        "citation": "CTDL All Schemas Handbook, \"Blank Node Identifier\": a blank node \"is only identified, referenced, or retrievable in the context of the graph in which it is found\". A blank node identifier that its own payload does not define identifies nothing.",
+        "retrieved": "2026-08-06",
+        "url": "https://credreg.net/ctdl/handbook"
+      },
+      "severity": "ERROR",
+      "value": "_:b0"
+    }
+  ],
+  "summary": {
+    "ERROR": 2,
+    "INFO": 5,
+    "UNVERIFIABLE": 2,
+    "WARNING": 1
+  },
+  "text_report": "WARNING      ISPARTOF_FRAMEWORK_MISMATCH  entity=https://credentialengineregistry.org/resources/ce-1268f52b-6d6c-4128-bc50-211edbc32f48\n    ceasn:isPartOf = https://credentialengineregistry.org/resources/ce-259b6182-c723-4880-a1b5-3d9d8e932c80\n    This competency's isPartOf identifier matches no CompetencyFramework in this payload or the documents supplied, although this run can see one (https://credentialengineregistry.org/resources/ce-417cf79c-29ee-4c0e-9f4e-2d4558d4de3d). If this competency belongs to that framework, this identifier is the wrong one.\n    rule: ceasn:isPartOf is defined as \"Competency framework that this competency is a part of\" (CTDL-ASN schema), and the CTDL Handbook states: \"In the Registry, Competency Frameworks and their member Competencies are published in the same JSON-LD Graph\". A member competency whose isPartOf identifier matches no framework in its own payload very likely carries the wrong identifier.\n    source: https://credreg.net/ctdl/handbook (retrieved 2026-08-06)\n\nUNVERIFIABLE REF_OUTSIDE_PAYLOAD  entity=https://credentialengineregistry.org/resources/ce-1268f52b-6d6c-4128-bc50-211edbc32f48\n    ceasn:isPartOf = https://credentialengineregistry.org/resources/ce-259b6182-c723-4880-a1b5-3d9d8e932c80\n    Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied. None of the 2 documents supplied with --resolve (parity/resolve/resolved_references/a_organizations.json, parity/resolve/resolved_references/b_framework_and_certifications.json) declares it.\n    rule: ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail. --resolve widens what the run can see, using documents the operator already has; it fetches nothing.\n    source: README.md (Methodology) (retrieved -)\n\nINFO         REF_RESOLVED_SUPPLIED  entity=https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9\n    ceterms:accreditedBy = https://credentialengineregistry.org/resources/ce-e91f16c7-e0f3-4c16-a4e0-244870b1fb7c\n    Reference resolves in parity/resolve/resolved_references/a_organizations.json, supplied with --resolve, carrying no class this schema snapshot declares. Anything this report says about the referenced entity rests on that document.\n    rule: ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.\n    source: docs/adr/0004-resolution-is-additive.md (retrieved -)\n\nUNVERIFIABLE REF_OUTSIDE_PAYLOAD  entity=https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9\n    ceterms:approvedBy = https://credentialengineregistry.org/resources/ce-9839354d-0468-4c97-9421-50ff5df63d38\n    Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied. None of the 2 documents supplied with --resolve (parity/resolve/resolved_references/a_organizations.json, parity/resolve/resolved_references/b_framework_and_certifications.json) declares it.\n    rule: ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail. --resolve widens what the run can see, using documents the operator already has; it fetches nothing.\n    source: README.md (Methodology) (retrieved -)\n\nINFO         REF_RESOLVED_SUPPLIED  entity=https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9\n    ceterms:availableAt = https://credentialengineregistry.org/resources/ce-27056b38-ac62-43e7-8c07-e52d236ac721\n    Reference resolves in parity/resolve/resolved_references/a_organizations.json, supplied with --resolve, typed [ceterms:Place]. Anything this report says about the referenced entity rests on that document.\n    rule: ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.\n    source: docs/adr/0004-resolution-is-additive.md (retrieved -)\n\nERROR        RANGE_VIOLATION  entity=https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9\n    ceterms:offeredBy = https://credentialengineregistry.org/resources/ce-bd6f4e65-25ea-4591-89e2-274335fecd3d\n    Referenced entity https://credentialengineregistry.org/resources/ce-bd6f4e65-25ea-4591-89e2-274335fecd3d is typed [ceterms:Certification], which is outside the declared range of ceterms:offeredBy. That entity was read from parity/resolve/resolved_references/b_framework_and_certifications.json, supplied with --resolve.\n    rule: ceterms:offeredBy declares schema:rangeIncludes [ceterms:CredentialOrganization, ceterms:Organization, ceterms:QACredentialOrganization] in the schema encoding; the referenced entity's class is not among them or their subclasses.\n    source: https://credreg.net/ctdl/schema/encoding/json (retrieved 2026-08-06)\n\nINFO         REF_RESOLVED_SUPPLIED  entity=https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9\n    ceterms:offeredBy = https://credentialengineregistry.org/resources/ce-bd6f4e65-25ea-4591-89e2-274335fecd3d\n    Reference resolves in parity/resolve/resolved_references/b_framework_and_certifications.json, supplied with --resolve, typed [ceterms:Certification]. Anything this report says about the referenced entity rests on that document.\n    rule: ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.\n    source: docs/adr/0004-resolution-is-additive.md (retrieved -)\n\nINFO         REF_RESOLVED_SUPPLIED  entity=https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9\n    ceterms:ownedBy = https://credentialengineregistry.org/resources/ce-62bd81d9-f961-44cd-9922-e8c29e51673e\n    Reference resolves in parity/resolve/resolved_references/a_organizations.json, supplied with --resolve, typed [ceterms:CredentialOrganization]. Anything this report says about the referenced entity rests on that document.\n    rule: ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.\n    source: docs/adr/0004-resolution-is-additive.md (retrieved -)\n\nINFO         REF_RESOLVED_SUPPLIED  entity=https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9\n    ceterms:recognizedBy = https://credentialengineregistry.org/resources/ce-b5d13a29-e91e-4c3b-a63a-51b9711222fd\n    Reference resolves in parity/resolve/resolved_references/a_organizations.json, supplied with --resolve, typed [ceterms:CredentialOrganization]. Anything this report says about the referenced entity rests on that document.\n    rule: ctdl-validate policy: --resolve is additive and is reported. A reference that resolves in a document supplied on the command line is checked against the property's declared range exactly as an in-payload reference is, and the document it resolved in is named, because every judgement that follows rests on that document having been supplied.\n    source: docs/adr/0004-resolution-is-additive.md (retrieved -)\n\nERROR        REF_UNRESOLVED_BNODE  entity=https://credentialengineregistry.org/resources/ce-3a953987-f8f7-45a1-b09b-362cce7ac7b9\n    ceterms:regulatedBy = _:b0\n    Blank node reference is not defined anywhere in this payload. A blank node identifier only has meaning inside the graph that declares it, so this reference cannot identify anything.\n    rule: CTDL All Schemas Handbook, \"Blank Node Identifier\": a blank node \"is only identified, referenced, or retrievable in the context of the graph in which it is found\". A blank node identifier that its own payload does not define identifies nothing.\n    source: https://credreg.net/ctdl/handbook (retrieved 2026-08-06)\n\n10 finding(s): 2 ERROR, 1 WARNING, 5 INFO, 2 UNVERIFIABLE"
+}

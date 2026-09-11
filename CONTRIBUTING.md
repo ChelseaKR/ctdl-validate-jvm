@@ -101,6 +101,11 @@ corpus misses.
    `PROVENANCE.md` to the directory listing, so a new fixture moves the prose
    too.
 
+A fixture that needs documents supplied with `--resolve` gets them in
+`parity/resolve/<fixture name without .json>/`, which both implementations are
+handed as one `--resolve` argument. `ParityTest` fails if that directory has no
+fixture, or if its documents change nothing about what the fixture reports.
+
 ## Knowing what the port is behind by
 
 `tools/reference_gap.py` reads this port's finding codes out of
@@ -114,7 +119,7 @@ python3 tools/reference_gap.py --reference ../ctdl-validate
 python3 tools/reference_gap.py --reference ../ctdl-validate --ref v0.2.1 --json
 ```
 
-Read it before proposing a pin bump: the count is what ROADMAP section 2 costs.
+Read it before proposing a pin bump: the count is what the next one costs.
 `parity/PROVENANCE.md` records the current figures and what they mean.
 
 It is not part of `verify` and must not become part of it. It needs a checkout

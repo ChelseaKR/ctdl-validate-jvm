@@ -42,6 +42,20 @@ class ParityTest {
   private static final Path FIXTURES = ROOT.resolve("parity/fixtures");
   private static final Path EXPECTED = ROOT.resolve("parity/expected");
 
+  /**
+   * Documents a fixture is validated with, one directory per fixture, named for it. The generator
+   * hands the reference the same directory, spelled the same way, because the reference prints the
+   * path of every supplied document inside its findings.
+   */
+  private static final String RESOLVE = "parity/resolve";
+
+  /**
+   * The one fixture whose resolve directory is meant to change nothing: it holds no {@code .json}
+   * file, so the reference supplies no document from it and still prompts for {@code --resolve}.
+   * Every other resolve directory must change what the fixture reports, or nothing is reading it.
+   */
+  private static final String INERT_RESOLVE_DIRECTORY = "resolved_nothing_supplied";
+
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   static Stream<String> fixtureNames() throws IOException {
@@ -60,7 +74,9 @@ class ParityTest {
   @DisplayName("Java and Python agree finding-for-finding")
   void agreesWithTheReferenceImplementation(String name) throws IOException {
     String expected = Files.readString(EXPECTED.resolve(name), StandardCharsets.UTF_8);
-    String actual = ParityDocument.render(MAPPER.readTree(FIXTURES.resolve(name).toFile()));
+    String actual =
+        ParityDocument.render(
+            MAPPER.readTree(FIXTURES.resolve(name).toFile()), resolveFor(name), ROOT);
     assertEquals(
         expected,
         actual,
@@ -87,6 +103,58 @@ class ParityTest {
         expectations,
         "every fixture needs an expectation and every expectation needs a fixture; run"
             + " tools/generate_expectations.py");
+  }
+
+  /** The {@code --resolve} argument a fixture is validated with, as the generator spells it. */
+  static List<String> resolveFor(String name) {
+    String stem = name.substring(0, name.length() - ".json".length());
+    return Files.isDirectory(ROOT.resolve(RESOLVE).resolve(stem))
+        ? List.of(RESOLVE + "/" + stem)
+        : List.of();
+  }
+
+  @Test
+  @DisplayName("every resolve directory belongs to a fixture, and each one is read")
+  void everyResolveDirectoryIsRead() throws IOException {
+    Set<String> stems = new TreeSet<>();
+    for (String name : fixtureNames().toList()) {
+      stems.add(name.substring(0, name.length() - ".json".length()));
+    }
+    Set<String> directories = new TreeSet<>();
+    try (Stream<Path> entries = Files.list(ROOT.resolve(RESOLVE))) {
+      entries
+          .filter(Files::isDirectory)
+          .forEach(entry -> directories.add(String.valueOf(entry.getFileName())));
+    }
+    Set<String> orphans = new TreeSet<>(directories);
+    orphans.removeAll(stems);
+    assertEquals(Set.of(), orphans, "a resolve directory with no fixture is read by nothing");
+    assertTrue(
+        directories.size() > 1,
+        "no fixture is validated with supplied documents, so the corpus never compares --resolve");
+    assertTrue(
+        directories.contains(INERT_RESOLVE_DIRECTORY),
+        "the inert directory this suite exempts is gone; delete the exemption with it");
+
+    // A directory the port silently failed to read would leave the fixture
+    // byte-equal to its expectation only if the expectation had been generated
+    // without it too. Hold each one to making a difference, so "the port read
+    // it" is asserted rather than inferred from agreement.
+    for (String stem : directories) {
+      if (INERT_RESOLVE_DIRECTORY.equals(stem)) {
+        continue;
+      }
+      JsonNode payload = MAPPER.readTree(FIXTURES.resolve(stem + ".json").toFile());
+      assertNotEquals(
+          ParityDocument.render(payload),
+          ParityDocument.render(payload, resolveFor(stem + ".json"), ROOT),
+          stem + ": supplying its resolve directory changed nothing, so nothing is reading it");
+    }
+    JsonNode inert = MAPPER.readTree(FIXTURES.resolve(INERT_RESOLVE_DIRECTORY + ".json").toFile());
+    assertEquals(
+        ParityDocument.render(inert),
+        ParityDocument.render(inert, resolveFor(INERT_RESOLVE_DIRECTORY + ".json"), ROOT),
+        "a directory holding no .json file supplied something");
   }
 
   @Test

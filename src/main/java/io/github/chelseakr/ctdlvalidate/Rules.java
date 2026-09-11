@@ -88,8 +88,26 @@ public final class Rules {
       new Rule(
           "ctdl-validate policy: no network access at validation time. A reference that points"
               + " outside the submitted payload cannot be confirmed or denied, so it is reported"
-              + " UNVERIFIABLE, never as a pass or a fail.",
+              + " UNVERIFIABLE, never as a pass or a fail. --resolve widens what the run can see,"
+              + " using documents the operator already has; it fetches nothing.",
           "README.md (Methodology)",
+          "-");
+
+  /**
+   * Why a reference resolved in a supplied document is reported rather than silently accepted.
+   *
+   * <p>The URL is the reference implementation's own ADR, quoted as it quotes it, like every
+   * citation here. It is not this repository's {@code docs/adr/0004}, which is about something else
+   * and happens to share the number.
+   */
+  public static final Rule RESOLUTION_POLICY =
+      new Rule(
+          "ctdl-validate policy: --resolve is additive and is reported. A reference that resolves"
+              + " in a document supplied on the command line is checked against the property's"
+              + " declared range exactly as an in-payload reference is, and the document it"
+              + " resolved in is named, because every judgement that follows rests on that"
+              + " document having been supplied.",
+          "docs/adr/0004-resolution-is-additive.md",
           "-");
 
   public static final Rule ISCHILDOF_RANGE_CONFLICT =

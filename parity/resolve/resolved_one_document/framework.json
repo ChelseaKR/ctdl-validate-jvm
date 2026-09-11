@@ -1,0 +1,13 @@
+{
+  "@context": "https://credreg.net/ctdlasn/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-fa77f89b-53fb-4967-941b-bb3e025b9dc6",
+      "@type": "ceasn:CompetencyFramework",
+      "ceterms:ctid": "ce-fa77f89b-53fb-4967-941b-bb3e025b9dc6",
+      "ceasn:name": {
+        "en-US": "The Framework, Supplied On Its Own"
+      }
+    }
+  ]
+}

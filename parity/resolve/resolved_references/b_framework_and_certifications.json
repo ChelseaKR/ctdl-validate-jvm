@@ -1,0 +1,27 @@
+{
+  "@context": "https://credreg.net/ctdlasn/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-417cf79c-29ee-4c0e-9f4e-2d4558d4de3d",
+      "@type": "ceasn:CompetencyFramework",
+      "ceterms:ctid": "ce-417cf79c-29ee-4c0e-9f4e-2d4558d4de3d",
+      "ceasn:name": {
+        "en-US": "A Framework The Competency Does Not Name"
+      }
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-bd6f4e65-25ea-4591-89e2-274335fecd3d",
+      "@type": "ceterms:Certification",
+      "ceterms:name": {
+        "en-US": "A Certification Where An Organization Belongs"
+      }
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-b5d13a29-e91e-4c3b-a63a-51b9711222fd",
+      "@type": "ceterms:Certification",
+      "ceterms:name": {
+        "en-US": "The Second Declaration, Read Later And Ignored"
+      }
+    }
+  ]
+}

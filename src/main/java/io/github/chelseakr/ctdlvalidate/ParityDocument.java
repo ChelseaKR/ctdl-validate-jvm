@@ -1,6 +1,7 @@
 package io.github.chelseakr.ctdlvalidate;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,12 +23,23 @@ public final class ParityDocument {
 
   private ParityDocument() {}
 
-  /** Builds the parity document for a decoded payload. */
+  /** Builds the parity document for a decoded payload, with nothing supplied. */
   public static Map<String, Object> of(JsonNode data) {
+    return of(data, List.of(), Path.of(""));
+  }
+
+  /**
+   * Builds the parity document for a decoded payload and the documents supplied with it.
+   *
+   * @param resolve paths as they would be given to {@code --resolve}; they are printed in findings
+   *     exactly as given, so the reference must be given the same spelling
+   * @param base what a relative {@code resolve} path is read against
+   */
+  public static Map<String, Object> of(JsonNode data, List<String> resolve, Path base) {
     Map<String, Object> document = new LinkedHashMap<>();
     List<Finding> findings;
     try {
-      findings = Validator.validate(data);
+      findings = Validator.validate(Validator.session(data, resolve, base));
     } catch (Graph.DocumentException exception) {
       // The CLI prints the message to stderr and nothing to stdout, so there is
       // no text report to compare in this case.
@@ -52,6 +64,16 @@ public final class ParityDocument {
 
   /** The parity document, rendered the way the reference implementation renders JSON. */
   public static String render(JsonNode data) {
-    return CanonicalJson.write(of(data)) + "\n";
+    return render(of(data));
+  }
+
+  /** The parity document for a payload and its supplied documents, rendered. */
+  public static String render(JsonNode data, List<String> resolve, Path base) {
+    return render(of(data, resolve, base));
+  }
+
+  /** An already-built parity document, rendered. */
+  public static String render(Map<String, Object> document) {
+    return CanonicalJson.write(document) + "\n";
   }
 }

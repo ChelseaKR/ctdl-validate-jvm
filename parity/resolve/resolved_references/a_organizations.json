@@ -1,0 +1,43 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-62bd81d9-f961-44cd-9922-e8c29e51673e",
+      "@type": "ceterms:CredentialOrganization",
+      "ceterms:ctid": "62bd81d9-f961-44cd-9922-e8c29e51673e",
+      "ceterms:name": {
+        "en-US": "A Supplied Organization With A Bare UUID For A CTID"
+      },
+      "ceterms:availableAt": [
+        {
+          "@id": "https://credentialengineregistry.org/resources/ce-27056b38-ac62-43e7-8c07-e52d236ac721",
+          "@type": "ceterms:Place",
+          "ceterms:name": {
+            "en-US": "A Place Declared Inline"
+          }
+        }
+      ]
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-e91f16c7-e0f3-4c16-a4e0-244870b1fb7c",
+      "@type": "schema:Organization",
+      "ceterms:name": {
+        "en-US": "An Entity Typed Only Outside CTDL"
+      }
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-b5d13a29-e91e-4c3b-a63a-51b9711222fd",
+      "@type": "ceterms:CredentialOrganization",
+      "ceterms:name": {
+        "en-US": "The First Declaration Of A Shared Identifier"
+      }
+    },
+    {
+      "@id": "_:b0",
+      "@type": "ceterms:Certification",
+      "ceterms:name": {
+        "en-US": "A Blank Node Typed Out Of Range, Meaning Nothing Outside This File"
+      }
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import io.github.chelseakr.ctdlvalidate.Finding;
 import io.github.chelseakr.ctdlvalidate.Graph;
 import io.github.chelseakr.ctdlvalidate.PythonRepr;
 import io.github.chelseakr.ctdlvalidate.Rules;
-import io.github.chelseakr.ctdlvalidate.SchemaIndex;
+import io.github.chelseakr.ctdlvalidate.Session;
 import io.github.chelseakr.ctdlvalidate.Severity;
 import io.github.chelseakr.ctdlvalidate.Value;
 import java.util.ArrayList;
@@ -23,7 +23,8 @@ public final class CtidFormatCheck implements Check {
   private static final String CTID_PROP = "ceterms:ctid";
 
   @Override
-  public List<Finding> run(Graph graph, SchemaIndex schema) {
+  public List<Finding> run(Session session) {
+    Graph graph = session.graph();
     List<Finding> findings = new ArrayList<>();
     for (Graph.Node node : graph.nodes()) {
       String entity = node.label();
