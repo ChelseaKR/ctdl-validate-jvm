@@ -3,7 +3,7 @@
 
 `FindingCodeCensusTest` answers that against the **pinned release**, which is the
 right question for the parity corpus and the wrong one for planning. The pin is
-`0.1.0`; the reference has released twice since and moved on further than that on
+`0.2.1`, the newest release, and the reference has moved on further than that on
 `main`. So the census is green, correctly, over a port that is behind by rules
 nothing in this repository counts.
 
@@ -43,8 +43,9 @@ Usage:
 Exit code is 0 when the two rule sets were measured -- a gap is data, not a
 verdict, the same posture `diff` takes in the sibling -- and 2 when they could
 not be. There is deliberately no third code for "there is a gap": this port being
-behind the reference's `main` is the expected state, declared in ROADMAP section
-2, and a harness that went red for it would be red forever.
+behind the reference's `main` is the expected state -- the pin can only move to a
+release, and `main` is ahead of every release -- and a harness that went red for it
+would be red forever.
 """
 
 from __future__ import annotations
@@ -319,8 +320,9 @@ def render(gap: Gap) -> str:
     lines += [f"  + {code}" for code in sorted(gap.ahead)] or ["  (none)"]
     lines.append("")
     lines.append(
-        "A gap is expected and is not a failure: ROADMAP section 2 holds the pin still "
-        "until --resolve is ported. This says what moving it would cost."
+        "A gap is expected and is not a failure: the pin can only move to a release, "
+        "and the reference's main is ahead of every release. This says what the next "
+        "move would cost."
     )
     return "\n".join(lines)
 

@@ -2,7 +2,7 @@
 
 ## Fixtures
 
-`parity/fixtures/` holds 22 CTDL JSON-LD payloads. They are synthetic. Every
+`parity/fixtures/` holds 25 CTDL JSON-LD payloads. They are synthetic. Every
 identifier in them is a generated UUID, every name is invented, and none of
 them is a copy of anything published to the Credential Registry or to any
 organization's website.
@@ -23,9 +23,9 @@ repository's original test data, Apache-2.0, same author:
     inverse_mismatch.json
     unresolved_bnode.json
 
-Eleven were written for this repository, because the sibling's fixtures
-exercise 11 of the reference's 19 finding codes and a parity corpus that leaves
-8 rules untested is not comparing the implementations on those rules:
+Fourteen were written for this repository, because the sibling's fixtures
+exercise 11 of the reference's 20 finding codes and a parity corpus that leaves
+9 rules untested is not comparing the implementations on those rules:
 
 | Fixture | Why it exists |
 |---|---|
@@ -40,6 +40,36 @@ exercise 11 of the reference's 19 finding codes and a parity corpus that leaves
 | `bad_top_level_scalar.json` | exit code 2: a document shape the tool does not read |
 | `bad_entity_not_object.json` | exit code 2: an array whose second element is not an entity |
 | `concept_range_guards.json` | the edges of the concept-range disposition, all of which both implementations still agree on: a real `skos:Concept` target satisfying the range, a wrong class that is still a `RANGE_VIOLATION`, and `ceterms:classification` — `skos:Concept` with no `meta:targetScheme` — which the disposition must not reach |
+| `resolved_references.json` | `REF_RESOLVED_SUPPLIED`, validated with the two documents in `parity/resolve/resolved_references/`: a supplied target typed in range, one typed outside it (a `RANGE_VIOLATION` naming the file it was read from), one typed only outside CTDL, one declared inline inside a supplied entity, one declared by both documents (the first read wins), a supplied blank node that must not be indexed, a supplied document with a defect of its own that must not be reported, the plural "None of the 2 documents" shortfall, and an `isPartOf` no framework in the payload or the documents supplied matches |
+| `resolved_one_document.json` | the singular "None of the 1 document" shortfall, and a `RANGE_DOCS_CONFLICT` whose target was read from a supplied document |
+| `resolved_nothing_supplied.json` | `--resolve` given a directory holding no `.json` file: the reference supplies nothing from it and still prompts for `--resolve`, so the port has to as well |
+
+## Supplied documents
+
+`parity/resolve/<fixture>/` holds the documents a fixture is validated *with*,
+the way `--resolve` passes them: `tools/generate_expectations.py` hands the
+reference that directory as one `--resolve` argument, and `ParityTest` hands the
+port the same one. They are synthetic by the same rule as the fixtures, and were
+written for this repository.
+
+The reference prints the path of every supplied document inside its findings,
+so the path is part of what the two implementations must agree on. It is spelled
+relative to the repository root and the generator runs from there, because an
+absolute path would put one machine's layout into a committed file. The port
+spells a path the way Python's `pathlib` does (`./a.json` is `a.json`), because
+`java.nio.file.Path` does not.
+
+`resolved_references/` also holds three files the reference must not read, each
+there to fail if it is read: `nested/one_level_too_deep.json` (a directory is
+read one level deep), `not_a_json_suffix.jsonld` (only `.json` files are read),
+and `.json`, which `pathlib` gives no suffix at all because a leading dot is part
+of a name. Each declares the identifier the fixture's `ceterms:approvedBy` names,
+so reading any one of them would turn that `REF_OUTSIDE_PAYLOAD` into
+`REF_RESOLVED_SUPPLIED`.
+
+`ParityTest` fails on a resolve directory with no fixture, and on any resolve
+directory whose documents change nothing about what its fixture reports, except
+`resolved_nothing_supplied/`, whose whole point is that they do not.
 
 `ParityTest` fails if any finding code the checks can emit has no fixture
 producing it, so the corpus cannot silently fall behind the rule set.
@@ -58,66 +88,54 @@ implementation reports for the fixture of the same name, produced by
 directly. Nothing in that directory is hand-written, and editing a file there
 to make a test pass would be defeating the only thing this repository is for.
 
-The reference is pinned to `ctdl-validate==0.1.0`, a released PyPI artifact,
+The reference is pinned to `ctdl-validate==0.2.1`, a released PyPI artifact,
 by version and by both artifact hashes, in `reference-requirements.txt`.
 
 The pin is to a release rather than to `main` so the expectations sit against
-a rule set that cannot move underneath them. As of 2026-08-14 the rule core
-of 0.1.0 — `ctid.py`, `graph.py`, `validator.py`, and all five modules under
-`checks/` — was byte identical to the reference's `main`; the two differed
-only in CLI plumbing and in an extraction subcommand this port does not cover.
-
-That is no longer true. The reference has since released 0.2.0 and 0.2.1 and
-landed three rule changes on `main` — the concept-range, version-range, and
-universal-range dispositions — which this port carries and no released version
-does. Bumping the pin is a review of a rule-set change, not a dependency chore,
-so it has not been done reflexively; see the ahead corpus below for how the
-resulting divergence is bounded in the meantime.
+a rule set that cannot move underneath them. It was `0.1.0` until `--resolve`
+was ported; the rule core of `0.1.0` was byte identical to the reference's
+`main` as of 2026-08-14. That has not been true since. `main` has landed the
+three dispositions this port carries in `parity/ahead/` and six rules this port
+does not have, none of it in any release. Bumping the pin is a review of a
+rule-set change, not a dependency chore; the ahead corpus below bounds the
+divergence from the pin, and the next section but one says how far `main` has
+moved.
 
 CI reinstalls the pinned reference, regenerates the directory, and fails if
 anything differs from what is committed.
 
-### What bumping the pin to 0.2.1 costs, measured 2026-08-29
+### What moving the pin to 0.2.1 cost
 
-The bump was carried out against `ctdl-validate==0.2.1`, the current release,
-and the result is recorded here rather than kept, because it does not do what
-the ahead corpus was arranged to make it do.
+Measured by hand on 2026-08-29, and exactly what the move cost when it was made
+on 2026-09-11:
 
-- **The ahead corpus does not collapse.** 0.2.1 carries none of the three
-  dispositions. `CONCEPT_RANGE_CONFLICT`, `VERSION_RANGE_CONFLICT`, and the
-  universal-range withdrawal are still on the reference's `main` and in no
-  release, and regenerating `parity/ahead/reference/` against 0.2.1 changed
-  not one byte of it. `AheadOfReferenceTest` stayed green on all 11 cases, so
-  every entry in `parity/ahead/` is still genuinely ahead and none of them may
-  be deleted.
-- **Three `parity/expected/` documents move**, on message and citation text
+- **The ahead corpus did not collapse.** 0.2.1 carries none of the three
+  dispositions and neither of the two shared-defect fixes. Regenerating
+  `parity/ahead/reference/` against it changed not one byte, so every entry in
+  `parity/ahead/` is still genuinely ahead and none of them may be deleted.
+- **Three `parity/expected/` documents moved**, on message and citation text
   rather than on any code or severity:
   `bug_class_252_wrong_framework_identifier`, `ctid_uri_mismatch`, and
-  `external_reference`. `ParityTest` fails all three.
-- **The reference gained a rule this port does not have**,
-  `REF_RESOLVED_SUPPLIED`, taking its census from 19 codes to 20.
-  `FindingCodeCensusTest` fails on it, which is the census doing its job: a
-  port that is behind on a rule is what it exists to make visible.
+  `external_reference`. Nothing else in the corpus moved.
+- **The reference gained a rule, `REF_RESOLVED_SUPPLIED`**, taking its census
+  from 19 codes to 20.
 
-Those are one change and not two. 0.2.1 adds a `--resolve` flag that indexes
+Those were one change and not two. 0.2.1 adds a `--resolve` flag that indexes
 documents the operator already has, and the amended `REF_OUTSIDE_PAYLOAD`
 message ends `Pass it with --resolve to settle this.` Byte parity on that
-sentence is not reachable by editing a string here: this port has no such
-flag, and printing the sentence anyway would direct a reader to an option that
-does not exist. The pin therefore cannot move until `--resolve` is ported, and
-that is a feature with its own design to review — the reference's `session.py`
-describes a side index of supplied `@id`s that is never itself validated, and
-a resolution that may turn a non-answer into an answer but never into a
-failure — rather than a step inside a version bump.
-
-Until then the pin stays at 0.1.0 and this repository is behind the reference
-by one rule, on purpose and in writing.
+sentence was not reachable by editing a string, because printing it would have
+directed a reader to an option this port did not have. So `--resolve` was
+ported first, as the reference's `session.py` writes it — a side index of
+supplied `@id`s that is never itself validated, and a resolution that may turn
+a non-answer into an answer but never into a failure — and the pin moved with
+it. [ADR 0007](../docs/adr/0007-resolve-is-ported-as-the-reference-wrote-it.md)
+records the design.
 
 ### What the port is behind by, measured against source
 
-The paragraph above is one measurement of one release, taken by hand. It goes
+The section above is one measurement of one release, taken by hand. It goes
 stale on the sibling's next commit, and it says nothing about `main`, which is
-where the reference now carries three dispositions this port has and two rules
+where the reference now carries three dispositions this port has and six rules
 it does not.
 
 `tools/reference_gap.py` reads both rule sets out of source and prints the two
@@ -131,13 +149,16 @@ python3 tools/reference_gap.py --reference ../ctdl-validate --ref v0.2.1
 python3 tools/reference_gap.py --reference ../ctdl-validate --ref origin/main
 ```
 
-Measured 2026-09-10, with the reference at `origin/main` = `e017a5e0afc0`:
+Measured 2026-09-11, after `--resolve` was ported, with the reference at
+`origin/main` = `816591ac6364`:
 
 | reference ref | its validation rules | this port implements | behind by | ahead by |
 |---|---:|---|---:|---:|
-| `v0.1.0` (the pin) | 19 | 19 of 19 | 0 | 2 |
-| `v0.2.1` (newest release) | 20 | 19 of 20 | 1 | 2 |
-| `origin/main` | 28 | 21 of 28 | **7** | 0 |
+| `v0.1.0` | 19 | 19 of 19 | 0 | 3 |
+| `v0.2.1` (the pin, newest release) | 20 | 20 of 20 | 0 | 2 |
+| `origin/main` | 28 | 22 of 28 | **6** | 0 |
+
+Before the port the same three rows read 19 of 19, 19 of 20 and 21 of 28.
 
 Three things in that table are worth reading rather than skimming.
 
@@ -147,7 +168,9 @@ That suite reads `parity/reference-codes.json`, a record generated by
 reference's Python source at a git ref. Two readers, two languages, two data
 paths, and they agree that at the pin the port is behind by nothing and ahead by
 exactly `CONCEPT_RANGE_CONFLICT` and `VERSION_RANGE_CONFLICT`. That is the
-strongest evidence available that either of them is right.
+strongest evidence available that either of them is right. Against `0.1.0` the
+port is now ahead by three, the third being `REF_RESOLVED_SUPPLIED`: `0.1.0` had
+no `--resolve`.
 
 **On `main` the port is ahead by nothing.** Both dispositions are now on the
 reference's `main`, so `parity/ahead/` is ahead of the *pin* and no longer ahead
@@ -155,18 +178,18 @@ of the *reference*. It is still correct and must not be deleted -- the pin is
 what it is measured against -- but the divergence it bounds is now a version
 gap rather than a disagreement.
 
-**The seven are named, and one of them is the whole of ROADMAP section 2.**
+**The six are named, and none of them is in a release.**
 `CONCEPT_NOT_IDENTIFIED`, `CONCEPT_OUTSIDE_SCHEME`, `CONCEPT_OUTSIDE_SNAPSHOT`,
-`ID_DECLARED_MORE_THAN_ONCE`, `LANGUAGE_MAP_EXPECTED`, `REF_RESOLVED_SUPPLIED`,
-`TERM_UNSTABLE`. `REF_RESOLVED_SUPPLIED` is the `--resolve` rule the pin waits
-on; the other six arrived after `0.2.1` and are what section 2's "bump the pin"
-would also have to cover.
+`ID_DECLARED_MORE_THAN_ONCE`, `LANGUAGE_MAP_EXPECTED`, `TERM_UNSTABLE`: checks 6
+to 9, all landed on `main` after `0.2.1`. They are what the next pin bump costs,
+and it cannot happen until the reference cuts a release carrying them.
+`REF_RESOLVED_SUPPLIED` was the seventh and is ported.
 
 The reference's other **20** finding codes are extraction notes under
 `src/ctdl_validate/extract/`, a subcommand this port does not have and does not
 claim to. They are excluded by name, and both totals are printed, so the
 exclusion is visible rather than assumed: counting them would report this port
-as covering 44% of the reference rather than 75%, and would move whenever the
+as covering 46% of the reference rather than 79%, and would move whenever the
 sibling touched a surface that is out of scope here.
 
 This table is a dated observation at a named commit, not a generated artifact,

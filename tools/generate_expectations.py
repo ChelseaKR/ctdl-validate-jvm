@@ -59,7 +59,7 @@ REFERENCE_CODES = ROOT / "parity" / "reference-codes.json"
 
 #: The requirements file that pins the reference release. It is the pin: ADR
 #: 0003 makes parity byte-equality against one immutable published artifact,
-#: and ROADMAP section 2 says the pin does not move until --resolve is ported.
+#: and moving it is a review of a rule-set change, never a dependency chore.
 REFERENCE_REQUIREMENTS = ROOT / "parity" / "reference-requirements.txt"
 
 #: The pin line in that file. Anchored at the start of a line so a version
@@ -163,7 +163,7 @@ def require_the_pinned_reference() -> str:
     cause. And the obvious response to that message, running the script
     without ``--check``, rewrote parity/expected/ and moved
     reference-codes.json from 0.1.0/19 codes to 0.2.1/20 codes, exiting 0.
-    That is the pin move ROADMAP section 2 forbids until #35 is ported,
+    That was the pin move ROADMAP section 2 forbade until #35 was ported,
     performed silently and arriving in ``git diff`` looking like an ordinary
     expectation update.
 
@@ -181,7 +181,7 @@ def require_the_pinned_reference() -> str:
             "against another one.\n"
             "  python3 -m pip install --require-hashes -r "
             f"{REFERENCE_REQUIREMENTS.relative_to(ROOT)}\n"
-            "Moving the pin is a deliberate act: see docs/ROADMAP.md section 2 and "
+            "Moving the pin is a deliberate act: see docs/ROADMAP.md and "
             "parity/PROVENANCE.md."
         )
     return pinned

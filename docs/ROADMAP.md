@@ -23,7 +23,7 @@ fails on it without a human deciding anything.
 | Metric | Target | Measured by | Gate | Owner |
 |--------|--------|-------------|------|-------|
 | Byte equality with the pinned reference over every fixture | 100% of `parity/fixtures/`, no exemptions | `ParityTest` in `:test` | AUTO | maintainer |
-| The committed expectations really are the reference's output | regenerating changes nothing | `tools/generate_expectations.py --check`, in its own CI job, against `ctdl-validate==0.1.0` installed with `--require-hashes` | AUTO | maintainer |
+| The committed expectations really are the reference's output | regenerating changes nothing | `tools/generate_expectations.py --check`, in its own CI job, against `ctdl-validate==0.2.1` installed with `--require-hashes` | AUTO | maintainer |
 | That regeneration check can fail | proven per run | the parity job perturbs one expectation in a copy of the tree and requires `--check` to notice | AUTO | maintainer |
 | Finding codes the reference has and this port does not | visible, not silent | `FindingCodeCensusTest` against `parity/reference-codes.json`, parsed out of the reference's own source | AUTO | maintainer |
 | Every finding code the checks can emit has a fixture | 100% | `ParityTest` | AUTO | maintainer |
@@ -112,17 +112,23 @@ exists, `CONTRIBUTING.md` carries the before/after procedure and
 `.github/PULL_REQUEST_TEMPLATE.md` asks a pull request to state its seed, its
 count and what moved.
 
-### 2. Port `--resolve`, then bump the pin
-
-`parity/PROVENANCE.md` records what bumping to `0.2.1` costs, measured: three
-expectations move on message text, and `FindingCodeCensusTest` fails on
-`REF_RESOLVED_SUPPLIED`, a rule this port does not have. Both come from one
-upstream feature. The pin cannot move until it is ported, and porting it is a
-design review of its own — a side index of supplied `@id`s that is never itself
-validated — rather than a step inside a version bump.
+### 2. Port `--resolve`, then bump the pin -- done
 
 **Done when** the pin is at the current release and `parity/ahead/` holds only
 the entries that are still genuinely ahead.
+
+**Done.** `--resolve` is ported as the reference's `session.py` writes it, and
+the design review this section asked for is
+[ADR 0007](adr/0007-resolve-is-ported-as-the-reference-wrote-it.md). The pin is
+at `0.2.1`, the current release. The move cost what `parity/PROVENANCE.md`
+predicted: three expectations on message text, and not one byte of
+`parity/ahead/reference/`, so all five `parity/ahead/` entries are still
+genuinely ahead and stay.
+
+The next bump is to a release that does not exist yet. The reference's `main`
+carries checks 6 to 9 and six finding codes that no release has, measured by
+`tools/reference_gap.py`; the move waits on the reference's third release
+(`ChelseaKR/ctdl-validate#52`) and is tracked as #40.
 
 ### 3. Take the remaining known-wrong verdicts upstream
 

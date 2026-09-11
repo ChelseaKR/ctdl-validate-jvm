@@ -9,6 +9,39 @@ Nothing has been released. There is no tag and no published artifact.
 
 ## [Unreleased]
 
+### Added
+
+- **`--resolve`, ported** (#35). The reference's `0.2.1` added one thing to its
+  rule core: a side index of documents the operator already has, so a reference
+  into one of them stops being unknowable. It is ported as the reference's
+  `session.py` writes it -- read from disk and never fetched, never itself
+  validated, the first document read winning an `@id`, blank nodes never
+  indexed, a directory read one level deep. Check 3 reports
+  `REF_RESOLVED_SUPPLIED`/INFO naming the file, check 4 judges a supplied
+  target against the range and says which file the judgement rests on, and an
+  unresolved reference says what was supplied and missed. Paths are spelled the
+  way `pathlib` spells them, because the reference prints them inside findings.
+  The design review ROADMAP section 2 asked for is ADR 0007.
+- **Three parity fixtures validated with supplied documents**, through a new
+  `parity/resolve/<fixture>/` convention both implementations read. One of them
+  holds three files the reference must not read -- one level too deep, a
+  `.jsonld`, and a dotfile named `.json`, which `pathlib` gives no suffix -- and
+  the reference read none of them, and neither does the port.
+
+### Changed
+
+- **The parity pin moved from `0.1.0` to `0.2.1`.** Regenerating moved exactly
+  what `parity/PROVENANCE.md` predicted on 2026-08-29: three expectations on
+  message and citation text, `parity/reference-codes.json` from 19 codes to 20,
+  and not one byte of `parity/ahead/reference/`. Measured out of source by
+  `tools/reference_gap.py`, the port now implements 20 of `0.2.1`'s 20
+  validation rules and 22 of the 28 on the reference's `main`, up from 19 of 20
+  and 21 of 28.
+- **`tools/generate_expectations.py` renders the text report with the
+  reference's own `render_findings_text`** instead of a private copy of it,
+  which `0.1.0` made necessary and `0.2.1` does not. Over the 27 fixtures that
+  existed before this change, the two produce byte-identical documents.
+
 ### Fixed
 
 - **The parity evidence never checked that it came from the pinned reference.**
