@@ -150,9 +150,14 @@ class ChecksSixToNineTest {
       graph.append(index == 0 ? "" : ", ").append("{\"@id\": \"").append(CERT).append("\"}");
     }
     graph.append("]}");
+    // At the top of a @graph every object is an entity, so even a bare {"@id"}
+    // declares one: the reference-only reading applies to property values.
+    // Measured against the reference's main branch, which reports this merge
+    // as typed [no @type], before this assertion was written.
     List<Finding> merged =
         code(Validator.validate(MAPPER.readTree(graph.toString())), "ID_DECLARED_MORE_THAN_ONCE");
-    assertEquals(0, merged.size(), "a reference-only object declares nothing");
+    assertEquals(1, merged.size());
+    assertTrue(merged.get(0).message().contains("typed [no @type]"), merged.get(0).message());
     List<Finding> declared =
         code(
             Validator.validate(

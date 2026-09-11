@@ -146,6 +146,13 @@ def render_port(out: Path) -> None:
                 [str(PORT), "--format", "parity", *resolve, str(fixture.relative_to(ROOT))],
                 capture_output=True, text=True, cwd=ROOT, check=False,
             )
+            if "UnsupportedClassVersionError" in done.stderr:
+                # Measured: on a machine whose default java is 11, every render
+                # dies here, and the generic message below names no cause.
+                raise CannotMeasure(
+                    "the port is built for Java 17 and the java on this PATH is older; set "
+                    "JAVA_HOME to a JDK 17 or newer (see docs/adr/0002-java-17-floor.md)"
+                )
             if done.returncode not in (0, 1, 2) or not done.stdout:
                 raise CannotMeasure(f"the port did not render {fixture.name}: {done.stderr.strip()}")
             target = out / corpus / fixture.name
