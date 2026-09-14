@@ -39,7 +39,7 @@ fails on it without a human deciding anything.
 | Figures the documents publish about this repository | derived, never typed | `PublishedFiguresTest` over README, `CONTRIBUTING.md`, `CITATION.cff`, `parity/PROVENANCE.md`, this file, and one Javadoc paragraph. Rewording a sentence past the pattern that reads it also fails | AUTO | maintainer |
 | Taint-style SAST | 0 blocking findings | Semgrep (`--config auto`), own workflow | AUTO | maintainer |
 | Secrets in the whole history, in any TruffleHog result tier (a revoked credential is `unverified`) | 0 | TruffleHog full-clone scan, own workflow, weekly and per PR | AUTO | maintainer |
-| SHA-pinned `uses:` in workflows [SEC-25] | 100%: all 9 `uses:` steps carry a full commit SHA, and the Semgrep container is pinned by image digest | `PublishedFiguresTest` counts them and fails on an unpinned one; Dependabot maintains the pins | AUTO | maintainer |
+| SHA-pinned `uses:` in workflows [SEC-25] | 100%: all 14 `uses:` steps carry a full commit SHA, and the Semgrep container is pinned by image digest | `PublishedFiguresTest` counts them and fails on an unpinned one; Dependabot maintains the pins | AUTO | maintainer |
 | Dependency freshness | Dependabot, Gradle and Actions, seven-day cooldown | Dependabot; the reference pin is excluded on purpose | REVIEW | maintainer |
 | Published artifact, tag, or release | none, deliberately | nothing to gate; see the exceptions below | REVIEW | maintainer |
 
@@ -157,6 +157,21 @@ is maintained there rather than from here.
 What this does *not* claim is that the weekly conformance run is green overall;
 that run covers every repository and its state is not observable from here. What
 was checked is the one thing this item was about: the manifest has the entry.
+
+### 5. Port checks 6 to 9, then bump the pin to the release carrying them
+
+**Done when** the pin is at the reference's third release, `ParityTest` is
+byte-equal over every fixture, `FindingCodeCensusTest` reports no undeclared
+difference, and `parity/ahead/` holds only what that release still disagrees
+with.
+
+**Built, and waiting on the release.** #40 ports checks 6 to 9 and the rule-core
+changes under them. Against the reference's unreleased main at the commit
+`parity/reference-main-commit.txt` names, `tools/next_release_parity.py`
+measures 35 of 35 parity documents byte-equal. ADR 0004 keeps it off `main`
+until `ChelseaKR/ctdl-validate#52` cuts the release, and
+[ADR 0008](adr/0008-checks-6-to-9-are-ported-before-their-release.md) records the
+arrangement and the steps the bump then takes.
 
 ## Decided against
 

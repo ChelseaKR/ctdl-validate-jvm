@@ -1,0 +1,12 @@
+{
+  "error": null,
+  "exit_code": 0,
+  "findings": [],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 0,
+    "UNVERIFIABLE": 0,
+    "WARNING": 0
+  },
+  "text_report": "0 finding(s): 0 ERROR, 0 WARNING, 0 INFO, 0 UNVERIFIABLE"
+}

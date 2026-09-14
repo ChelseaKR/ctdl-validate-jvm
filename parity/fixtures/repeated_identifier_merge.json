@@ -1,0 +1,38 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-2cab3d80-b3bd-4513-9c9f-be4e903a8523",
+      "@type": "ceterms:CredentialOrganization",
+      "ceterms:ctid": "ce-2cab3d80-b3bd-4513-9c9f-be4e903a8523",
+      "ceterms:name": {
+        "en-US": "An Organization Embedding The Certificate First"
+      },
+      "ceterms:owns": [
+        {
+          "@id": "https://credentialengineregistry.org/resources/ce-af6e7d5e-db90-4b03-800c-7e90a6d84274",
+          "@type": "ceterms:Credential",
+          "ceterms:name": true,
+          "ceterms:keyword": [
+            2.0,
+            "kept"
+          ]
+        }
+      ]
+    },
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-af6e7d5e-db90-4b03-800c-7e90a6d84274",
+      "@type": "ceterms:Certificate",
+      "ceterms:ctid": "ce-af6e7d5e-db90-4b03-800c-7e90a6d84274",
+      "ceterms:name": 1,
+      "ceterms:keyword": [
+        2,
+        "kept",
+        "added"
+      ],
+      "ceterms:ownedBy": [
+        "https://credentialengineregistry.org/resources/ce-2cab3d80-b3bd-4513-9c9f-be4e903a8523"
+      ]
+    }
+  ]
+}
