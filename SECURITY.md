@@ -22,7 +22,7 @@ or any other registry.
 Preferred: GitHub private vulnerability reporting (this repository's
 *Security* tab, "Report a vulnerability"). Alternatively, email
 ckellyreif@gmail.com with `ctdl-validate-jvm security` in the subject. Expect
-an acknowledgement within 72 hours; this is a volunteer project, so please do
+an acknowledgment within 72 hours; this is a volunteer project, so please do
 not disclose publicly until a fix is available.
 
 Reproduce issues with synthetic payloads like the fixtures under

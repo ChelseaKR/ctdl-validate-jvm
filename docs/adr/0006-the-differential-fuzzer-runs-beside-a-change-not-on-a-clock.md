@@ -31,7 +31,7 @@ caught a corrupted exit code, 0 diverged without the corruption, so this is a
 comparison that was watched noticing rather than one trusted to.
 
 **The harness exits 1 whenever anything diverges, and on this pinned pair
-something always diverges.** `main()` ends `return 1 if minimised else 0`; it
+something always diverges.** `main()` ends `return 1 if minimized else 0`; it
 has no notion of which disagreements are declared. That is correct for a triage
 tool — `CONTRIBUTING.md` already says to read its output as triage and not as a
 verdict — but it decides this question. The nightly #7 sketched was "a

@@ -10,8 +10,8 @@ permissions:
 
 # A push to main falls through to the second operand, so keying it on
 # `github.ref` put every commit on main into one group `...-refs/heads/main`.
-# Two pushes landing close together then cancelled the older run, and that
-# commit stayed on main with no verdict: a cancelled run reports `cancelled`,
+# Two pushes landing close together then canceled the older run, and that
+# commit stayed on main with no verdict: a canceled run reports `cancelled`,
 # not a failure, so nothing goes red and nobody is told it went unchecked.
 # `github.sha` gives each commit its own group. Pull requests are unaffected --
 # they still key on the PR number and still collapse to one run.
@@ -28,7 +28,7 @@ jobs:
       contents: read
     strategy:
       # Both legs always report. Which JDK a failure belongs to is the whole
-      # point of running two, so cancelling the survivor would throw away the
+      # point of running two, so canceling the survivor would throw away the
       # answer this matrix exists to give.
       fail-fast: false
       matrix:
@@ -114,7 +114,7 @@ jobs:
       # one direction and destructive in another. Unsound: git diff does not
       # report an untracked file, so a fixture committed without its expectation
       # regenerated into a brand new file and this step passed green on a corpus
-      # whose expectations were incomplete. Measured, not theorised. Destructive:
+      # whose expectations were incomplete. Measured, not theorized. Destructive:
       # it wrote every regenerated file into the working tree, so the run that
       # detected drift was also the run that healed it locally, which is how a
       # committed artifact stays stale while the check that watches it goes green.

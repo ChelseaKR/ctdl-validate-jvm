@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 /**
  * The expected values in this suite are not the author's opinion of what Python prints. They were
  * produced by running {@code repr()} in CPython 3.12 and pasted in, which is the discipline the
- * whole repository follows: the reference implementation's behaviour is recorded, not guessed.
+ * whole repository follows: the reference implementation's behavior is recorded, not guessed.
  */
 class PythonReprTest {
 

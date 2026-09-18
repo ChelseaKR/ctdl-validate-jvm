@@ -161,7 +161,7 @@ to notice, because a fuzzer reporting "nothing found" and a fuzzer comparing
 nothing look identical from the outside.
 
 Read its output as triage, not as a verdict. A withdrawal or a restatement may
-be one of the dispositions `parity/ahead/` already declares — minimise the
+be one of the dispositions `parity/ahead/` already declares — minimize the
 payload, put it in `parity/ahead/fixtures/`, and let `AheadOfReferenceTest` rule
 on it. A line beginning `THE PORT ADDED` is never allowed and is a defect here.
 

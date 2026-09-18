@@ -201,7 +201,7 @@ public final class DomainRangeCheck implements Check {
    * @param label what findings call the target
    * @param types its classes, filtered to the ones the snapshot declares; never empty
    * @param origin empty for an in-payload target, otherwise a sentence naming the supplied document
-   *     it was read from, so every judgement about it says which document it rests on
+   *     it was read from, so every judgment about it says which document it rests on
    * @param text what to print as the finding's value: the reference as written where there is one,
    *     the target's own label for a nested node
    * @param node the in-payload node, or null for a supplied entity
@@ -256,7 +256,7 @@ public final class DomainRangeCheck implements Check {
    * before the next top-level entry, so a reference is judged against the declaration that happens
    * to sit earliest in the document rather than against the declaration the document means. Where
    * the winner's classes fall outside the range and another declaration of the same identifier is
-   * squarely inside it, the ERROR is an artefact of walk order and not a fact about the payload.
+   * squarely inside it, the ERROR is an artifact of walk order and not a fact about the payload.
    *
    * <p>Asked only after {@link SchemaIndex#classMatches} has already failed, so it can withdraw a
    * finding and can never raise one. That direction is deliberate and is the limit of what is fixed

@@ -187,7 +187,7 @@ class DuplicateIdShadowingTest {
     assertTrue(
         onTheAddress.isEmpty(),
         "this port still suppresses the mirror case. If that has changed, the README limits and"
-            + " ADR 0005 both describe behaviour this repository no longer has, and parity/ahead/"
+            + " ADR 0005 both describe behavior this repository no longer has, and parity/ahead/"
             + " now carries a finding the pinned reference does not. All findings: "
             + findings);
 
@@ -203,7 +203,7 @@ class DuplicateIdShadowingTest {
   }
 
   /**
-   * The same shadowing in the other direction, tokenised the same way as {@link #DOCUMENT}: the
+   * The same shadowing in the other direction, tokenized the same way as {@link #DOCUMENT}: the
    * first-walked declaration is in range and the top-level one is not.
    */
   private static final String MIRRORED =
