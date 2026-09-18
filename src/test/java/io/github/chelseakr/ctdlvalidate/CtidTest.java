@@ -25,7 +25,7 @@ class CtidTest {
   }
 
   @Test
-  @DisplayName("a bare UUID is recognised as a bare UUID, not merely as malformed")
+  @DisplayName("a bare UUID is recognized as a bare UUID, not merely as malformed")
   void bareUuid() {
     Ctid.Shape shape = Ctid.classify("e8a41a52-6ff6-48f0-9872-889c87b093b7");
     assertFalse(shape.matchesShape());

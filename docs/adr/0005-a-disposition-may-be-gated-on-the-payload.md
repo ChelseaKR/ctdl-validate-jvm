@@ -15,7 +15,7 @@ schema arguments end to end: a property whose declared range is `rdfs:Resource`,
 a property CTDL ranges on `skos:Concept` while naming a `meta:targetScheme`, a
 version property whose range is a strict subset of its own domain. In each of
 those the property name really is the whole of the argument, and grounding the
-permission in the snapshot is what keeps the table from being a licence.
+permission in the snapshot is what keeps the table from being a license.
 
 The duplicate-`@id` defect (#14) does not have that shape.
 
@@ -33,7 +33,7 @@ Nothing about `ceterms:address` is special. *Every* property whose declared rang
 names entity classes can produce that finding, so a property predicate for this
 disposition would admit essentially the whole schema. Writing one anyway would
 satisfy the letter of ADR 0004 and defeat its purpose: a gate that admits
-everything is the licence 0004 exists to prevent, and it would be worse than no
+everything is the license 0004 exists to prevent, and it would be worse than no
 gate because it would look like one.
 
 The fact that makes the disagreement legitimate is not about the property. It is
@@ -52,7 +52,7 @@ fixture contains and a test can read.
   as its value is declared more than once in the payload; those declarations do
   not agree about `@type`, so there was something to shadow; and the entity the
   finding is about really does carry that property with that value, so the row
-  cannot be reached by a finding relabelled onto a property the document never
+  cannot be reached by a finding relabeled onto a property the document never
   used. That third clause is what keeps
   `AheadOfReferenceTest#theComparisonItselfHasBeenBroken` biting: corrupting the
   reference's `property` still has to make the comparison fail, and for this row
@@ -72,7 +72,7 @@ fixture contains and a test can read.
   as the reference does. Reporting it means raising an ERROR the pinned reference
   does not raise, which `parity/ahead/` is arranged not to permit and which is a
   rule-level ruling that belongs in the sibling. `DuplicateIdShadowingTest`
-  asserts the current behaviour so that changing it has to come back through this
+  asserts the current behavior so that changing it has to come back through this
   ADR and the README limits together.
 
 ## Consequences

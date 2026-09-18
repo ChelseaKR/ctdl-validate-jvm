@@ -41,6 +41,6 @@ We will record architecture decisions in Architecture Decision Records
   alongside the code it explains.
 - The boundary between "the sibling decided this" and "the port decided this"
   stays visible, which matters because the whole value of the repository
-  rests on the port not quietly inventing behaviour.
+  rests on the port not quietly inventing behavior.
 - ADRs capture decisions, not the full design: the README remains the
   narrative.

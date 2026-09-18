@@ -32,7 +32,7 @@ Split the two directions.
   choice. It is the only runtime dependency.
 - **Writing** does not use Jackson. `CanonicalJson` is a small writer whose
   entire specification is "produce what `json.dumps(..., indent=2,
-  sort_keys=True, ensure_ascii=False)` produces", with the four behaviours
+  sort_keys=True, ensure_ascii=False)` produces", with the four behaviors
   that matters for written down in its Javadoc and covered by tests whose
   expected values came from CPython.
 

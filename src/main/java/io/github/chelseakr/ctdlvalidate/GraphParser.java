@@ -13,7 +13,7 @@ import java.util.Map;
  * <p>This is deliberately not a general JSON-LD processor, and the port keeps that choice. Registry
  * payloads use a small, regular subset of JSON-LD: a {@code @graph} array (or a single entity, or a
  * bare array of entities), prefixed term keys, string IRIs as references, occasional inline nested
- * objects, and language-map literals. Handling that subset directly keeps the behaviour
+ * objects, and language-map literals. Handling that subset directly keeps the behavior
  * deterministic and inspectable. Anything outside the subset is left alone rather than guessed at.
  */
 public final class GraphParser {

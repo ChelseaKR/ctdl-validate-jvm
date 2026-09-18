@@ -7,7 +7,7 @@ ports, run over every fixture in parity/fixtures/. This script is how they are
 produced, and CI runs it and fails if the committed files differ, so a golden
 file can never drift away from what the reference implementation actually does.
 
-parity/ahead/ is the same idea for the narrow set of behaviours where this port
+parity/ahead/ is the same idea for the narrow set of behaviors where this port
 deliberately leads the pinned release, and its reference documents are recorded
 by the same code path for the same reason: what is written down there has to be
 what the pinned reference really says, not a recollection of it. See

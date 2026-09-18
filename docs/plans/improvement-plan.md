@@ -86,8 +86,8 @@ Settled by published text, in three independent places:
   property is generally applicable in describing the similarity between any two
   entities."
 
-And the mechanical fact that makes the port's behaviour an inversion rather
-than a judgement call: `rdfs:Resource` is not among the 150 classes the
+And the mechanical fact that makes the port's behavior an inversion rather
+than a judgment call: `rdfs:Resource` is not among the 150 classes the
 vendored snapshot declares, and zero classes reach it by `rdfs:subClassOf`. So
 matching a target's declared classes against it rejects every entity, when the
 declaration admits every entity. The port is wrong, in the worse direction for
@@ -134,7 +134,7 @@ the finding counts to match ("never add or drop one"). Phase 2 needs two more
 shapes: a second substitution, and a withdrawal, since the universal-range fix
 removes a finding rather than restating it.
 
-The generalisation keeps the property that makes the current test worth having:
+The generalization keeps the property that makes the current test worth having:
 every permitted disposition is gated on a predicate derived from the vendored
 snapshot, so a substitution can never be justified by anything but the schema.
 A disposition table replaces the two constants, each row carrying the

@@ -33,7 +33,7 @@ import java.util.Objects;
  *   <li><b>Nothing is fetched.</b> Supplied documents are read from the local filesystem. {@code
  *       OfflineGuaranteeTest} still holds.
  *   <li><b>Supplied documents are never validated.</b> They go into this side index of {@code @id}
- *       to class, not into the graph being checked, so adding a neighbour can never change how many
+ *       to class, not into the graph being checked, so adding a neighbor can never change how many
  *       entities a report is about, nor put someone else's document's defects in your report.
  *   <li><b>An unresolved reference stays UNVERIFIABLE.</b> Supplying documents can turn a
  *       non-answer into an answer; it can never turn a non-answer into a failure.
