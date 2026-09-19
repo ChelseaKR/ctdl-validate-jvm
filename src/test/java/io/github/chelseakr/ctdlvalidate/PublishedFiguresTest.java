@@ -197,8 +197,12 @@ class PublishedFiguresTest {
             portCodes,
             List.of(
                 "All ([^ ]+) have a fixture",
-                "(?i)all five checks and all ([^ ]+) codes are here",
+                "(?i)all [a-z]+ checks and all ([^ ]+) codes are here",
                 "covers [^ ]+ of the ([^ ]+) finding codes")),
+        new Claim(
+            "the checks this port runs",
+            Validator.ALL_CHECKS.size(),
+            List.of("(?i)all ([^ ]+) checks and all [^ ]+ codes are here")),
         new Claim(
             "the finding codes the byte-equality corpus covers",
             byteEqualityCodes,

@@ -1,0 +1,58 @@
+{
+  "@context": "https://credreg.net/ctdl/schema/context/json",
+  "@id": "https://credentialengineregistry.org/graph/ce-0fbc3ad4-1cb4-4679-b921-eee342237367",
+  "@graph": [
+    {
+      "@id": "https://credentialengineregistry.org/resources/ce-0fbc3ad4-1cb4-4679-b921-eee342237367",
+      "@type": "ceterms:Certificate",
+      "ceterms:ctid": "ce-0fbc3ad4-1cb4-4679-b921-eee342237367",
+      "ceterms:name": "A bare literal where the context declares a language map",
+      "ceterms:description": {
+        "en-US": "A language map, which is what the context declares"
+      },
+      "ceterms:keyword": [
+        "a bare keyword",
+        {
+          "en-US": "a mapped keyword"
+        }
+      ],
+      "ceterms:audienceLevelType": [
+        {
+          "@type": "ceterms:CredentialAlignmentObject",
+          "ceterms:targetNode": "audLevel:AdvancedLevel",
+          "ceterms:targetNodeName": {
+            "en-US": "Advanced"
+          }
+        },
+        {
+          "@type": "ceterms:CredentialAlignmentObject",
+          "ceterms:targetNode": "credentialStat:Active",
+          "ceterms:targetNodeName": {
+            "en-US": "Active"
+          }
+        },
+        {
+          "@type": "ceterms:CredentialAlignmentObject",
+          "ceterms:targetNodeName": {
+            "en-US": "A level named in words and nothing else"
+          }
+        },
+        {
+          "@type": "ceterms:CredentialAlignmentObject",
+          "ceterms:targetNode": "https://www.onetonline.org/link/summary/15-1252.00",
+          "ceterms:targetNodeName": {
+            "en-US": "Software Developers"
+          }
+        }
+      ],
+      "ceterms:audienceType": "audience:Citizen",
+      "ceterms:credentialStatusType": {
+        "@type": "ceterms:CredentialAlignmentObject",
+        "ceterms:targetNode": "credentialStat:TeachOut",
+        "ceterms:targetNodeName": {
+          "en-US": "Teach-out"
+        }
+      }
+    }
+  ]
+}

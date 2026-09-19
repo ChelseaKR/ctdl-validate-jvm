@@ -37,9 +37,11 @@ public final class ParityDocument {
    */
   public static Map<String, Object> of(JsonNode data, List<String> resolve, Path base) {
     Map<String, Object> document = new LinkedHashMap<>();
+    Session session;
     List<Finding> findings;
     try {
-      findings = Validator.validate(Validator.session(data, resolve, base));
+      session = Validator.session(data, resolve, base);
+      findings = Validator.validate(session);
     } catch (Graph.DocumentException exception) {
       // The CLI prints the message to stderr and nothing to stdout, so there is
       // no text report to compare in this case.
@@ -58,7 +60,7 @@ public final class ParityDocument {
     document.put("error", null);
     document.put("findings", encoded);
     document.put("summary", Report.counts(findings));
-    document.put("text_report", Report.text(findings));
+    document.put("text_report", Report.text(findings, DocumentScope.of(session.graph())));
     return document;
   }
 
