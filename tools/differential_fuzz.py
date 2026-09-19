@@ -31,7 +31,7 @@ This is not a merge gate and must not become one. It is nondeterministic in what
 it reaches, it needs a built CLI and an installed reference, and a gate that
 sometimes finds nothing is a gate that teaches people to ignore it. The merge
 gate is the deterministic corpus. What this produces is fixtures: every divergence
-is minimised and written out so it can be added to `parity/fixtures/` -- or, where
+is minimized and written out so it can be added to `parity/fixtures/` -- or, where
 this port is right and the pinned release is not, to `parity/ahead/`.
 
 Usage:
@@ -63,13 +63,19 @@ from generate_expectations import parity_document, render  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 PORT = ROOT / "build" / "install" / "ctdl-validate-jvm" / "bin" / "ctdl-validate-jvm"
+
+#: The exit code for "this harness could not make the comparison", which the
+#: module docstring already distinguishes from "the two implementations
+#: disagreed". Reporting a disagreement it could not have seen is the one
+#: outcome worth refusing outright.
+EXIT_CANNOT_RUN = 2
 VENDOR = ROOT / "src" / "main" / "resources" / "vendor"
 
 REGISTRY = "https://credentialengineregistry.org/resources/"
 
 #: Strings chosen because they are where two languages stop agreeing, not because
 #: they are realistic. The last four differ from each other only above the BMP or
-#: only in normalisation, which is what separates code-point order from UTF-16
+#: only in normalization, which is what separates code-point order from UTF-16
 #: order and what `CodePointOrder` exists for.
 HARD_STRINGS = [
     "",
@@ -296,11 +302,30 @@ def port_output(document: object, directory: Path, index: int) -> str:
         capture_output=True,
         check=False,
     )
+    stderr = result.stderr.decode("utf-8", "replace").strip()
     if result.returncode not in (0, 1, 2):
-        raise SystemExit(
-            f"the port exited {result.returncode}: {result.stderr.decode('utf-8', 'replace')}"
+        print(f"the port exited {result.returncode}: {stderr}", file=sys.stderr)
+        raise SystemExit(EXIT_CANNOT_RUN)
+    stdout = result.stdout.decode("utf-8")
+    if not stdout.strip():
+        # Measured on a machine whose default java is 11: the launcher exits 1,
+        # which is inside the range above, prints nothing, and every payload then
+        # "diverges" -- 12 of 12 in the self-check, and a run writes minimized
+        # payloads that are nothing of the kind. A harness that cannot run one
+        # side has to say so rather than report what that looks like.
+        hint = (
+            " The port is built for Java 17 and the java on this PATH is older; set JAVA_HOME"
+            " to a JDK 17 or newer (see docs/adr/0002-java-17-floor.md)."
+            if "UnsupportedClassVersionError" in stderr
+            else ""
         )
-    return result.stdout.decode("utf-8")
+        print(
+            "the port printed nothing, so every comparison from here would report a divergence"
+            f" that is this harness failing to run it.{hint}\n{stderr}",
+            file=sys.stderr,
+        )
+        raise SystemExit(EXIT_CANNOT_RUN)
+    return stdout
 
 
 def reference_output(document: object, directory: Path, index: int) -> str:
@@ -446,7 +471,7 @@ def shape_of(document: object, directory: Path, index: int) -> list[str]:
 
 
 def run(
-    count: int, seed: int, workers: int, out: Path | None, mutate=None, minimise: bool = True
+    count: int, seed: int, workers: int, out: Path | None, mutate=None, minimize: bool = True
 ) -> list[object]:
     """Generate, compare, and shrink. Returns the diverging payloads."""
     classes, properties, id_coerced = load_terms()
@@ -466,21 +491,21 @@ def run(
                 if found is not None:
                     diverging.append(found)
 
-        minimised = (
+        minimized = (
             [shrink(document, directory, mutate) for document in diverging]
-            if minimise
+            if minimize
             else diverging
         )
 
-    if out is not None and minimised:
+    if out is not None and minimized:
         out.mkdir(parents=True, exist_ok=True)
-        for i, document in enumerate(minimised):
+        for i, document in enumerate(minimized):
             target = out / f"divergence-{seed}-{i}.json"
             target.write_text(
                 json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
             )
             print(f"wrote {target}", file=sys.stderr)
-    return minimised
+    return minimized
 
 
 def self_check(workers: int) -> int:
@@ -532,12 +557,12 @@ def main(argv: list[str] | None = None) -> int:
         "--out",
         type=Path,
         default=None,
-        help="directory to write minimised diverging payloads into",
+        help="directory to write minimized diverging payloads into",
     )
     parser.add_argument(
         "--no-shrink",
         action="store_true",
-        help="skip minimisation; a fast sweep for whether anything diverges at all",
+        help="skip minimization; a fast sweep for whether anything diverges at all",
     )
     parser.add_argument(
         "--self-check",
@@ -548,26 +573,26 @@ def main(argv: list[str] | None = None) -> int:
 
     if not PORT.exists():
         print(f"{PORT} is not built; run ./gradlew installDist", file=sys.stderr)
-        return 2
+        return EXIT_CANNOT_RUN
 
     if args.self_check:
         return self_check(args.workers)
 
-    minimised = run(
-        args.count, args.seed, args.workers, args.out, minimise=not args.no_shrink
+    minimized = run(
+        args.count, args.seed, args.workers, args.out, minimize=not args.no_shrink
     )
     print(
         f"{args.count} generated payload(s), seed {args.seed}: "
         + (
             "no divergence"
-            if not minimised
-            else f"{len(minimised)} diverging payload(s), minimised"
+            if not minimized
+            else f"{len(minimized)} diverging payload(s), minimized"
         )
     )
-    if minimised:
+    if minimized:
         shapes: Counter[str] = Counter()
         with tempfile.TemporaryDirectory() as tmp:
-            for i, document in enumerate(minimised):
+            for i, document in enumerate(minimized):
                 shapes.update(shape_of(document, Path(tmp), i))
         print("\nwhat changed, by shape:")
         for shape, times in shapes.most_common():
@@ -578,7 +603,7 @@ def main(argv: list[str] | None = None) -> int:
             " AheadOfReferenceTest rule on it. A line beginning THE PORT ADDED is"
             " never allowed and is a defect in this port."
         )
-    return 1 if minimised else 0
+    return 1 if minimized else 0
 
 
 if __name__ == "__main__":

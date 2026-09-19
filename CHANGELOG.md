@@ -9,6 +9,33 @@ Nothing has been released. There is no tag and no published artifact.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The differential fuzzer reported divergences it could not have seen.** The
+  launcher exits 1 when the JVM cannot load the port's classes, which is inside
+  the range of exit codes the harness accepts, and it prints nothing -- so every
+  payload compared empty output against the reference and "diverged". Measured
+  on this machine, whose default java is 11 and whose JDK 17, 21 and 26 are
+  unlinked in Homebrew's cellar: `--self-check` reported 12 of 12 payloads
+  diverging with nothing corrupted, and a four-payload run wrote four minimized
+  "divergences" that were nothing of the kind before dying in a JSON decode
+  error. It now refuses with exit 2, the code its own docstring reserves for
+  "could not run", says the port printed nothing, and names the Java version
+  when that is why. With a JDK 17 or newer the self-check passes unchanged: 12
+  of 12 caught with a corrupted exit code, 0 without.
+
+- **The pin guard trusted a version string the reference's main branch
+  shares with its last release.** A build of main reports `0.2.1`, so a build
+  installed from a local path -- and the pinned wheel with a checkout of main
+  ahead of it on `PYTHONPATH` -- both passed `require_the_pinned_reference`.
+  Measured on 2026-09-11: each reached the corpus and printed ten ordinary
+  `differs:` lines, stopped only by an unrelated census refusal; in write mode
+  those ten expectations would already have been rewritten. The guard now also
+  requires the imported module to be the installed distribution's own file,
+  and the distribution to carry no PEP 610 `direct_url.json`, which an
+  installer records for every path, URL, VCS or editable install and never for
+  one from an index. A CI step proves both refusals with the pinned artifact.
+
 ### Added
 
 - **Checks 6 to 9, ported from the reference's main branch, where no release
@@ -34,7 +61,7 @@ Nothing has been released. There is no tag and no published artifact.
   validated, the first document read winning an `@id`, blank nodes never
   indexed, a directory read one level deep. Check 3 reports
   `REF_RESOLVED_SUPPLIED`/INFO naming the file, check 4 judges a supplied
-  target against the range and says which file the judgement rests on, and an
+  target against the range and says which file the judgment rests on, and an
   unresolved reference says what was supplied and missed. Paths are spelled the
   way `pathlib` spells them, because the reference prints them inside findings.
   The design review ROADMAP section 2 asked for is ADR 0007.
@@ -303,7 +330,7 @@ Nothing has been released. There is no tag and no published artifact.
   supplementary-plane characters, floats around the notation boundary, empty
   strings and containers, and inline objects nested several deep. It runs both
   implementations over each payload, compares the whole parity document byte for
-  byte, minimises anything that disagrees, and reports what changed by shape.
+  byte, minimizes anything that disagrees, and reports what changed by shape.
 
   Measured 2026-09-01, 3,000 payloads across three seeds: 92 disagreed, in 104
   findings, over 60 distinct properties, and every one of the 104 was a
@@ -519,7 +546,7 @@ Nothing has been released. There is no tag and no published artifact.
 
 ### Added
 
-- `parity/ahead/`, a second corpus for the narrow set of behaviours where this
+- `parity/ahead/`, a second corpus for the narrow set of behaviors where this
   port leads the pinned reference release, with `AheadOfReferenceTest` holding
   the divergence to one declared substitution and failing when the pin catches
   up. `parity/fixtures/` remains byte equality with no exemptions. See

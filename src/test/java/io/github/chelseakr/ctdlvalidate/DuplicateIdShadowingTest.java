@@ -176,8 +176,8 @@ class DuplicateIdShadowingTest {
       graph.set(0, graph.get(1));
       graph.set(1, first);
       assertEquals(
-          judgements(Validator.validate(MAPPER.readTree(forwards))),
-          judgements(Validator.validate(document)),
+          judgments(Validator.validate(MAPPER.readTree(forwards))),
+          judgments(Validator.validate(document)),
           type + ": the verdict moved with the array order");
     }
   }
@@ -186,7 +186,7 @@ class DuplicateIdShadowingTest {
    * Every finding that judges the document. The merge disclosure is excluded: its message names the
    * paths the declarations sit at, and rearranging the document moves them on purpose.
    */
-  private static List<Finding> judgements(List<Finding> findings) {
+  private static List<Finding> judgments(List<Finding> findings) {
     List<Finding> judged = new ArrayList<>();
     for (Finding finding : findings) {
       if (!"ID_DECLARED_MORE_THAN_ONCE".equals(finding.code())) {
@@ -240,7 +240,7 @@ class DuplicateIdShadowingTest {
   }
 
   /**
-   * The same shadowing in the other direction, tokenised the same way as {@link #DOCUMENT}: the
+   * The same shadowing in the other direction, tokenized the same way as {@link #DOCUMENT}: the
    * first-walked declaration is in range and the top-level one is not.
    */
   private static final String MIRRORED =

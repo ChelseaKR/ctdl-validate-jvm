@@ -172,6 +172,7 @@ public final class Rules {
    * citation here. It is not this repository's {@code docs/adr/0004}, which is about something else
    * and happens to share the number.
    */
+  // "judgement" stays British: this text must match the pinned reference's output byte for byte.
   public static final Rule RESOLUTION_POLICY =
       new Rule(
           "ctdl-validate policy: --resolve is additive and is reported. A reference that resolves"

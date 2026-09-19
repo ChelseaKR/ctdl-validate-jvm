@@ -17,8 +17,8 @@ permissions:
 
 # A push to main falls through to the second operand, so keying it on
 # `github.ref` put every commit on main into one group `...-refs/heads/main`.
-# Two pushes landing close together then cancelled the older run, and that
-# commit stayed on main with no verdict: a cancelled run reports `cancelled`,
+# Two pushes landing close together then canceled the older run, and that
+# commit stayed on main with no verdict: a canceled run reports `cancelled`,
 # not a failure, so nothing goes red and nobody is told it went unchecked.
 # `github.sha` gives each commit its own group. Pull requests are unaffected --
 # they still key on the PR number and still collapse to one run.
@@ -37,9 +37,43 @@ jobs:
           fetch-depth: 0 # full clone; this is a whole-history scan, not a diff
           persist-credentials: false
       - name: TruffleHog (full history, all result tiers)
-        uses: trufflesecurity/trufflehog@20652fbbdefffcdaa493a5bf57ab2ac6b1db715b # v3.97.1
+        uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4
         with:
           path: ./
+          # `base: ""` + `head: HEAD` is what makes this a history scan. Without
+          # them the action falls through to its own event logic and scans a
+          # DIFF, not the history, while still reporting under the job name
+          # "full-history secret scan (all result tiers)":
+          #
+          #   push              --since-commit <event.before> --branch <event.after>
+          #   pull_request      --since-commit <pr.base.sha>  --branch <pr.head.sha>
+          #   schedule/dispatch --since-commit ''             --branch ''   (all of it)
+          #
+          # So only the weekly cron and a manual dispatch ever read history; the
+          # push and pull_request runs -- the ones that gate a merge -- read the
+          # event's diff. Measured on this repository on 2026-09-13, same day,
+          # same pinned scanner 3.97.1:
+          #
+          #   schedule     run 34749661266  chunks: 855  bytes: 2475409
+          #   pull_request run 34767716190  chunks: 2    bytes: 1325
+          #   push (main)  run 34553198678  chunks: 5    bytes: 5024
+          #
+          # `fetch-depth: 0` above did not prevent that and cannot: it decides
+          # how much history is on DISK. All 41 commits were on disk in every
+          # one of those runs. What the scanner READS is decided by how it is
+          # invoked, which is these two inputs.
+          #
+          # `head` must be NON-EMPTY. The action's guard is
+          # `if [ -n "$BASE" ] || [ -n "$HEAD" ]`, so `base: ""` on its own
+          # leaves both empty and falls straight back to the event logic.
+          # With `head` set the guard is taken, base_commit is "" and
+          # head_commit is HEAD -- they differ, so the "BASE and HEAD commits
+          # are the same" bail-out does not fire -- and the run becomes
+          # `--since-commit '' --branch HEAD`, the whole history, on EVERY
+          # event. `HEAD` rather than a branch name because a pull_request
+          # checkout is a detached merge ref with no branch to name.
+          base: ""
+          head: HEAD
           # Pinned, and it must equal the version comment on the `uses` line
           # above. The action's `version:` input defaults to "latest" and it
           # runs `ghcr.io/trufflesecurity/trufflehog:${VERSION}`, so the SHA
@@ -47,7 +81,7 @@ jobs:
           # this input the sweep silently tracked whatever upstream published
           # last, and every Dependabot bump of the ref was a no-op because
           # Dependabot never edits a `with:` input.
-          version: "3.97.1"
+          version: "3.97.4"
           # The action's baked-in command already passes --fail; repeating it
           # is a CLI error ("flag 'fail' cannot be repeated").
           #

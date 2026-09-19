@@ -85,7 +85,7 @@ class AheadOfReferenceTest {
    *     finding, so a property predicate narrows nothing, and what makes the disagreement
    *     legitimate is a fact about the payload — the referenced identifier really is declared more
    *     than once, with declarations that really do differ in class. Reading it out of the fixture
-   *     keeps the row from being the licence a property predicate alone would make it. See ADR
+   *     keeps the row from being the license a property predicate alone would make it. See ADR
    *     0005.
    * @param why the disposition, for a failure message that says what was expected
    */
@@ -123,7 +123,7 @@ class AheadOfReferenceTest {
    * Every disagreement this port is allowed to have with the pinned release, and nothing else.
    *
    * <p>Each predicate is derived from the vendored snapshot on every run. That is what stops this
-   * table from being a licence: a disposition can only reach a property the published schema
+   * table from being a license: a disposition can only reach a property the published schema
    * actually declares the way the disposition claims it does.
    */
   private static List<Disposition> dispositions() {
@@ -182,7 +182,7 @@ class AheadOfReferenceTest {
    * the identifier the finding names as its value is declared more than once; those declarations do
    * not agree about {@code @type}, so there was something to shadow; and the entity the finding is
    * about really does carry that property with that value, so the row cannot be reached by a
-   * finding relabelled onto a property the document never used.
+   * finding relabeled onto a property the document never used.
    *
    * <p>Fails closed. A fixture written in a shape this cannot read — full-IRI property keys, say —
    * reports no shadowing and the disagreement goes undeclared, which is a red build rather than a

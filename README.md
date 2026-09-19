@@ -85,7 +85,7 @@ only the reading of the *document* was wrong:
 - An inverse asserted as a nested object carrying the referenced `@id` was
   compared as a string, so a back-reference that really is present read as a
   mismatch. `hasPart`/`isPartOf` still have to agree; one of the two shapes a
-  reference can take was not being recognised. Filed upstream as
+  reference can take was not being recognized. Filed upstream as
   `ChelseaKR/ctdl-validate#32`.
 - A class ruling was decided by whichever declaration of a duplicated `@id` the
   walk reached first, which is depth-first into an earlier entity's inline
@@ -127,7 +127,7 @@ list of property names, so a disagreement can never be justified by anything but
 the artifact it claims to rest on. Four of the five rest on the vendored
 snapshot alone. The last one cannot: every property that ranges on entity
 classes can produce a `RANGE_VIOLATION`, so a property predicate there would
-admit the whole schema and look like a gate while being a licence. What makes
+admit the whole schema and look like a gate while being a license. What makes
 that disagreement legitimate is a fact about the payload, so it is read out of
 the payload — [ADR 0005](docs/adr/0005-a-disposition-may-be-gated-on-the-payload.md),
 which extends 0004 rather than loosening it, and fails closed on a fixture it
@@ -329,7 +329,7 @@ is what a range that excludes nothing means.
 ## What porting it actually took
 
 Most of the work was not the rules. The checks are short and the schema
-drives them. The work was in the places where "the same behaviour" turns out
+drives them. The work was in the places where "the same behavior" turns out
 to mean something specific about a language:
 
 - **String ordering.** Findings, property keys, and class lists are sorted.
@@ -428,7 +428,7 @@ by reading, which is the argument for having it.
   hash randomization; this port breaks that tie on the rule fields instead,
   so it is deterministic where the reference is not. No fixture reaches the
   case. It is recorded here rather than left as a surprise, and it is a
-  divergence in favour of determinism, not against it.
+  divergence in favor of determinism, not against it.
 - **Jackson is a runtime dependency.** The sibling has none; the Python
   standard library ships a JSON parser and Java's does not. Using the
   ecosystem's usual parser is the idiomatic choice and was the point of the

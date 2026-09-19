@@ -35,11 +35,17 @@ python3 -m pip install --require-hashes -r parity/reference-requirements.txt
 
 ## The merge gate
 
-A change merges when `./gradlew verify` is green. That is the same target CI
-runs, so green locally means green in CI. `make verify` is a thin front door
-onto the same Gradle target, for consistency with the rest of the portfolio;
+A change is meant to merge when `./gradlew verify` is green. That is the same
+target CI runs, so green locally means green in CI. `make verify` is a thin front
+door onto the same Gradle target, for consistency with the rest of the portfolio;
 Gradle is still the build system and `build.gradle.kts` is still where the gate
 is defined.
+
+That expectation is a convention this project holds itself to, not a control.
+`main` has **no ruleset and no branch protection**, and therefore no required
+status check, so a red run does not stop a merge here. Making these jobs required
+status checks is a live repository setting and the intent; until it is applied,
+read a red check as a reason not to merge rather than as something that stops you.
 
 | Gate | Task | What it checks |
 | --- | --- | --- |
@@ -155,7 +161,7 @@ to notice, because a fuzzer reporting "nothing found" and a fuzzer comparing
 nothing look identical from the outside.
 
 Read its output as triage, not as a verdict. A withdrawal or a restatement may
-be one of the dispositions `parity/ahead/` already declares — minimise the
+be one of the dispositions `parity/ahead/` already declares — minimize the
 payload, put it in `parity/ahead/fixtures/`, and let `AheadOfReferenceTest` rule
 on it. A line beginning `THE PORT ADDED` is never allowed and is a defect here.
 

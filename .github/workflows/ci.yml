@@ -10,8 +10,8 @@ permissions:
 
 # A push to main falls through to the second operand, so keying it on
 # `github.ref` put every commit on main into one group `...-refs/heads/main`.
-# Two pushes landing close together then cancelled the older run, and that
-# commit stayed on main with no verdict: a cancelled run reports `cancelled`,
+# Two pushes landing close together then canceled the older run, and that
+# commit stayed on main with no verdict: a canceled run reports `cancelled`,
 # not a failure, so nothing goes red and nobody is told it went unchecked.
 # `github.sha` gives each commit its own group. Pull requests are unaffected --
 # they still key on the PR number and still collapse to one run.
@@ -28,7 +28,7 @@ jobs:
       contents: read
     strategy:
       # Both legs always report. Which JDK a failure belongs to is the whole
-      # point of running two, so cancelling the survivor would throw away the
+      # point of running two, so canceling the survivor would throw away the
       # answer this matrix exists to give.
       fail-fast: false
       matrix:
@@ -114,7 +114,7 @@ jobs:
       # one direction and destructive in another. Unsound: git diff does not
       # report an untracked file, so a fixture committed without its expectation
       # regenerated into a brand new file and this step passed green on a corpus
-      # whose expectations were incomplete. Measured, not theorised. Destructive:
+      # whose expectations were incomplete. Measured, not theorized. Destructive:
       # it wrote every regenerated file into the working tree, so the run that
       # detected drift was also the run that healed it locally, which is how a
       # committed artifact stays stale while the check that watches it goes green.
@@ -195,3 +195,50 @@ jobs:
             exit 1
           fi
           echo "the check refused both an unpinned reference and a missing pin"
+
+      # The version is a string the reference's main branch shares with its last
+      # release: measured 2026-09-11, a build of main reports 0.2.1. So a build of
+      # main installed from a path, or the pinned wheel with a checkout of main
+      # ahead of it on PYTHONPATH, passed the check above and reached the corpus.
+      # Both are simulated with the pinned artifact itself, so the probe needs
+      # nothing but the index, and the environment is restored before it ends.
+      - name: Prove the check refuses a reference that is not the pinned artifact
+        run: |
+          set -eu
+          shadow="$(mktemp -d)"
+          cp -R "$(python3 -c 'import ctdl_validate, os; print(os.path.dirname(ctdl_validate.__file__))')" "${shadow}/"
+          if PYTHONPATH="${shadow}" python3 tools/generate_expectations.py --check; then
+            echo "the check ran against a reference imported from outside its installation" >&2
+            exit 1
+          fi
+
+          pinned="$(sed -n 's/^ctdl-validate==\([^ \\]*\).*/\1/p' parity/reference-requirements.txt)"
+          [ -n "${pinned}" ] || { echo "no pin read, so this probe would prove nothing" >&2; exit 1; }
+
+          # The second measured case: metadata and code side by side on the path,
+          # the right version, and no installer RECORD -- the shape a checkout's
+          # own .egg-info presents. Simulated with the pinned artifact so the
+          # probe needs nothing but the index.
+          tree="$(mktemp -d)"
+          python3 -m pip install --no-deps --quiet --target "${tree}" "ctdl-validate==${pinned}"
+          rm -f "${tree}"/ctdl_validate-*.dist-info/RECORD "${tree}"/ctdl_validate-*.dist-info/INSTALLER
+          if PYTHONPATH="${tree}" python3 tools/generate_expectations.py --check; then
+            echo "the check ran against metadata carrying no installer record" >&2
+            exit 1
+          fi
+          wheels="$(mktemp -d)"
+          python3 -m pip download --no-deps --only-binary :all: --dest "${wheels}" "ctdl-validate==${pinned}"
+          python3 -m pip install --no-deps --force-reinstall "${wheels}"/*.whl
+          if python3 tools/generate_expectations.py --check; then
+            echo "the check ran against a reference installed from a file" >&2
+            exit 1
+          fi
+
+          python3 -m pip install --force-reinstall --require-hashes -r parity/reference-requirements.txt
+          python3 tools/generate_expectations.py --check
+          if [ -n "$(git status --porcelain -- parity tools)" ]; then
+            echo "a probe wrote into the working tree" >&2
+            git status --porcelain -- parity tools >&2
+            exit 1
+          fi
+          echo "the check refused both, and passes again on the pinned artifact"

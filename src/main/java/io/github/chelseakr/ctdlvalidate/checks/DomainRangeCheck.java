@@ -194,7 +194,7 @@ public final class DomainRangeCheck implements Check {
    * @param label what findings call the target
    * @param types its classes, filtered to the ones the snapshot declares; never empty
    * @param origin empty for an in-payload target, otherwise a sentence naming the supplied document
-   *     it was read from, so every judgement about it says which document it rests on
+   *     it was read from, so every judgment about it says which document it rests on
    * @param text what to print as the finding's value: the reference as written where there is one,
    *     the target's own label for a nested node
    */
