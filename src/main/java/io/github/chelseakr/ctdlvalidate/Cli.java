@@ -101,9 +101,11 @@ public final class Cli {
       return (Integer) document.get("exit_code");
     }
 
+    Session session;
     List<Finding> findings;
     try {
-      findings = Validator.validate(Validator.session(data, resolve, Path.of("")));
+      session = Validator.session(data, resolve, Path.of(""));
+      findings = Validator.validate(session);
     } catch (Graph.DocumentException exception) {
       err.println(TOOL_NAME + ": " + file + ": " + exception.getMessage());
       return 2;
@@ -112,7 +114,7 @@ public final class Cli {
     out.println(
         "json".equals(format)
             ? CanonicalJson.write(Report.json(findings, TOOL_NAME, version()))
-            : Report.text(findings));
+            : Report.text(findings, DocumentScope.of(session.graph())));
     return Validator.hasErrors(findings) ? 1 : 0;
   }
 

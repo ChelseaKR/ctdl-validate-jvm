@@ -2,11 +2,15 @@ package io.github.chelseakr.ctdlvalidate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.chelseakr.ctdlvalidate.checks.Check;
+import io.github.chelseakr.ctdlvalidate.checks.ConceptSchemeCheck;
 import io.github.chelseakr.ctdlvalidate.checks.CtidFormatCheck;
 import io.github.chelseakr.ctdlvalidate.checks.DomainRangeCheck;
 import io.github.chelseakr.ctdlvalidate.checks.IdentifierKindCheck;
+import io.github.chelseakr.ctdlvalidate.checks.IdentityCheck;
 import io.github.chelseakr.ctdlvalidate.checks.InversesCheck;
+import io.github.chelseakr.ctdlvalidate.checks.LanguageMapCheck;
 import io.github.chelseakr.ctdlvalidate.checks.ReferencesCheck;
+import io.github.chelseakr.ctdlvalidate.checks.TermStatusCheck;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +25,11 @@ public final class Validator {
           new IdentifierKindCheck(),
           new ReferencesCheck(),
           new DomainRangeCheck(),
-          new InversesCheck());
+          new InversesCheck(),
+          new IdentityCheck(),
+          new ConceptSchemeCheck(),
+          new LanguageMapCheck(),
+          new TermStatusCheck());
 
   private Validator() {}
 

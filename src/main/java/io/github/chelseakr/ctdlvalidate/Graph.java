@@ -1,6 +1,8 @@
 package io.github.chelseakr.ctdlvalidate;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,17 +10,31 @@ import java.util.Map;
  * A CTDL JSON-LD document flattened into an indexable node set.
  *
  * @param nodes every entity in the payload, in document order, parents before the objects nested
- *     inside them
- * @param byId nodes reachable by {@code @id}; where an identifier is declared twice the first
- *     declaration wins, as it does in the reference implementation. "First" is a function of walk
- *     order — depth-first into an earlier entity's inline objects before the next top-level entry —
- *     so which declaration a bare-IRI reference resolves to depends on where in the document a
- *     same-{@code @id} stub happens to be written. {@link #declarationsOf} is how a check asks the
- *     question the document actually answers: what does this payload declare about this identifier,
- *     all of it, rather than whichever declaration was reached first.
- * @param byPath nodes reachable by their location in the document
+ *     inside them. A node object whose {@code @id} another one already declared is not a second
+ *     entity: it is merged into the first, as JSON-LD reads it, and check 6 reports that it was.
+ * @param byId nodes reachable by {@code @id}, one per identifier
+ * @param byPath nodes reachable by their location in the document; every location a merged node was
+ *     declared at reaches it
+ * @param declarations identifier to every path that declared it, in walk order. An entry with more
+ *     than one path is an identifier the document declared more than once.
+ * @param envelopeId the {@code @id} of the {@code @graph} envelope itself, or null for the
+ *     single-entity and bare-array shapes, which have none. It is not a node -- nothing is asserted
+ *     about it -- but it is the one position in which a Registry graph URI appears in a published
+ *     Registry document, so check 1 reads it from here.
+ * @param envelopePath the JSON path of that identifier, or null
  */
-public record Graph(List<Node> nodes, Map<String, Node> byId, Map<String, Node> byPath) {
+public record Graph(
+    List<Node> nodes,
+    Map<String, Node> byId,
+    Map<String, Node> byPath,
+    Map<String, List<String>> declarations,
+    String envelopeId,
+    String envelopePath) {
+
+  /** A graph with no repeated identifiers and no envelope. */
+  public Graph(List<Node> nodes, Map<String, Node> byId, Map<String, Node> byPath) {
+    this(nodes, byId, byPath, Map.of(), null, null);
+  }
 
   /** One entity. */
   public record Node(
@@ -46,33 +62,30 @@ public record Graph(List<Node> nodes, Map<String, Node> byId, Map<String, Node> 
     }
   }
 
-  /**
-   * Every node in the payload declaring this {@code @id}, in document order.
-   *
-   * <p>{@link #byId} keeps one of them and drops the rest, which is fine for asking "does this
-   * reference resolve at all" and wrong for asking "what class is it". A document that declares the
-   * same {@code @id} twice asserts both declarations; keeping only the first makes the answer a
-   * function of walk order rather than of the document.
-   *
-   * @param nodeId the identifier to look up, or null
-   * @return the declarations, in document order; empty when the id is null or absent
-   */
-  public List<Node> declarationsOf(String nodeId) {
-    if (nodeId == null) {
-      return List.of();
-    }
-    List<Node> declarations = new ArrayList<>(1);
-    for (Node node : nodes) {
-      if (nodeId.equals(node.nodeId())) {
-        declarations.add(node);
+  /** Identifiers declared by more than one node object, with their paths, in walk order. */
+  public Map<String, List<String>> repeatedIds() {
+    Map<String, List<String>> repeated = new LinkedHashMap<>();
+    for (Map.Entry<String, List<String>> entry : declarations.entrySet()) {
+      if (entry.getValue().size() > 1) {
+        repeated.put(entry.getKey(), entry.getValue());
       }
     }
-    return List.copyOf(declarations);
+    return Collections.unmodifiableMap(repeated);
   }
 
-  /** Resolve a reference value to an in-payload node, or null when it does not resolve. */
+  /**
+   * Resolve a reference value to an in-payload node, or null when it does not resolve.
+   *
+   * <p>A nested object that carries its own {@code @id} is, by JSON-LD's identity rule, the same
+   * node as anything else in the payload with that {@code @id}. Since the parser merges repeated
+   * identifiers, the path already reaches the same node; asking by identity first is the direct
+   * statement of the rule, as it is in the reference.
+   */
   public Node resolve(Value value) {
     if (value instanceof Value.Nested nested) {
+      if (nested.targetId() != null && byId.containsKey(nested.targetId())) {
+        return byId.get(nested.targetId());
+      }
       return byPath.get(nested.targetPath());
     }
     if (value instanceof Value.Text text) {

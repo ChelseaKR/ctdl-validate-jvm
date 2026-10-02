@@ -73,11 +73,12 @@ public final class SchemaLoader {
   private static SchemaIndex build() {
     Map<String, SchemaIndex.ClassDef> classes = new HashMap<>();
     Map<String, RawProperty> rawProperties = new HashMap<>();
+    Terms terms = new Terms();
 
     for (String file : SCHEMA_FILES) {
       JsonNode graph = readVendored(file).get("@graph");
       for (JsonNode entry : graph) {
-        indexSchemaEntry(entry, classes, rawProperties);
+        indexSchemaEntry(entry, classes, rawProperties, terms);
       }
     }
 
@@ -114,17 +115,22 @@ public final class SchemaLoader {
               Set.copyOf(entry.getValue().targetScheme)));
     }
 
-    return new SchemaIndex(classes, properties, prefixes);
+    return new SchemaIndex(
+        classes, properties, prefixes, terms.concepts, terms.schemes, terms.unstable);
   }
 
   private static void indexSchemaEntry(
       JsonNode entry,
       Map<String, SchemaIndex.ClassDef> classes,
-      Map<String, RawProperty> rawProperties) {
+      Map<String, RawProperty> rawProperties,
+      Terms terms) {
     String term = text(entry.get("@id"));
     String entryType = text(entry.get("@type"));
     if (term == null) {
       return;
+    }
+    if ("vs:unstable".equals(text(entry.get("vs:term_status")))) {
+      terms.unstable.add(term);
     }
     if ("rdfs:Class".equals(entryType)) {
       // Parents are sorted and merged with anything already declared, so a term
@@ -136,6 +142,16 @@ public final class SchemaLoader {
         parents.addAll(existing.parents());
       }
       classes.put(term, new SchemaIndex.ClassDef(term, List.copyOf(new ArrayList<>(parents))));
+    } else if ("skos:Concept".equals(entryType)) {
+      Set<String> inScheme = terms.concepts.computeIfAbsent(term, key -> new LinkedHashSet<>());
+      for (JsonNode value : asNodeList(entry.get("skos:inScheme"))) {
+        JsonNode scheme = value.isObject() ? value.get("@id") : value;
+        if (scheme != null && scheme.isTextual()) {
+          inScheme.add(scheme.textValue());
+        }
+      }
+    } else if ("skos:ConceptScheme".equals(entryType)) {
+      terms.schemes.add(term);
     } else if ("rdf:Property".equals(entryType)) {
       RawProperty raw = rawProperties.computeIfAbsent(term, key -> new RawProperty());
       raw.domain.addAll(asStringList(entry.get("schema:domainIncludes")));
@@ -167,6 +183,30 @@ public final class SchemaLoader {
       return values;
     }
     return node.isTextual() ? List.of(node.textValue()) : List.of();
+  }
+
+  /** A JSON value read as a list: absent or null is empty, a scalar or object is a list of one. */
+  private static List<JsonNode> asNodeList(JsonNode node) {
+    if (node == null || node.isNull()) {
+      return List.of();
+    }
+    if (node.isArray()) {
+      List<JsonNode> values = new ArrayList<>();
+      node.forEach(values::add);
+      return values;
+    }
+    return List.of(node);
+  }
+
+  /**
+   * The encoding's statements about terms rather than about structure: which scheme a concept is
+   * in, which schemes exist, and which terms are declared unstable. One pass over the same graphs
+   * produces all three.
+   */
+  private static final class Terms {
+    private final Map<String, Set<String>> concepts = new LinkedHashMap<>();
+    private final Set<String> schemes = new LinkedHashSet<>();
+    private final Set<String> unstable = new LinkedHashSet<>();
   }
 
   /** Property declarations accumulated across both encodings before they are frozen. */

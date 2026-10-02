@@ -1,0 +1,26 @@
+{
+  "error": null,
+  "exit_code": 0,
+  "findings": [
+    {
+      "code": "REF_OUTSIDE_PAYLOAD",
+      "entity": "https://credentialengineregistry.org/resources/ce-0fbc3ad4-1cb4-4679-b921-eee342237367",
+      "message": "Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied. Pass it with --resolve to settle this.",
+      "property": "ceterms:audienceType",
+      "rule": {
+        "citation": "ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail. --resolve widens what the run can see, using documents the operator already has; it fetches nothing.",
+        "retrieved": "-",
+        "url": "README.md (Methodology)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "audience:Citizen"
+    }
+  ],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 0,
+    "UNVERIFIABLE": 1,
+    "WARNING": 0
+  },
+  "text_report": "UNVERIFIABLE REF_OUTSIDE_PAYLOAD  entity=https://credentialengineregistry.org/resources/ce-0fbc3ad4-1cb4-4679-b921-eee342237367\n    ceterms:audienceType = audience:Citizen\n    Reference does not resolve inside this payload. It may exist in the Registry or elsewhere; without fetching it, its existence and class cannot be confirmed or denied. Pass it with --resolve to settle this.\n    rule: ctdl-validate policy: no network access at validation time. A reference that points outside the submitted payload cannot be confirmed or denied, so it is reported UNVERIFIABLE, never as a pass or a fail. --resolve widens what the run can see, using documents the operator already has; it fetches nothing.\n    source: README.md (Methodology) (retrieved -)\n\n1 finding(s): 0 ERROR, 0 WARNING, 0 INFO, 1 UNVERIFIABLE"
+}

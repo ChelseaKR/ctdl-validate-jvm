@@ -148,6 +148,22 @@ public final class SchemaIndex {
   private final Map<String, ClassDef> classes;
   private final Map<String, PropertyDef> properties;
 
+  /**
+   * Concept term to the concept scheme(s) the encoding declares it in, from {@code skos:inScheme}.
+   * Absent for a term the snapshot does not declare, which is not the same as a term declared in no
+   * scheme.
+   */
+  private final Map<String, Set<String>> concepts;
+
+  /** Every {@code skos:ConceptScheme} the encoding declares. */
+  private final Set<String> schemes;
+
+  /**
+   * Every term the encoding declares {@code vs:term_status vs:unstable}, of any kind. What that
+   * status means is not recorded, because the encoding does not say it.
+   */
+  private final Set<String> unstable;
+
   /** Namespace/prefix pairs, longest namespace first so the most specific prefix wins. */
   private final List<Map.Entry<String, String>> namespaces;
 
@@ -157,8 +173,23 @@ public final class SchemaIndex {
       Map<String, ClassDef> classes,
       Map<String, PropertyDef> properties,
       Map<String, String> prefixes) {
+    this(classes, properties, prefixes, Map.of(), Set.of(), Set.of());
+  }
+
+  SchemaIndex(
+      Map<String, ClassDef> classes,
+      Map<String, PropertyDef> properties,
+      Map<String, String> prefixes,
+      Map<String, Set<String>> concepts,
+      Set<String> schemes,
+      Set<String> unstable) {
     this.classes = Map.copyOf(classes);
     this.properties = Map.copyOf(properties);
+    Map<String, Set<String>> frozenConcepts = new HashMap<>();
+    concepts.forEach((term, inScheme) -> frozenConcepts.put(term, Set.copyOf(inScheme)));
+    this.concepts = Map.copyOf(frozenConcepts);
+    this.schemes = Set.copyOf(schemes);
+    this.unstable = Set.copyOf(unstable);
 
     List<Map.Entry<String, String>> pairs = new ArrayList<>();
     for (Map.Entry<String, String> entry : prefixes.entrySet()) {
@@ -181,6 +212,21 @@ public final class SchemaIndex {
 
   public PropertyDef property(String term) {
     return properties.get(term);
+  }
+
+  /** Concept term to the schemes the encoding declares it in; see the field. */
+  public Map<String, Set<String>> concepts() {
+    return concepts;
+  }
+
+  /** Every concept scheme the encoding declares. */
+  public Set<String> schemes() {
+    return schemes;
+  }
+
+  /** Every term the encoding declares unstable. */
+  public Set<String> unstable() {
+    return unstable;
   }
 
   /** Compact a full IRI to {@code prefix:local} using the vendored contexts. */

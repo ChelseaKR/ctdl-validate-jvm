@@ -1,0 +1,9 @@
+# The commit of ChelseaKR/ctdl-validate that tools/next_release_parity.py
+# compares this port against, byte for byte, before any release carries it.
+#
+# Not a pin. parity/reference-requirements.txt is the pin, and parity/expected/
+# is evidence about that release alone. This names the unreleased main-branch
+# commit the port's checks 6 to 9 were written against, so the comparison is
+# against a rule set that cannot move underneath it. Move it deliberately, and
+# delete it with the harness once the pin reaches a release carrying the rules.
+816591ac6364f5bde6183afca85a1a92dad89e52

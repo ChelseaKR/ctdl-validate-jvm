@@ -43,8 +43,9 @@ public final class Rules {
   public static final Rule CTID_STRUCTURE =
       new Rule(
           "About the CTID, section \"CTID Structure\": \"Each CTID is made up of a standard UUID v4"
-              + " prefixed with ce-\" for \"a total of 39 characters (34 hexadecimal characters and"
-              + " 5 hyphens)\", in the form ce- plus 8-4-4-4-12 hexadecimal digits. Example given:"
+              + " prefixed with ce-\", and with the prefix \"there are a total of 34 hexadecimal"
+              + " characters and 5 hyphens for a total of 39 characters\", in the form ce- plus"
+              + " 8-4-4-4-12 hexadecimal digits. Example given:"
               + " ce-e8a41a52-6ff6-48f0-9872-889c87b093b7.",
           ABOUT_CTID_URL,
           RETRIEVED);
@@ -92,6 +93,77 @@ public final class Rules {
               + " using documents the operator already has; it fetches nothing.",
           "README.md (Methodology)",
           "-");
+
+  /**
+   * Why a repeated {@code @id} is read as one entity and reported. The URL is the reference's own
+   * ADR, quoted as it quotes it.
+   */
+  public static final Rule REPEATED_ID_POLICY =
+      new Rule(
+          "ctdl-validate policy: one identifier, one entity. A payload may write the same @id on"
+              + " more than one node object; this tool reads those as a single entity, taking the"
+              + " union of their @type values and of their properties, and reports that it did so."
+              + " It does not keep whichever declaration it parsed first and drop the rest, because"
+              + " that made a verdict depend on @graph array order rather than on the document. The"
+              + " report is a disclosure, not a defect: the tool states what it merged so a reader"
+              + " who did not intend one entity can see that it read one.",
+          "docs/adr/0005-one-identifier-one-entity.md",
+          "-");
+
+  /** A scheme-bound value the vendored encoding does not declare, reported and not judged. */
+  public static final Rule CONCEPT_OUTSIDE_SNAPSHOT =
+      new Rule(
+          "ctdl-validate policy: a value on a scheme-bound property that the vendored encoding does"
+              + " not declare is reported UNVERIFIABLE, never as a pass or a fail. CTDL's alignment"
+              + " objects are built to point at frameworks outside CTDL, and the Registry's"
+              + " published documents do point at O*NET, CIP and NAICS on these very properties."
+              + " This tool has not vendored those frameworks and does not fetch, so it can say only"
+              + " that it did not check the value, not that the value is wrong.",
+          "README.md (Methodology)",
+          "-");
+
+  /**
+   * A term the encoding marks unstable, cited against the declaration itself and nothing more: the
+   * vendored files do not say what {@code vs:unstable} obliges anyone to do.
+   */
+  public static Rule termStatus(String term) {
+    return new Rule(
+        "CTDL schema encoding: "
+            + term
+            + " is declared vs:term_status vs:unstable. This tool reports that declaration and does"
+            + " not interpret it. The vendored files do not say what an unstable term obliges a"
+            + " publisher to do, so neither does this finding.",
+        vocabSchemaUrl(term),
+        RETRIEVED);
+  }
+
+  /** A property the context declares a language map, cited against the context. */
+  public static Rule languageMapShape(String prop) {
+    return new Rule(
+        "CTDL JSON-LD context: "
+            + prop
+            + " is declared {\"@container\": \"@language\"}, so its values are keyed by language"
+            + " tag. A bare literal in that position carries no language, which is the one thing"
+            + " the declaration exists to record.",
+        vocabContextUrl(prop),
+        RETRIEVED);
+  }
+
+  /** A property's {@code meta:targetScheme}, cited against the snapshot it comes from. */
+  public static Rule conceptScheme(String prop, Collection<String> scheme) {
+    List<String> named = new ArrayList<>(scheme);
+    named.sort(CodePointOrder.COMPARATOR);
+    return new Rule(
+        "CTDL schema encoding: "
+            + prop
+            + " declares meta:targetScheme "
+            + String.join(", ", named)
+            + ". The same encoding declares each concept's own scheme with skos:inScheme. A value"
+            + " that the encoding declares in a different scheme is a term from the wrong"
+            + " vocabulary for this property.",
+        vocabSchemaUrl(prop),
+        RETRIEVED);
+  }
 
   /**
    * Why a reference resolved in a supplied document is reported rather than silently accepted.
