@@ -1,5 +1,8 @@
 # ctdl-validate-jvm
 
+[![CI](https://github.com/ChelseaKR/ctdl-validate-jvm/actions/workflows/ci.yml/badge.svg)](https://github.com/ChelseaKR/ctdl-validate-jvm/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 A Java port of the rule core of
 [`ChelseaKR/ctdl-validate`](https://github.com/ChelseaKR/ctdl-validate),
 a validator for CTDL (Credential Transparency Description Language) JSON-LD
